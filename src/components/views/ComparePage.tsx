@@ -18,7 +18,7 @@ import {
   TableCell,
   TableRow,
 } from '@/components/ui/table';
-import { X, Check, Package, ShoppingBag, BarChart3, Plus, ChevronLeft, ChevronRight, ArrowLeftRight, Search, Trophy, CheckCircle, XCircle } from 'lucide-react';
+import { X, Check, Package, ShoppingBag, BarChart3, Plus, ChevronLeft, ChevronRight, ArrowLeftRight, Search, Trophy, CheckCircle, XCircle, Crown, Sparkles } from 'lucide-react';
 import { ComparisonTable } from '@/components/affiliate/ComparisonTable';
 import { ScoreBadge } from '@/components/affiliate/ScoreBadge';
 
@@ -208,7 +208,7 @@ export function ComparePage() {
 
       {/* Add to Compare Search Panel */}
       {showAddSearch && (
-        <Card className="mb-6 border-amber-200 dark:border-amber-800/50 bg-amber-50/30 dark:bg-amber-900/10">
+        <Card className="mb-6 border-amber-200 dark:border-amber-800/50 bg-amber-50/30 dark:bg-amber-900/10 animate-slide-up">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-3">
               <Plus size={16} className="text-amber-600" />
@@ -261,16 +261,22 @@ export function ComparePage() {
         </Card>
       )}
 
-      {/* Quick Verdict Banner */}
+      {/* ─── Quick Verdict Banner with Animated Entrance ───────────────── */}
       {products.length >= 2 && (
-        <Card className="mb-6 border-amber-200 dark:border-amber-800/40 bg-gradient-to-r from-amber-50/80 to-orange-50/50 dark:from-amber-900/20 dark:to-orange-900/10 overflow-hidden">
+        <Card className="mb-6 border-amber-200 dark:border-amber-800/40 bg-gradient-to-r from-amber-50/80 to-orange-50/50 dark:from-amber-900/20 dark:to-orange-900/10 overflow-hidden verdict-entrance">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center shrink-0">
-                <Trophy size={20} className="text-white" />
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/25 trophy-bounce">
+                <Trophy size={22} className="text-white" />
               </div>
-              <div>
-                <h3 className="font-bold text-amber-900 dark:text-amber-200 text-sm">Quick Verdict</h3>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-amber-900 dark:text-amber-200 text-sm">Quick Verdict</h3>
+                  <Badge className="bg-amber-500 text-white text-[9px] font-bold uppercase tracking-wider border-0">
+                    <Crown className="w-3 h-3 mr-0.5" />
+                    Top Pick
+                  </Badge>
+                </div>
                 <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
                   <span className="font-semibold">{products[overallWinnerIdx]!.title}</span> is our top pick
                   {winCounts[overallWinnerIdx] > 0 && (
@@ -278,6 +284,20 @@ export function ComparePage() {
                   )}
                   {products[overallWinnerIdx]!.rating === maxRating && ' with the highest rating'}
                 </p>
+              </div>
+              <div className="hidden sm:flex items-center gap-2">
+                {products.map((product, idx) => (
+                  <div key={product!.slug} className="flex items-center gap-2">
+                    {idx > 0 && (
+                      <div className="vs-badge-glow w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shrink-0">
+                        VS
+                      </div>
+                    )}
+                    <div className={`text-center px-2 py-1 rounded-lg text-[10px] font-medium ${idx === overallWinnerIdx ? 'bg-amber-500/20 text-amber-900 dark:text-amber-200 border border-amber-400/30' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>
+                      {product!.rating.toFixed(1)}★
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </CardContent>
@@ -319,74 +339,92 @@ export function ComparePage() {
         className="overflow-x-auto -mx-4 px-4 pb-4 scroll-smooth snap-x snap-mandatory md:snap-none custom-scrollbar"
       >
         <div className="min-w-[640px] md:min-w-0">
-          {/* Product Headers */}
+          {/* ─── Product Headers with VS Badges ──────────────────────────── */}
           <div className="grid gap-4" style={{ gridTemplateColumns: `200px repeat(${products.length}, 1fr)` }}>
             {/* Empty top-left cell */}
             <div />
 
             {products.map((product, idx) => (
-              <Card key={product!.slug} className={`relative snap-start ${idx === overallWinnerIdx && products.length > 1 ? 'ring-2 ring-amber-400 dark:ring-amber-500' : ''}`}>
-                {/* Remove button */}
-                <button
-                  onClick={() => removeItem(product!.slug)}
-                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-gray-100 hover:bg-red-100 dark:bg-gray-700 dark:hover:bg-red-900/30 flex items-center justify-center z-10 transition-colors"
-                  aria-label={`Remove ${product!.title} from compare`}
-                >
-                  <X size={14} className="text-gray-500 hover:text-red-600" />
-                </button>
+              <div key={product!.slug} className="relative snap-start">
+                {/* ─── VS Badge between products ──────────────────────────── */}
+                {idx > 0 && (
+                  <div className="absolute -left-5 top-1/2 -translate-y-1/2 z-20">
+                    <div className="vs-badge-glow w-10 h-10 rounded-full flex items-center justify-center text-xs font-black shadow-xl">
+                      VS
+                    </div>
+                  </div>
+                )}
 
-                <CardContent className="p-4 text-center">
-                  {/* Winner badge */}
+                <Card className={`relative ${idx === overallWinnerIdx && products.length > 1 ? 'ring-2 ring-amber-400 dark:ring-amber-500 shadow-lg shadow-amber-500/10' : ''} transition-all duration-300`}>
+                  {/* ─── Winner Crown/Trophy Highlight ────────────────────── */}
                   {idx === overallWinnerIdx && products.length > 1 && (
-                    <Badge className="bg-amber-500 text-white text-[10px] mb-2">
-                      <Trophy className="w-3 h-3 mr-1" />
-                      Top Pick
-                    </Badge>
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                      <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 text-white text-[10px] font-bold uppercase tracking-wider shadow-lg shadow-amber-500/30 trophy-bounce">
+                        <Crown className="w-3 h-3" />
+                        Top Pick
+                      </div>
+                    </div>
                   )}
 
-                  {/* Image */}
-                  <div
-                    className="w-full aspect-square max-w-[180px] mx-auto rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700 mb-3 cursor-pointer"
-                    onClick={() => goToProduct(product!.slug)}
+                  {/* Remove button */}
+                  <button
+                    onClick={() => removeItem(product!.slug)}
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-gray-100 hover:bg-red-100 dark:bg-gray-700 dark:hover:bg-red-900/30 flex items-center justify-center z-10 transition-colors"
+                    aria-label={`Remove ${product!.title} from compare`}
                   >
-                    {product!.image ? (
-                      <img
-                        src={product!.image}
-                        alt={product!.title}
-                        className="w-full h-full object-contain p-4"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-amber-50 dark:bg-gray-700">
-                        <Package size={40} className="text-amber-400 dark:text-amber-500" />
-                      </div>
-                    )}
-                  </div>
+                    <X size={14} className="text-gray-500 hover:text-red-600" />
+                  </button>
 
-                  {/* Title */}
-                  <h3
-                    className="font-semibold text-gray-900 dark:text-white text-sm leading-tight mb-2 cursor-pointer hover:text-[#c7511f] line-clamp-2"
-                    onClick={() => goToProduct(product!.slug)}
-                  >
-                    {product!.title}
-                  </h3>
+                  <CardContent className="p-4 text-center pt-8">
+                    {/* Image */}
+                    <div
+                      className="w-full aspect-square max-w-[180px] mx-auto rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700 mb-3 cursor-pointer"
+                      onClick={() => goToProduct(product!.slug)}
+                    >
+                      {product!.image ? (
+                        <img
+                          src={product!.image}
+                          alt={product!.title}
+                          className="w-full h-full object-contain p-4"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-amber-50 dark:bg-gray-700">
+                          <Package size={40} className="text-amber-400 dark:text-amber-500" />
+                        </div>
+                      )}
+                    </div>
 
-                  {/* Score Badge */}
-                  <div className="flex justify-center mb-2">
-                    <ScoreBadge rating={product!.rating} size="sm" />
-                  </div>
+                    {/* Title */}
+                    <h3
+                      className="font-semibold text-gray-900 dark:text-white text-sm leading-tight mb-2 cursor-pointer hover:text-[#c7511f] line-clamp-2"
+                      onClick={() => goToProduct(product!.slug)}
+                    >
+                      {product!.title}
+                    </h3>
 
-                  {/* CTA */}
-                  <CheckPriceButton merchant={product!.merchant} productId={product!.asin} size="sm" className="w-full" />
-                </CardContent>
-              </Card>
+                    {/* Score Badge */}
+                    <div className="flex justify-center mb-2">
+                      <ScoreBadge rating={product!.rating} size="sm" />
+                    </div>
+
+                    {/* CTA */}
+                    <CheckPriceButton merchant={product!.merchant} productId={product!.asin} size="sm" className="w-full" />
+                  </CardContent>
+                </Card>
+              </div>
             ))}
           </div>
 
           <Separator className="my-6" />
 
-          {/* Features Section with highlight indicators */}
+          {/* ─── Features Section with Zebra Striping & Sticky Header ──── */}
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Key Features</h2>
+            <div className="compare-sticky-header py-2 mb-2 rounded-t-lg">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                Key Features
+              </h2>
+            </div>
             <Card className="overflow-hidden">
               <Table>
                 <TableBody>
@@ -394,7 +432,7 @@ export function ComparePage() {
                     const isDifferent = hasDifferingValues(key, 'features');
                     const winnerIdx = getRowWinner(key, 'features');
                     return (
-                      <TableRow key={key} className={`${isDifferent ? 'bg-amber-50/50 dark:bg-amber-900/10' : ''} ${rowIdx % 2 === 1 ? 'bg-gray-50/30 dark:bg-gray-800/30' : ''}`}>
+                      <TableRow key={key} className={`${isDifferent ? 'bg-amber-50/50 dark:bg-amber-900/10' : ''} ${rowIdx % 2 === 0 ? 'compare-row-even' : 'compare-row-odd'}`}>
                         <TableCell className="font-medium text-gray-700 dark:text-gray-300 w-[200px] min-w-[200px] text-sm sticky left-0 bg-white dark:bg-gray-800 z-[5]">
                           {key}
                           {isDifferent && (
@@ -429,9 +467,14 @@ export function ComparePage() {
 
           <Separator className="my-6" />
 
-          {/* Specifications Section with highlight indicators */}
+          {/* ─── Specifications Section with Zebra Striping ─────────────── */}
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Specifications</h2>
+            <div className="compare-sticky-header py-2 mb-2 rounded-t-lg">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-amber-500" />
+                Specifications
+              </h2>
+            </div>
             <Card className="overflow-hidden">
               <Table>
                 <TableBody>
@@ -439,7 +482,7 @@ export function ComparePage() {
                     const isDifferent = hasDifferingValues(key, 'specifications');
                     const winnerIdx = getRowWinner(key, 'specifications');
                     return (
-                      <TableRow key={key} className={`${isDifferent ? 'bg-amber-50/50 dark:bg-amber-900/10' : ''} ${rowIdx % 2 === 1 ? 'bg-gray-50/30 dark:bg-gray-800/30' : ''}`}>
+                      <TableRow key={key} className={`${isDifferent ? 'bg-amber-50/50 dark:bg-amber-900/10' : ''} ${rowIdx % 2 === 0 ? 'compare-row-even' : 'compare-row-odd'}`}>
                         <TableCell className="font-medium text-gray-700 dark:text-gray-300 w-[200px] min-w-[200px] text-sm sticky left-0 bg-white dark:bg-gray-800 z-[5]">
                           {key}
                           {isDifferent && (
@@ -485,7 +528,7 @@ export function ComparePage() {
                     <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-3 line-clamp-2">{product!.title}</h3>
                     <div className="space-y-3">
                       {/* Pros */}
-                      <div className="border border-emerald-200 bg-emerald-50/50 dark:border-emerald-800/30 dark:bg-emerald-900/10 rounded-lg p-3">
+                      <div className="pros-card rounded-lg p-3">
                         <h4 className="font-bold text-emerald-800 dark:text-emerald-300 mb-2 text-sm">Pros</h4>
                         <ul className="space-y-1.5">
                           {product!.pros.map((pro, idx) => (
@@ -499,7 +542,7 @@ export function ComparePage() {
                         </ul>
                       </div>
                       {/* Cons */}
-                      <div className="border border-red-200 bg-red-50/50 dark:border-red-800/30 dark:bg-red-900/10 rounded-lg p-3">
+                      <div className="cons-card rounded-lg p-3">
                         <h4 className="font-bold text-red-800 dark:text-red-300 mb-2 text-sm">Cons</h4>
                         <ul className="space-y-1.5">
                           {product!.cons.map((con, idx) => (
@@ -524,7 +567,7 @@ export function ComparePage() {
               {products.map((product) => (
                 <div key={product!.slug} className="space-y-3">
                   {/* Pros */}
-                  <Card className="border-emerald-200 bg-emerald-50/50 dark:border-emerald-800/30 dark:bg-emerald-900/10">
+                  <Card className="pros-card rounded-lg">
                     <CardContent className="p-3">
                       <h4 className="font-bold text-emerald-800 dark:text-emerald-300 mb-2 text-sm">Pros</h4>
                       <ul className="space-y-1.5">
@@ -541,7 +584,7 @@ export function ComparePage() {
                   </Card>
 
                   {/* Cons */}
-                  <Card className="border-red-200 bg-red-50/50 dark:border-red-800/30 dark:bg-red-900/10">
+                  <Card className="cons-card rounded-lg">
                     <CardContent className="p-3">
                       <h4 className="font-bold text-red-800 dark:text-red-300 mb-2 text-sm">Cons</h4>
                       <ul className="space-y-1.5">

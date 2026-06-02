@@ -49,6 +49,8 @@ import { ProductQuickStats } from '@/components/affiliate/ProductQuickStats';
 import { RecentlyViewedWidget } from '@/components/affiliate/RecentlyViewedWidget';
 import { ScoreBadge } from '@/components/affiliate/ScoreBadge';
 import { toast } from '@/hooks/use-toast';
+import { useCompareStore } from '@/lib/compare';
+import { GitCompare, Plus, X as XIcon, ArrowRight } from 'lucide-react';
 
 interface ProductDetailPageProps {
   productSlug: string;
@@ -359,8 +361,13 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
   const goToCategory = useRouterStore((s) => s.goToCategory);
   const goToAuthor = useRouterStore((s) => s.goToAuthor);
   const goToBrand = useRouterStore((s) => s.goToBrand);
+  const goToCompare = useRouterStore((s) => s.goToCompare);
   const addRecentlyViewed = useRecentlyViewedStore((s) => s.addRecentlyViewed);
   const recentlyViewedItems = useRecentlyViewedStore((s) => s.recentlyViewed);
+  const compareItems = useCompareStore((s) => s.items);
+  const isCurrentInCompare = useCompareStore((s) => s.isInCompare);
+  const addItemToCompare = useCompareStore((s) => s.addItem);
+  const removeItemFromCompare = useCompareStore((s) => s.removeItem);
 
   const product = getProductBySlug(productSlug);
 
@@ -897,6 +904,88 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
             size="sm"
             className="shrink-0"
           />
+        </div>
+      </div>
+
+      {/* Add to Compare Bar — Desktop floating bar */}
+      <div className="hidden md:block fixed bottom-0 left-0 right-0 z-40 transition-all duration-300">
+        <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+          <div className="h-px bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
+          <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+            {/* Left: Compare items preview */}
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="flex items-center gap-2 shrink-0">
+                <GitCompare size={18} className="text-amber-500" />
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">Compare</span>
+                <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 text-[10px] font-bold px-1.5 py-0">
+                  {compareItems.length}
+                </Badge>
+              </div>
+
+              {/* Compare item thumbnails */}
+              <div className="flex items-center gap-1.5 overflow-x-auto">
+                {compareItems.map((slug) => {
+                  const compProduct = getProductBySlug(slug);
+                  if (!compProduct) return null;
+                  return (
+                    <div
+                      key={slug}
+                      className="relative group/comp shrink-0 flex items-center gap-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-2 py-1 border border-gray-200 dark:border-gray-600"
+                    >
+                      <div className="w-7 h-7 rounded overflow-hidden bg-white dark:bg-gray-600 shrink-0">
+                        {compProduct.image ? (
+                          <img
+                            src={compProduct.image}
+                            alt={compProduct.title}
+                            className="w-full h-full object-contain p-0.5"
+                          />
+                        ) : (
+                          <Package size={12} className="text-gray-400 m-auto mt-1.5" />
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-700 dark:text-gray-300 max-w-[100px] truncate">
+                        {compProduct.title.split(' ').slice(-2).join(' ')}
+                      </span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); removeItemFromCompare(slug); }}
+                        className="opacity-0 group-hover/comp:opacity-100 transition-opacity w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-500 hover:bg-red-400 dark:hover:bg-red-500 flex items-center justify-center shrink-0"
+                        aria-label={`Remove ${compProduct.title} from compare`}
+                      >
+                        <XIcon size={8} className="text-white" />
+                      </button>
+                    </div>
+                  );
+                })}
+
+                {/* Add current product button */}
+                {!isCurrentInCompare(productSlug) && compareItems.length < 4 && (
+                  <button
+                    onClick={() => addItemToCompare(productSlug)}
+                    className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg border-2 border-dashed border-amber-300 dark:border-amber-600 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-xs font-medium"
+                  >
+                    <Plus size={12} />
+                    Add Current
+                  </button>
+                )}
+
+                {isCurrentInCompare(productSlug) && (
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium shrink-0">
+                    ✓ Current product added
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Right: Compare Now button */}
+            <Button
+              onClick={goToCompare}
+              disabled={compareItems.length < 2}
+              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold shadow-sm hover:shadow-md transition-all shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Compare Now
+              <ArrowRight size={14} className="ml-1.5" />
+            </Button>
+          </div>
         </div>
       </div>
     </article>

@@ -21,14 +21,63 @@ import {
   GitCompare,
   Star,
   Tag,
+  Sparkles,
+  Eye,
 } from 'lucide-react';
+import type { GuideType } from '@/lib/types';
 
-const guideTypeConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  'best-products': { label: 'Best Products', icon: Star, color: 'bg-amber-500 text-white' },
-  'comparison': { label: 'Comparison', icon: GitCompare, color: 'bg-emerald-600 text-white' },
-  'brand-review': { label: 'Brand Review', icon: Tag, color: 'bg-violet-600 text-white' },
-  'category-guide': { label: 'Category Guide', icon: BookOpen, color: 'bg-sky-600 text-white' },
+// ─── Guide type color config with CSS variable approach ─────────────────
+const guideTypeConfig: Record<string, { label: string; icon: React.ElementType; accentClass: string; bgLight: string; bgDark: string; border: string; textLight: string; textDark: string }> = {
+  'best-products': {
+    label: 'Best Products',
+    icon: Star,
+    accentClass: 'guide-type-best-products',
+    bgLight: 'bg-amber-50',
+    bgDark: 'dark:bg-amber-900/10',
+    border: 'border-amber-200 dark:border-amber-800/30',
+    textLight: 'text-amber-800',
+    textDark: 'dark:text-amber-300',
+  },
+  'comparison': {
+    label: 'Comparison',
+    icon: GitCompare,
+    accentClass: 'guide-type-comparison',
+    bgLight: 'bg-sky-50',
+    bgDark: 'dark:bg-sky-900/10',
+    border: 'border-sky-200 dark:border-sky-800/30',
+    textLight: 'text-sky-800',
+    textDark: 'dark:text-sky-300',
+  },
+  'brand-review': {
+    label: 'Brand Review',
+    icon: Tag,
+    accentClass: 'guide-type-brand-review',
+    bgLight: 'bg-violet-50',
+    bgDark: 'dark:bg-violet-900/10',
+    border: 'border-violet-200 dark:border-violet-800/30',
+    textLight: 'text-violet-800',
+    textDark: 'dark:text-violet-300',
+  },
+  'category-guide': {
+    label: 'Category Guide',
+    icon: BookOpen,
+    accentClass: 'guide-type-category-guide',
+    bgLight: 'bg-emerald-50',
+    bgDark: 'dark:bg-emerald-900/10',
+    border: 'border-emerald-200 dark:border-emerald-800/30',
+    textLight: 'text-emerald-800',
+    textDark: 'dark:text-emerald-300',
+  },
 };
+
+// ─── Reading time max for bar calculation ───────────────────────────────
+const MAX_READING_TIME = 20; // 20 min as 100%
+
+function isRecentlyAdded(updatedAt: string): boolean {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  return new Date(updatedAt) > thirtyDaysAgo;
+}
 
 export function GuidesPage() {
   const goToBuyingGuide = useRouterStore((s) => s.goToBuyingGuide);
@@ -54,35 +103,51 @@ export function GuidesPage() {
       <div className="max-w-5xl mx-auto px-4 py-6">
         <Breadcrumbs items={[{ label: 'Buying Guides' }]} />
 
-        {/* Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-6">
-          <div className="bg-gradient-to-r from-[#131921] to-[#37475a] p-8 md:p-12 text-white">
-            <div className="flex items-center gap-3 mb-4">
-              <Compass className="w-10 h-10 text-[#febd69]" />
-              <h1 className="text-3xl md:text-4xl font-bold">Buying Guides</h1>
+        {/* ─── Hero Section with Compass Decorative Element ────────────── */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mb-6 ring-1 ring-black/5">
+          <div className="relative bg-gradient-to-r from-[#131921] to-[#37475a] p-8 md:p-12 text-white animated-gradient" style={{ backgroundSize: '200% 200%' }}>
+            {/* Decorative Compass */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              <div className="absolute top-1/2 right-[8%] -translate-y-1/2 hero-float-1">
+                <Compass className="w-40 h-40 md:w-56 md:h-56 text-white/[0.04]" />
+              </div>
+              {/* Smaller floating accents */}
+              <div className="absolute top-[12%] right-[30%] w-3 h-3 rounded-full bg-amber-500/20 hero-float-2" style={{ animationDelay: '1s' }} />
+              <div className="absolute bottom-[18%] right-[15%] w-4 h-4 rounded-full bg-amber-400/15 hero-float-3" style={{ animationDelay: '2s' }} />
+              <div className="absolute top-[30%] right-[45%] w-2 h-2 rounded-full bg-amber-300/20 hero-float-fast" style={{ animationDelay: '0.5s' }} />
             </div>
-            <p className="text-lg text-gray-300 max-w-3xl">
-              Expert-curated guides to help you find the perfect gear for your needs. From travel essentials to home office setups, we&apos;ve got you covered.
-            </p>
-            <div className="flex items-center gap-4 mt-4 text-sm">
-              <span className="flex items-center gap-1.5 text-[#febd69]">
-                <BookOpen size={14} />
-                {buyingGuides.length} Guides
-              </span>
-              <span className="flex items-center gap-1.5 text-gray-400">
-                <Compass size={14} />
-                {guideCategories.length} Categories
-              </span>
-              <span className="flex items-center gap-1.5 text-gray-400">
-                <Star size={14} />
-                {guideTypes.length} Guide Types
-              </span>
+
+            <div className="relative flex items-start gap-4">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20 shrink-0 hero-float-3">
+                <Compass className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold mb-2 tracking-tight">Buying Guides</h1>
+                <p className="text-lg text-gray-300 max-w-3xl">
+                  Expert-curated guides to help you find the perfect gear for your needs. From travel essentials to home office setups, we&apos;ve got you covered.
+                </p>
+                <div className="flex items-center gap-4 mt-4 text-sm">
+                  <span className="flex items-center gap-1.5 text-[#febd69]">
+                    <BookOpen size={14} />
+                    {buyingGuides.length} Guides
+                  </span>
+                  <span className="flex items-center gap-1.5 text-gray-400">
+                    <Compass size={14} />
+                    {guideCategories.length} Categories
+                  </span>
+                  <span className="flex items-center gap-1.5 text-gray-400">
+                    <Star size={14} />
+                    {guideTypes.length} Guide Types
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
+          <div className="h-1 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500" />
         </div>
 
-        {/* Guide Type Badges */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
+        {/* ─── Guide Type Badges with Color Coding ─────────────────────── */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-4">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-medium text-gray-600 dark:text-gray-400 mr-1">Guide Types:</span>
             {guideTypes.map((type) => {
@@ -90,7 +155,7 @@ export function GuidesPage() {
               if (!config) return null;
               const Icon = config.icon;
               return (
-                <Badge key={type} className={`${config.color} text-xs font-semibold gap-1`}>
+                <Badge key={type} className={`${config.accentClass} text-xs font-semibold gap-1 ${config.bgLight} ${config.bgDark} ${config.border} ${config.textLight} ${config.textDark} border`}>
                   <Icon size={12} />
                   {config.label}
                 </Badge>
@@ -100,7 +165,7 @@ export function GuidesPage() {
         </div>
 
         {/* Category Filter */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-6">
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setSelectedCategory('all')}
@@ -128,17 +193,21 @@ export function GuidesPage() {
           </div>
         </div>
 
-        {/* Guides Grid */}
+        {/* ─── Guides Grid with Enhanced Cards ─────────────────────────── */}
         {filteredGuides.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {filteredGuides.map((guide) => {
+            {filteredGuides.map((guide, index) => {
               const author = getAuthorBySlug(guide.authorSlug);
               const typeConfig = guideTypeConfig[guide.guideType];
               const TypeIcon = typeConfig?.icon || BookOpen;
+              const recentlyAdded = isRecentlyAdded(guide.updatedAt);
+              const readingTimePercent = Math.min((guide.readingTime / MAX_READING_TIME) * 100, 100);
+
               return (
                 <Card
                   key={guide.id}
-                  className="overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 card-hover-lift cursor-pointer"
+                  className={`group overflow-hidden hover:shadow-xl transition-all duration-300 border bg-white dark:bg-gray-800 card-hover-lift cursor-pointer relative card-entrance card-entrance-delay-${Math.min(index + 1, 12)}`}
+                  style={typeConfig ? { borderColor: `var(--guide-accent, #e5e7eb)` } : undefined}
                   onClick={() => goToBuyingGuide(guide.slug)}
                 >
                   {/* Guide image / fallback */}
@@ -146,7 +215,7 @@ export function GuidesPage() {
                     <img
                       src={guide.image}
                       alt={guide.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
@@ -160,8 +229,8 @@ export function GuidesPage() {
                     >
                       <Package className="w-16 h-16" />
                     </div>
-                    {/* Guide type badge */}
-                    <Badge className={`absolute top-3 left-3 text-xs font-semibold gap-1 ${typeConfig?.color || 'bg-gray-600 text-white'}`}>
+                    {/* Guide type badge with color coding */}
+                    <Badge className={`absolute top-3 left-3 text-xs font-semibold gap-1 ${typeConfig?.bgLight} ${typeConfig?.bgDark} ${typeConfig?.border} ${typeConfig?.textLight} ${typeConfig?.textDark} border`}>
                       <TypeIcon size={12} />
                       {typeConfig?.label || guide.guideType}
                     </Badge>
@@ -174,12 +243,42 @@ export function GuidesPage() {
                     <Badge className="absolute bottom-3 left-3 bg-[#febd69] text-[#131921] text-xs font-semibold hover:bg-[#f3a847]">
                       {guide.category}
                     </Badge>
+                    {/* Recently Added badge */}
+                    {recentlyAdded && (
+                      <Badge className="absolute bottom-3 right-3 recently-added-badge text-[9px] font-bold uppercase tracking-wider px-2 py-0.5">
+                        <Sparkles className="w-2.5 h-2.5 mr-0.5" />
+                        New
+                      </Badge>
+                    )}
+                    {/* ─── Read Now Hover Overlay ──────────────────────────── */}
+                    <div className="read-now-overlay">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                          <Eye className="w-6 h-6 text-white" />
+                        </div>
+                        <span className="text-white font-bold text-sm">Read Now</span>
+                      </div>
+                    </div>
                   </div>
                   <CardContent className="p-5">
                     <h2 className="font-bold text-gray-900 dark:text-white text-lg leading-snug mb-2 group-hover:text-[#c7511f] transition-colors line-clamp-2">
                       {guide.title}
                     </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">{guide.excerpt}</p>
+
+                    {/* ─── Reading Time Visual Indicator ───────────────────── */}
+                    <div className={`flex items-center gap-2 mb-4 ${typeConfig?.accentClass || ''}`}>
+                      <Clock size={12} className="text-gray-400 shrink-0" />
+                      <div className="flex-1 reading-time-bar">
+                        <div
+                          className="reading-time-bar-fill"
+                          style={{ width: `${readingTimePercent}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400 tabular-nums w-14 text-right">
+                        {guide.readingTime} min
+                      </span>
+                    </div>
 
                     {/* Author and date */}
                     <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mb-4">
@@ -225,7 +324,7 @@ export function GuidesPage() {
         )}
 
         {/* Affiliate Disclosure */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6 section-entrance">
           <Disclosure />
         </div>
       </div>

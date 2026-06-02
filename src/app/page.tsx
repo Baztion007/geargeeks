@@ -35,6 +35,7 @@ import { CompareBar } from '@/components/affiliate/CompareBar';
 import { useThemeStore } from '@/lib/theme';
 import { MobileCompareFab } from '@/components/affiliate/MobileCompareFab';
 import { ReadingProgressBar } from '@/components/affiliate/ReadingProgressBar';
+import { BackToTopButton } from '@/components/affiliate/BackToTopButton';
 
 export default function Home() {
   const route = useRouterStore((s) => s.route);
@@ -145,6 +146,7 @@ export default function Home() {
 
       <Footer />
       <BackToTop />
+      <BackToTopButton />
       <CompareBar />
       <MobileCompareFab />
     </div>

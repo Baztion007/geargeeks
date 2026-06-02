@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
 import { Disclosure } from '@/components/affiliate/Disclosure';
 import { ProductCard } from '@/components/affiliate/ProductCard';
@@ -18,6 +18,8 @@ import {
   ArrowUpDown,
   Sparkles,
   Flame,
+  Eye,
+  Zap,
 } from 'lucide-react';
 
 type SortOption = 'rating' | 'recent' | 'reviewed';
@@ -26,6 +28,10 @@ export function TrendingPage() {
   const goToProduct = useRouterStore((s) => s.goToProduct);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<SortOption>('rating');
+
+  // Ref for sliding indicator
+  const pillsRef = useRef<HTMLDivElement>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
 
   // Combine trending + best sellers, deduplicate
   const allProducts = useMemo(() => {
@@ -76,23 +82,52 @@ export function TrendingPage() {
     { key: 'reviewed', label: 'Most Reviewed', icon: Flame },
   ];
 
+  // Update sliding indicator position
+  useEffect(() => {
+    if (!pillsRef.current) return;
+    const activePill = pillsRef.current.querySelector('[data-active="true"]') as HTMLElement;
+    if (activePill) {
+      const containerRect = pillsRef.current.getBoundingClientRect();
+      const pillRect = activePill.getBoundingClientRect();
+      setIndicatorStyle({
+        left: pillRect.left - containerRect.left,
+        width: pillRect.width,
+      });
+    }
+  }, [selectedCategory]);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Breadcrumbs items={[{ label: 'Trending' }]} />
 
-        {/* Hero */}
-        <div className="relative rounded-xl overflow-hidden mb-6 shadow-lg">
-          <div className="bg-gradient-to-r from-[#131921] via-[#1e293b] to-[#0f172a] p-8 md:p-12 text-white">
-            {/* Decorative elements */}
+        {/* ─── Dynamic Hero with Animated Gradient ─────────────────────── */}
+        <div className="relative rounded-2xl overflow-hidden mb-6 shadow-xl ring-1 ring-black/5">
+          <div className="bg-gradient-to-r from-[#131921] via-[#1e293b] to-[#0f172a] p-8 md:p-12 text-white animated-gradient" style={{ backgroundSize: '200% 200%' }}>
+            {/* ─── Decorative elements with flame shapes ──────────────── */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              <div className="absolute top-[10%] right-[8%] w-16 h-16 rounded-full bg-amber-500/5 border border-amber-500/10" />
-              <div className="absolute bottom-[15%] right-[25%] w-10 h-10 rounded-lg bg-amber-500/5 border border-amber-500/10" />
+              {/* Floating geometric shapes */}
+              <div className="absolute top-[8%] right-[6%] w-20 h-20 rounded-full border-2 border-amber-500/10 bg-amber-500/5 hero-float-1" />
+              <div className="absolute bottom-[12%] right-[18%] w-12 h-12 rounded-lg border border-amber-500/10 bg-amber-500/5 hero-float-2" style={{ animationDelay: '1s' }} />
+              <div className="absolute top-[35%] right-[30%] w-8 h-8 rounded-full bg-amber-500/10 hero-float-3" style={{ animationDelay: '2s' }} />
+              {/* Flame decorative elements */}
+              <div className="absolute top-[15%] right-[12%] flame-flicker" style={{ animationDelay: '0.3s' }}>
+                <Flame className="w-10 h-10 text-amber-500/20" />
+              </div>
+              <div className="absolute bottom-[20%] right-[25%] flame-flicker" style={{ animationDelay: '0.8s' }}>
+                <Flame className="w-6 h-6 text-orange-500/15" />
+              </div>
+              <div className="absolute top-[55%] right-[8%] flame-flicker" style={{ animationDelay: '1.2s' }}>
+                <Flame className="w-8 h-8 text-amber-400/15" />
+              </div>
+              {/* Gradient orbs */}
+              <div className="absolute top-[20%] right-[40%] w-32 h-32 rounded-full bg-amber-500/5 blur-2xl hero-float-slow" />
+              <div className="absolute bottom-[10%] right-[5%] w-24 h-24 rounded-full bg-orange-500/5 blur-xl hero-float-2" style={{ animationDelay: '3s' }} />
             </div>
 
             <div className="relative">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20 hero-float-3">
                   <TrendingUp className="w-7 h-7 text-white" />
                 </div>
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
@@ -121,14 +156,95 @@ export function TrendingPage() {
           <div className="h-1 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500" />
         </div>
 
-        {/* Category filter pills + Sort */}
+        {/* ─── "Hot Right Now" Featured Spotlight ──────────────────────── */}
+        {filteredProducts.length > 0 && selectedCategory === 'all' && (
+          <div className="mb-6 section-entrance">
+            <div className="flex items-center gap-2 mb-3">
+              <Flame className="w-5 h-5 text-amber-500 trending-flame-accent flame-flicker" />
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Hot Right Now</h2>
+              <Badge className="pulse-badge-enhanced bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider border-0">
+                <Zap className="w-3 h-3 mr-1" />
+                Featured
+              </Badge>
+            </div>
+            <Card
+              className="spotlight-card overflow-hidden cursor-pointer hover:shadow-2xl transition-all duration-300 border-2 border-amber-400/50 dark:border-amber-500/30 bg-white dark:bg-gray-800 rounded-2xl"
+              onClick={() => goToProduct(filteredProducts[0].slug)}
+            >
+              <div className="flex flex-col md:flex-row">
+                {/* Product Image — large */}
+                <div className="md:w-2/5 aspect-video md:aspect-auto bg-gray-50 dark:bg-gray-700 relative overflow-hidden">
+                  {filteredProducts[0].image ? (
+                    <img
+                      src={filteredProducts[0].image}
+                      alt={filteredProducts[0].title}
+                      className="w-full h-full object-contain p-6"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full min-h-[200px] flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600">
+                      <Package className="w-16 h-16 text-gray-400" />
+                    </div>
+                  )}
+                  {/* Trending badge on image */}
+                  <div className="absolute top-3 left-3">
+                    <Badge className="pulse-badge-enhanced bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold border-0 shadow-lg shadow-amber-500/30">
+                      <Flame className="w-3 h-3 mr-1" />
+                      #1 Trending
+                    </Badge>
+                  </div>
+                </div>
+                {/* Product Detail Overlay */}
+                <CardContent className="md:w-3/5 p-6 md:p-8 flex flex-col justify-center">
+                  <p className="text-xs font-medium text-amber-600 dark:text-amber-400 mb-1">{filteredProducts[0].category}</p>
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-3 leading-tight">
+                    {filteredProducts[0].title}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+                    {filteredProducts[0].excerpt}
+                  </p>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          size={18}
+                          className={star <= Math.round(filteredProducts[0].rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}
+                        />
+                      ))}
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white ml-1">{filteredProducts[0].rating.toFixed(1)}</span>
+                    </div>
+                    {filteredProducts[0].bestFor.length > 0 && (
+                      <Badge className="bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300 text-[10px] border border-amber-200 dark:border-amber-800/30">
+                        {filteredProducts[0].bestFor[0]}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      className="bg-amber-500 hover:bg-amber-400 text-[#0f172a] font-semibold"
+                      onClick={(e) => { e.stopPropagation(); goToProduct(filteredProducts[0].slug); }}
+                    >
+                      <Eye className="w-4 h-4 mr-1.5" />
+                      View Full Review
+                    </Button>
+                  </div>
+                </CardContent>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* ─── Category Filter Pills with Sliding Indicator ────────────── */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            {/* Category pills */}
-            <div className="flex items-center gap-2 flex-wrap">
+            {/* Category pills with sliding indicator */}
+            <div className="filter-pills-container" ref={pillsRef}>
               <button
                 onClick={() => setSelectedCategory('all')}
-                className={`filter-pill ${selectedCategory === 'all' ? 'filter-pill-active' : 'filter-pill-inactive'}`}
+                data-active={selectedCategory === 'all'}
+                className={`filter-pill ${selectedCategory === 'all' ? 'filter-pill-active slide-indicator' : 'filter-pill-inactive'}`}
               >
                 All Categories
               </button>
@@ -136,11 +252,17 @@ export function TrendingPage() {
                 <button
                   key={cat.slug}
                   onClick={() => setSelectedCategory(cat.slug)}
-                  className={`filter-pill ${selectedCategory === cat.slug ? 'filter-pill-active' : 'filter-pill-inactive'}`}
+                  data-active={selectedCategory === cat.slug}
+                  className={`filter-pill ${selectedCategory === cat.slug ? 'filter-pill-active slide-indicator' : 'filter-pill-inactive'}`}
                 >
                   {cat.name}
                 </button>
               ))}
+              {/* Sliding underline indicator */}
+              <div
+                className="filter-pills-indicator"
+                style={{ left: indicatorStyle.left, width: indicatorStyle.width }}
+              />
             </div>
 
             {/* Sort options */}
@@ -169,7 +291,7 @@ export function TrendingPage() {
 
         {/* Top 3 Spotlight */}
         {selectedCategory === 'all' && filteredProducts.length >= 3 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 section-entrance">
             {filteredProducts.slice(0, 3).map((product, index) => {
               const isTop = index === 0;
               return (
@@ -184,7 +306,7 @@ export function TrendingPage() {
                   } bg-white dark:bg-gray-800`}
                   onClick={() => goToProduct(product.slug)}
                 >
-                  {/* Rank header */}
+                  {/* Rank header with trending badge */}
                   <div
                     className={`p-3 flex items-center justify-center gap-2 ${
                       isTop
@@ -194,7 +316,7 @@ export function TrendingPage() {
                         : 'bg-gradient-to-r from-amber-700 to-amber-600'
                     } text-white`}
                   >
-                    <Sparkles className="w-5 h-5" />
+                    {isTop && <Sparkles className="w-5 h-5 pulse-badge-enhanced" />}
                     <span className="font-bold text-lg">
                       {isTop ? 'Most Trending' : index === 1 ? 'Rising Star' : 'Editor Pick'}
                     </span>
@@ -260,8 +382,19 @@ export function TrendingPage() {
 
           {filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+              {filteredProducts.map((product, index) => (
+                <div key={product.id} className={`relative card-entrance card-entrance-delay-${Math.min(index + 1, 12)}`}>
+                  {/* Trending badge for top products */}
+                  {index < 3 && (
+                    <div className="absolute top-2 right-2 z-20">
+                      <Badge className="pulse-badge-enhanced bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] font-bold border-0 shadow-md">
+                        <Flame className="w-2.5 h-2.5 mr-0.5" />
+                        Trending
+                      </Badge>
+                    </div>
+                  )}
+                  <ProductCard product={product} />
+                </div>
               ))}
             </div>
           ) : (
@@ -273,7 +406,7 @@ export function TrendingPage() {
         </div>
 
         {/* Disclaimer */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 section-entrance">
           <Disclosure />
           <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
             <p>

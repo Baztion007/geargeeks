@@ -28,6 +28,7 @@ import {
   Check,
   List,
 } from 'lucide-react';
+import { BlogComments } from '@/components/affiliate/BlogComments';
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -315,6 +316,9 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
                 </Button>
               </div>
             </div>
+
+            {/* Comments Section */}
+            <BlogComments postSlug={postSlug} />
           </div>
 
           {/* Sidebar */}
