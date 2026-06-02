@@ -144,7 +144,7 @@ function HeroSection() {
         <div className="absolute top-1/3 right-1/3 w-16 h-16 rounded-full border-2 border-white/5" />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-18 lg:py-24">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-28">
         <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
           {/* Left content */}
           <div className="flex-1 text-center lg:text-left">
@@ -152,9 +152,9 @@ function HeroSection() {
               <Compass className="w-3 h-3 mr-1.5" />
               Featured Guide
             </Badge>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white leading-tight mb-5">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white leading-tight mb-5 tracking-tight">
               Discover the
-              <span className="block text-amber-400">Right Gear</span>
+              <span className="block gradient-text">Right Gear</span>
             </h1>
             <p className="text-base sm:text-lg lg:text-xl text-gray-300 mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
               Expert reviews, honest ratings, and curated buying guides to help you find the perfect gear for every adventure.
@@ -201,15 +201,15 @@ function HeroSection() {
             </div>
 
             <div className="mt-8 flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-sm text-gray-400">
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 Independent Reviews
               </span>
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
                 <Microscope className="w-4 h-4 text-emerald-400" />
                 Hands-On Tested
               </span>
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
                 <Award className="w-4 h-4 text-emerald-400" />
                 25+ Products
               </span>
@@ -219,7 +219,7 @@ function HeroSection() {
           {/* Right visual — featured guide card */}
           <div className="flex-shrink-0 w-full max-w-sm">
             {featuredGuide && (
-              <Card className="bg-white/10 backdrop-blur-sm border border-white/20 text-white overflow-hidden shadow-2xl">
+              <Card className="bg-white/10 backdrop-blur-md border border-white/20 text-white overflow-hidden shadow-2xl hover:shadow-3xl hover:bg-white/15 transition-all duration-300">
                 <div className="p-5">
                   <div className="flex items-center gap-2 mb-3">
                     {getGuideTypeBadge(featuredGuide.guideType)}
@@ -285,11 +285,11 @@ function CategoriesSection() {
   const featuredCats = getFeaturedCategories();
 
   return (
-    <section className="py-10 sm:py-14 bg-white dark:bg-gray-900">
+    <section className="py-12 sm:py-16 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Popular Categories</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Popular Categories</h2>
             <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Find the right gear for your lifestyle</p>
           </div>
           <Button
@@ -361,11 +361,11 @@ function EditorsPicksSection() {
   const editorPicks = getEditorPicks();
 
   return (
-    <section id="editors-picks" className="py-10 sm:py-14 bg-gray-50 dark:bg-gray-800/50">
+    <section id="editors-picks" className="py-12 sm:py-16 bg-gray-50 dark:bg-gray-800/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
               <Award className="w-7 h-7 inline-block text-amber-500 mr-2 -mt-1" />
               Editor&apos;s Picks
             </h2>
@@ -390,11 +390,11 @@ function TrendingSection() {
   const trending = getTrending();
 
   return (
-    <section className="py-10 sm:py-14 bg-white dark:bg-gray-900">
+    <section className="py-12 sm:py-16 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
               <TrendingUp className="w-7 h-7 inline-block text-amber-500 mr-2 -mt-1" />
               Trending Now
             </h2>
@@ -421,11 +421,11 @@ function RecentlyUpdatedSection() {
   const goToProduct = useRouterStore((s) => s.goToProduct);
 
   return (
-    <section className="py-10 sm:py-14 bg-gray-50 dark:bg-gray-800/50">
+    <section className="py-12 sm:py-16 bg-gray-50 dark:bg-gray-800/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
               <Clock className="w-7 h-7 inline-block text-sky-600 mr-2 -mt-1" />
               Recently Updated Reviews
             </h2>
@@ -502,11 +502,11 @@ function BuyingGuidesSection() {
   const goToBuyingGuide = useRouterStore((s) => s.goToBuyingGuide);
 
   return (
-    <section className="py-10 sm:py-14 bg-white dark:bg-gray-900">
+    <section className="py-12 sm:py-16 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
               <Compass className="w-7 h-7 inline-block text-amber-500 mr-2 -mt-1" />
               Best Product Roundups
             </h2>
@@ -518,7 +518,7 @@ function BuyingGuidesSection() {
           {buyingGuides.map((guide) => (
             <Card
               key={guide.id}
-              className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 card-hover-lift"
+              className="group cursor-pointer overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 card-hover-lift rounded-xl"
               onClick={() => goToBuyingGuide(guide.slug)}
             >
               {/* Guide image */}
@@ -584,11 +584,11 @@ function FeaturedBrandsSection() {
   const goToBrand = useRouterStore((s) => s.goToBrand);
 
   return (
-    <section className="py-10 sm:py-14 bg-gray-50 dark:bg-gray-800/50">
+    <section className="py-12 sm:py-16 bg-gray-50 dark:bg-gray-800/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
               <Users className="w-7 h-7 inline-block text-amber-500 mr-2 -mt-1" />
               Featured Brands
             </h2>
@@ -601,12 +601,12 @@ function FeaturedBrandsSection() {
           {brands.map((brand) => (
             <Card
               key={brand.slug}
-              className="group cursor-pointer shrink-0 w-40 hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 card-hover-lift"
+              className="group cursor-pointer shrink-0 w-44 hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 card-hover-lift rounded-xl border-glow hover:border-[#febd69]/40"
               onClick={() => goToBrand(brand.slug)}
             >
-              <CardContent className="p-4 flex flex-col items-center text-center">
+              <CardContent className="p-5 flex flex-col items-center text-center">
                 {/* Brand logo/placeholder */}
-                <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3 overflow-hidden">
+                <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3 overflow-hidden ring-2 ring-gray-200/50 dark:ring-gray-600/30 group-hover:ring-[#febd69]/30 transition-all duration-300">
                   {brand.logo ? (
                     <img
                       src={brand.logo}
@@ -624,15 +624,15 @@ function FeaturedBrandsSection() {
                     className="w-full h-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-gray-600 dark:to-gray-700"
                     style={{ display: brand.logo ? 'none' : 'flex' }}
                   >
-                    <span className="text-lg font-bold text-slate-400 dark:text-slate-300">
+                    <span className="text-xl font-bold text-slate-400 dark:text-slate-300 group-hover:text-[#febd69] transition-colors duration-300">
                       {brand.name.charAt(0)}
                     </span>
                   </div>
                 </div>
-                <h3 className="font-semibold text-sm text-gray-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                <h3 className="font-semibold text-sm text-gray-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors duration-200">
                   {brand.name}
                 </h3>
-                <span className="text-[10px] text-gray-400 mt-1">{brand.productCount} product{brand.productCount !== 1 ? 's' : ''}</span>
+                <span className="text-[10px] text-gray-400 mt-1 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">{brand.productCount} product{brand.productCount !== 1 ? 's' : ''}</span>
               </CardContent>
             </Card>
           ))}
@@ -668,10 +668,10 @@ function TrustBlock() {
   ];
 
   return (
-    <section className="py-10 sm:py-14 bg-white dark:bg-gray-900">
+    <section className="py-12 sm:py-16 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Why Trust GearScope?</h2>
+        <div className="text-center mb-10">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Why Trust GearScope?</h2>
           <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-2xl mx-auto text-sm">
             We take our reviews seriously. Here&apos;s what sets GearScope apart from other review sites.
           </p>
@@ -681,7 +681,7 @@ function TrustBlock() {
           {trustItems.map((item, idx) => (
             <Card
               key={idx}
-              className="border border-emerald-100 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-lg transition-shadow text-center card-hover-lift"
+              className="border border-emerald-100 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-xl transition-all duration-300 text-center card-hover-lift rounded-xl"
             >
               <CardContent className="p-6 flex flex-col items-center">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 flex items-center justify-center mb-4">
@@ -695,7 +695,7 @@ function TrustBlock() {
         </div>
 
         {/* Editorial Independence Statement */}
-        <div className="mt-8 bg-white dark:bg-gray-800 border border-emerald-200 dark:border-gray-700 rounded-xl p-6 max-w-3xl mx-auto">
+        <div className="mt-10 bg-white dark:bg-gray-800 border border-emerald-200 dark:border-gray-700 rounded-xl p-6 max-w-3xl mx-auto shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex items-start gap-4">
             <ShieldCheck className="w-10 h-10 text-emerald-600 shrink-0 mt-1" />
             <div>
@@ -744,12 +744,12 @@ function TestimonialsSection() {
   ];
 
   return (
-    <section className="py-10 sm:py-14 bg-gray-50 dark:bg-gray-800/50">
+    <section className="py-12 sm:py-16 bg-gray-50 dark:bg-gray-800/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
+        <div className="text-center mb-10">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Quote className="w-7 h-7 text-amber-500" />
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">What Our Readers Say</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">What Our Readers Say</h2>
           </div>
           <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-2xl mx-auto text-sm">
             Join thousands of gear enthusiasts who trust our reviews
@@ -760,10 +760,10 @@ function TestimonialsSection() {
           {testimonials.map((testimonial, idx) => (
             <Card
               key={idx}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow p-5 border border-gray-100 dark:border-gray-700 card-hover-lift"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-5 border border-gray-100 dark:border-gray-700 card-hover-lift"
             >
               <CardContent className="p-0">
-                <Quote className="w-8 h-8 text-amber-400 mb-3" />
+                <Quote className="w-8 h-8 text-amber-400/60 mb-3" />
                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
                   &ldquo;{testimonial.text}&rdquo;
                 </p>
@@ -845,12 +845,12 @@ function NewsletterCTA() {
   };
 
   return (
-    <section className="py-10 sm:py-14 bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0f172a] relative overflow-hidden">
+    <section className="py-12 sm:py-16 bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0f172a] relative overflow-hidden dark:from-[#0b1120] dark:via-[#162033] dark:to-[#0b1120]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="text-center lg:text-left flex-1">
-            <Mail className="w-10 h-10 text-amber-400 mx-auto lg:mx-0 mb-3" />
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+            <Mail className="w-10 h-10 text-amber-400 mx-auto lg:mx-0 mb-3 gentle-float" />
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 tracking-tight">
               Never Miss a Review
             </h2>
             <p className="text-gray-400 text-sm max-w-md mx-auto lg:mx-0">
@@ -860,7 +860,7 @@ function NewsletterCTA() {
 
           <div className="w-full max-w-md">
             {submitted ? (
-              <Card className="bg-emerald-900/30 border border-emerald-500/30">
+              <Card className="bg-emerald-900/30 border border-emerald-500/30 rounded-xl">
                 <CardContent className="p-6 text-center">
                   <ShieldCheck className="w-10 h-10 text-emerald-400 mx-auto mb-2" />
                   <h3 className="text-white font-bold text-lg">You&apos;re In!</h3>
@@ -895,7 +895,7 @@ function NewsletterCTA() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="bg-amber-500 hover:bg-amber-400 text-[#0f172a] font-bold h-12 px-6 shrink-0 disabled:opacity-50 transition-all hover:shadow-md hover:shadow-amber-500/20"
+                  className="bg-gradient-to-r from-[#febd69] via-[#f3a847] to-[#febd69] hover:from-[#f3a847] hover:to-[#e8a23a] text-[#0f172a] font-bold h-12 px-6 shrink-0 disabled:opacity-50 transition-all hover:shadow-lg hover:shadow-amber-500/20 rounded-lg cta-shimmer"
                 >
                   {loading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

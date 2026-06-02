@@ -199,9 +199,9 @@ function TableOfContents() {
               <li key={id}>
                 <button
                   onClick={() => handleClick(id)}
-                  className={`text-sm w-full text-left px-2 py-1 rounded transition-colors ${
+                  className={`text-sm w-full text-left px-3 py-1.5 rounded-md transition-all duration-200 ${
                     activeSection === id
-                      ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 font-medium'
+                      ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 font-semibold toc-active-indicator'
                       : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
                 >
@@ -270,10 +270,10 @@ function ImageGallery({ gallery, title }: { gallery: string[]; title: string }) 
             <button
               key={idx}
               onClick={() => setSelectedIndex(idx)}
-              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${
+              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all duration-300 shrink-0 thumbnail-select ${
                 idx === selectedIndex
-                  ? 'border-amber-500 ring-2 ring-amber-500/20'
-                  : 'border-gray-200 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-400'
+                  ? 'border-amber-500 ring-2 ring-amber-500/20 scale-105'
+                  : 'border-gray-200 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-400 hover:scale-105'
               }`}
               aria-label={`View image ${idx + 1}`}
             >
@@ -416,7 +416,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
 
         {/* Product Details */}
         <div className="flex flex-col justify-center">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white leading-tight mb-3">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white leading-tight mb-3 tracking-tight">
             {product.title}
           </h1>
 
@@ -480,7 +480,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
             merchant={product.merchant}
             productId={product.asin}
             size="lg"
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto cta-shimmer bg-gradient-to-r from-[#febd69] via-[#f3a847] to-[#febd69] hover:shadow-lg hover:shadow-amber-500/20 rounded-lg font-bold text-lg h-14 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           />
 
           <p className="text-[10px] text-gray-400 mt-2">
@@ -500,7 +500,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
 
         <div>
           {/* Verdict Box */}
-          <Card id="verdict" className="bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/30 mb-8 shadow-sm hover:shadow-md transition-shadow">
+          <Card id="verdict" className="bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/30 mb-8 shadow-sm hover:shadow-md transition-shadow duration-300 section-entrance">
             <CardContent className="p-6">
               <div className="flex items-start gap-3">
                 <div className="bg-amber-500 rounded-full p-2 shrink-0 mt-0.5 shadow-md shadow-amber-200/50 dark:shadow-amber-900/30">
@@ -515,7 +515,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
           </Card>
 
           {/* Features Table */}
-          <section id="features" className="mb-8">
+          <section id="features" className="mb-8 section-entrance">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Key Features</h2>
             <Card className="overflow-hidden">
               <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
@@ -542,7 +542,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
           <Separator className="my-8" />
 
           {/* Full Review Content */}
-          <section id="full-review" className="mb-8">
+          <section id="full-review" className="mb-8 section-entrance">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Full Review</h2>
             <div className="prose prose-gray max-w-none">
               {product.fullReview.split('\n\n').map((paragraph, index) => (
@@ -560,9 +560,9 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Pros & Cons</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Pros */}
-              <Card className="border-emerald-200 dark:border-emerald-800/30 bg-emerald-50/50 dark:bg-emerald-900/10">
+              <Card className="border-emerald-200 dark:border-emerald-800/30 pros-card">
                 <CardContent className="p-5">
-                  <h3 className="font-bold text-emerald-800 dark:text-emerald-300 mb-3 text-lg">Pros</h3>
+                  <h3 className="font-bold text-emerald-800 dark:text-emerald-300 mb-3 text-lg flex items-center gap-2">Pros</h3>
                   <ul className="space-y-2.5">
                     {product.pros.map((pro, index) => (
                       <li key={index} className="flex items-start gap-2">
@@ -577,9 +577,9 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
               </Card>
 
               {/* Cons */}
-              <Card className="border-red-200 dark:border-red-800/30 bg-red-50/50 dark:bg-red-900/10">
+              <Card className="border-red-200 dark:border-red-800/30 cons-card">
                 <CardContent className="p-5">
-                  <h3 className="font-bold text-red-800 dark:text-red-300 mb-3 text-lg">Cons</h3>
+                  <h3 className="font-bold text-red-800 dark:text-red-300 mb-3 text-lg flex items-center gap-2">Cons</h3>
                   <ul className="space-y-2.5">
                     {product.cons.map((con, index) => (
                       <li key={index} className="flex items-start gap-2">
@@ -598,7 +598,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
           <Separator className="my-8" />
 
           {/* Rating Breakdown */}
-          <section id="rating" className="mb-8">
+          <section id="rating" className="mb-8 section-entrance">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Rating Breakdown</h2>
             <Card>
               <CardContent className="p-6">
@@ -621,7 +621,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
           <Separator className="my-8" />
 
           {/* Specifications Table */}
-          <section id="specifications" className="mb-8">
+          <section id="specifications" className="mb-8 section-entrance">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Specifications</h2>
             <Card className="overflow-hidden">
               <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
@@ -650,7 +650,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
           <Separator className="my-8" />
 
           {/* Who Is It For / Who Should Skip */}
-          <section id="who-is-it-for" className="mb-8">
+          <section id="who-is-it-for" className="mb-8 section-entrance">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Is This Right for You?</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="border-emerald-200 dark:border-emerald-800/30">
@@ -690,7 +690,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
 
       {/* Review Transparency Box */}
       <section className="mb-8">
-        <Card className="bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
+        <Card className="bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 rounded-xl">
           <CardContent className="p-5">
             <div className="flex items-start gap-3">
               <div className="bg-[#0f172a] dark:bg-gray-700 rounded-full p-2 shrink-0">
@@ -772,9 +772,9 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
 
       {/* Final CTA */}
       <section className="mb-8 text-center">
-        <Card className="bg-gradient-to-r from-[#0f172a] to-[#1e293b] border-0 shadow-xl">
-          <CardContent className="p-8">
-            <h2 className="text-2xl font-bold text-white mb-2">
+        <Card className="bg-gradient-to-r from-[#0f172a] to-[#1e293b] border-0 shadow-xl overflow-hidden">
+          <CardContent className="p-8 md:p-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 tracking-tight">
               Ready to Check the {product.brand} {product.title.split(' ').slice(-2).join(' ')}?
             </h2>
             <p className="text-gray-300 mb-5">
@@ -784,7 +784,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
               merchant={product.merchant}
               productId={product.asin}
               size="lg"
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto cta-shimmer bg-gradient-to-r from-[#febd69] via-[#f3a847] to-[#febd69] hover:shadow-lg hover:shadow-amber-500/20 rounded-lg font-bold text-lg h-14 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             />
             <p className="text-xs text-gray-400 mt-3">
               Price and availability are subject to change. As an affiliate, we earn from qualifying purchases.

@@ -14,37 +14,37 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BrewHub Reviews - Expert Coffee Equipment Reviews & Buying Guides",
+  title: "GearScope — Expert Reviews. Smart Recommendations.",
   description:
-    "Expert, independent reviews of espresso machines, coffee grinders, kettles, and brewing equipment. We research, test, and compare so you can brew with confidence.",
+    "Premium product reviews and buying guides to help you discover the right gear. We research, test, and compare travel gear, electronics, home office, fitness, and more.",
   keywords: [
-    "coffee reviews",
-    "espresso machine reviews",
-    "coffee grinder reviews",
-    "best coffee equipment",
-    "pour-over coffee",
-    "kettle reviews",
-    "coffee buying guide",
-    "Breville reviews",
-    "Fellow reviews",
-    "Baratza reviews",
+    "product reviews",
+    "travel gear reviews",
+    "best travel gadgets",
+    "electronics reviews",
+    "headphone reviews",
+    "standing desk reviews",
+    "fitness tracker reviews",
+    "buying guides",
+    "gear recommendations",
+    "GearScope",
   ],
-  authors: [{ name: "BrewHub Reviews" }],
+  authors: [{ name: "GearScope" }],
   icons: {
     icon: "/logo.svg",
   },
   openGraph: {
-    title: "BrewHub Reviews - Expert Coffee Equipment Reviews",
+    title: "GearScope — Expert Reviews. Smart Recommendations.",
     description:
-      "Expert, independent reviews of espresso machines, coffee grinders, kettles, and brewing equipment.",
-    siteName: "BrewHub Reviews",
+      "Premium product reviews and buying guides to help you discover the right gear for your life.",
+    siteName: "GearScope",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BrewHub Reviews - Expert Coffee Equipment Reviews",
+    title: "GearScope — Expert Reviews. Smart Recommendations.",
     description:
-      "Expert, independent reviews of espresso machines, coffee grinders, kettles, and brewing equipment.",
+      "Premium product reviews and buying guides to help you discover the right gear for your life.",
   },
   robots: {
     index: true,

@@ -1,6 +1,6 @@
-# BrewHub Reviews - Affiliate Site Worklog
+# GearScope — Premium Product Review Publication Worklog
 
-This file tracks all development work on the BrewHub Reviews Amazon affiliate site.
+This file tracks all development work on the GearScope product review site.
 
 For detailed historical entries, see the project's git history.
 
@@ -566,3 +566,73 @@ Stage Summary:
 - page.tsx routes brand and trending pages correctly
 - ZERO price references, ZERO BrewHub/coffee references in all modified files
 - ESLint passes cleanly, TypeScript compiles with no src/ errors
+
+---
+Task ID: 5-styling
+Agent: Styling Polish Developer
+Task: Premium styling polish for GearScope product review site
+
+Work Log:
+
+### 1. `/src/app/globals.css` — COMPLETE OVERHAUL
+- Replaced all BrewHub/coffee references with GearScope branding
+- Enhanced `.gradient-text` with warm amber gradient (#f59e0b, #f97316, #fbbf24) for "Scope"
+- Improved `.card-hover-lift` with cubic-bezier spring animation, 6px lift, layered shadows
+- Added dark mode shadow variants for `.card-hover-lift`
+- Added dark mode scrollbar styling (global + .custom-scrollbar)
+- Added dark mode `.skeleton-shimmer` variant
+- Extended `.stagger-children` to support 12 items (was 6)
+- Enhanced `.amazon-link` hover with amber gradient underline
+- Added `html { scroll-behavior: smooth }` for smooth scrolling
+- Added `.section-entrance` animation for fade-in-up transitions
+- Added `.thumbnail-select` with cubic-bezier bounce transition
+- Added `.border-glow` effect (amber glow ring on hover)
+- Added `.badge-chip` class for elegant bestFor tag badges
+- Added `.toc-active-indicator` with amber gradient left bar
+- Added `.pros-card` and `.cons-card` with colored left borders and gradient backgrounds
+- Polished dark mode variables for better contrast
+
+### 2. `/src/components/layout/Header.tsx` — PREMIUM POLISH
+- Enhanced backdrop blur when sticky (backdrop-blur-md)
+- Logo gradient circle (from-[#febd69] to-[#f59e0b]) with shadow
+- Search bar: ring-2 focus with amber glow, gradient search button
+- Navigation buttons: amber icon on hover with opacity transition
+- Mobile menu: wider panel, gradient header, icon containers
+- All interactive elements: active:scale-95 tactile feedback
+
+### 3. `/src/components/layout/Footer.tsx` — PREMIUM POLISH
+- Trust badges: group hover effects with scale, color transitions to #febd69
+- Footer links: hover #febd69 with amazon-link underline
+- Section titles: uppercase tracking-wider
+- Added gradient separators between sections
+
+### 4. `/src/components/views/HomePage.tsx` — PREMIUM POLISH
+- Hero: increased padding, gradient text for "Right Gear", trust indicator pills
+- All sections: py-12 sm:py-16, mb-8/mb-10, tracking-tight headings
+- Cards: rounded-xl, hover:shadow-2xl transitions
+- Featured Brands: wider cards, ring logos, border-glow, initial letter transitions
+- Newsletter: dark mode gradient, gentle-float icon, gradient cta-shimmer CTA
+
+### 5. `/src/components/views/ProductDetailPage.tsx` — PREMIUM POLISH
+- TOC: toc-active-indicator, font-semibold active state
+- Image thumbnails: thumbnail-select with scale-105 states
+- CTAs: cta-shimmer gradient, h-14, hover:scale active:scale feedback
+- Sections: section-entrance animation on all content sections
+- Pros/Cons: pros-card and cons-card classes
+- Final CTA: overflow-hidden, larger padding, tracking-tight heading
+
+### 6. `/src/components/affiliate/ProductCard.tsx` — PREMIUM POLISH
+- Card: rounded-xl, border-glow on hover
+- Wishlist: hover:scale-110
+- BestFor: badge-chip class with hover translateY
+- CTA: cta-shimmer gradient, hover:scale active:scale feedback
+- Horizontal variant: rounded-xl, border-glow, badge-chip
+
+Stage Summary:
+- Complete premium editorial styling overhaul across 6 key files
+- Warm amber gradient system throughout (no indigo/blue)
+- Smooth animations: card lifts, section entrances, thumbnail selection, badge hovers
+- Enhanced dark mode: scrollbars, shadows, skeleton shimmers, card borders
+- Premium CTA buttons with shimmer animation and scale feedback
+- Consistent spacing rhythm: py-12/16, mb-8/10, tracking-tight headings
+- ESLint passes cleanly, dev server compiles without errors

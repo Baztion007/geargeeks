@@ -19,6 +19,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSticky, setIsSticky] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
   const navigate = useRouterStore((s) => s.navigate);
   const goHome = useRouterStore((s) => s.goHome);
   const goToSearch = useRouterStore((s) => s.goToSearch);
@@ -60,14 +61,14 @@ export function Header() {
   };
 
   return (
-    <header className={`z-50 transition-shadow duration-200 ${isSticky ? 'shadow-lg backdrop-blur-sm' : ''}`}>
+    <header className={`z-50 transition-all duration-300 ${isSticky ? 'shadow-lg shadow-black/10' : ''}`}>
       {/* Primary Header */}
-      <div className="bg-[#131921]/98 backdrop-blur-sm text-white">
-        <div className="max-w-7xl mx-auto px-4 py-2">
+      <div className={`transition-all duration-300 ${isSticky ? 'bg-[#131921]/95 backdrop-blur-md' : 'bg-[#131921]/98 backdrop-blur-sm'} text-white`}>
+        <div className="max-w-7xl mx-auto px-4 py-2.5">
           <div className="flex items-center gap-4">
             {/* Mobile menu button */}
             <button
-              className="md:hidden p-2 hover:bg-[#37475a] rounded"
+              className="md:hidden p-2 hover:bg-[#37475a] rounded-lg transition-colors duration-200 active:scale-95"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >
@@ -77,10 +78,10 @@ export function Header() {
             {/* Logo */}
             <button
               onClick={goHome}
-              className="flex items-center gap-1.5 shrink-0 hover:outline hover:outline-1 hover:outline-white rounded p-1"
+              className="flex items-center gap-2 shrink-0 hover:opacity-90 rounded-lg p-1 transition-opacity duration-200"
               aria-label="Go to homepage"
             >
-              <div className="w-8 h-8 bg-[#febd69] rounded-full flex items-center justify-center">
+              <div className="w-9 h-9 bg-gradient-to-br from-[#febd69] to-[#f59e0b] rounded-full flex items-center justify-center shadow-md shadow-amber-500/20">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#131921" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="11" cy="11" r="8" />
                   <path d="m21 21-4.3-4.3" />
@@ -90,24 +91,26 @@ export function Header() {
                 <span className="text-xl font-bold tracking-tight leading-none">
                   Gear<span className="gradient-text">Scope</span>
                 </span>
-                <span className="text-[9px] text-gray-400 leading-none hidden sm:block">Expert Reviews. Smart Recommendations.</span>
+                <span className="text-[9px] text-gray-400 leading-none hidden sm:block tracking-wide">Expert Reviews. Smart Recommendations.</span>
               </div>
             </button>
 
-            {/* Search Bar */}
+            {/* Search Bar — more prominent */}
             <form onSubmit={handleSearch} className="hidden sm:flex flex-1 max-w-3xl">
-              <div className="flex w-full">
+              <div className={`flex w-full rounded-lg overflow-hidden transition-shadow duration-300 ${searchFocused ? 'ring-2 ring-[#febd69]/60 shadow-lg shadow-amber-500/10' : 'ring-0'}`}>
                 <Input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
                   placeholder="Search gear, reviews, and guides..."
-                  className="rounded-r-none border-0 bg-white text-gray-900 placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-[#febd69]/50 focus-visible:ring-offset-0 h-10 transition-shadow"
+                  className="rounded-r-none border-0 bg-white text-gray-900 placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 h-11 text-sm transition-shadow"
                   aria-label="Search"
                 />
                 <Button
                   type="submit"
-                  className="rounded-l-none bg-[#febd69] hover:bg-[#f3a847] text-[#131921] px-4 h-10"
+                  className="rounded-l-none bg-gradient-to-b from-[#febd69] to-[#f3a847] hover:from-[#f3a847] hover:to-[#e8a23a] text-[#131921] px-5 h-11 transition-all duration-200 hover:shadow-md"
                   aria-label="Search"
                 >
                   <Search size={20} />
@@ -116,26 +119,26 @@ export function Header() {
             </form>
 
             {/* Right section */}
-            <div className="hidden md:flex items-center gap-3 shrink-0">
+            <div className="hidden md:flex items-center gap-2 shrink-0">
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
-                className="flex items-center gap-1.5 hover:outline hover:outline-1 hover:outline-white rounded p-1 transition-all duration-200"
+                className="flex items-center gap-1.5 hover:bg-[#37475a] rounded-lg p-2 transition-all duration-200 active:scale-95"
                 aria-label={themeLabel}
                 title={themeLabel}
               >
-                <ThemeIcon size={22} className="text-[#febd69]" />
+                <ThemeIcon size={22} className="text-[#febd69] transition-transform duration-200 hover:rotate-12" />
                 <span className="text-[11px] text-gray-400 hidden xl:inline">{theme === 'system' ? 'Auto' : theme === 'dark' ? 'Dark' : 'Light'}</span>
               </button>
               <button
-                className="flex items-center gap-1 hover:outline hover:outline-1 hover:outline-white rounded p-1"
+                className="flex items-center gap-1.5 hover:bg-[#37475a] rounded-lg p-2 transition-all duration-200 active:scale-95"
                 onClick={goToWishlist}
                 aria-label="Wishlist"
               >
                 <div className="relative">
-                  <Heart size={28} />
+                  <Heart size={26} className="transition-transform duration-200 hover:scale-110" />
                   {wishlistCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-[#febd69] text-[#131921] text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-gradient-to-b from-[#febd69] to-[#f59e0b] text-[#131921] text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-sm">
                       {wishlistCount}
                     </span>
                   )}
@@ -146,19 +149,21 @@ export function Header() {
           </div>
 
           {/* Mobile search */}
-          <form onSubmit={handleSearch} className="sm:hidden mt-2">
-            <div className="flex w-full">
+          <form onSubmit={handleSearch} className="sm:hidden mt-3">
+            <div className={`flex w-full rounded-lg overflow-hidden transition-shadow duration-300 ${searchFocused ? 'ring-2 ring-[#febd69]/60' : 'ring-0'}`}>
               <Input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
                 placeholder="Search gear, reviews, and guides..."
-                className="rounded-r-none border-0 bg-white text-gray-900 placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-[#febd69]/50 focus-visible:ring-offset-0 h-11 text-sm transition-shadow"
+                className="rounded-r-none border-0 bg-white text-gray-900 placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 h-11 text-sm"
                 aria-label="Search mobile"
               />
               <Button
                 type="submit"
-                className="rounded-l-none bg-[#febd69] hover:bg-[#f3a847] text-[#131921] px-4 h-11"
+                className="rounded-l-none bg-gradient-to-b from-[#febd69] to-[#f3a847] hover:from-[#f3a847] hover:to-[#e8a23a] text-[#131921] px-4 h-11 transition-all duration-200"
                 aria-label="Search"
               >
                 <Search size={20} />
@@ -172,17 +177,21 @@ export function Header() {
       <div className="bg-[#232f3e] text-white">
         <div className="max-w-7xl mx-auto px-4">
           <nav className="hidden md:flex items-center gap-1 h-10 text-sm" aria-label="Main navigation">
-            {navItems.map((item) => (
-              <button
-                key={item.page}
-                onClick={() => {
-                  navigate({ page: item.page } as any);
-                }}
-                className="px-3 py-1 hover:outline hover:outline-1 hover:outline-white rounded text-gray-200 hover:text-white transition-colors amazon-link"
-              >
-                {item.label}
-              </button>
-            ))}
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.page}
+                  onClick={() => {
+                    navigate({ page: item.page } as any);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-[#37475a] rounded-md text-gray-200 hover:text-white transition-all duration-200 amazon-link relative group"
+                >
+                  <Icon size={14} className="text-[#febd69] opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                  {item.label}
+                </button>
+              );
+            })}
           </nav>
 
           {/* Mobile nav menu - slide-in panel */}
@@ -190,17 +199,25 @@ export function Header() {
             <>
               {/* Backdrop */}
               <div
-                className="md:hidden fixed inset-0 bg-black/50 z-40"
+                className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
                 onClick={() => setMobileMenuOpen(false)}
               />
               {/* Slide-in panel */}
-              <div className="md:hidden fixed top-0 left-0 bottom-0 w-[280px] bg-[#232f3e] text-white z-50 overflow-y-auto shadow-2xl animate-slide-in-left">
+              <div className="md:hidden fixed top-0 left-0 bottom-0 w-[300px] bg-[#232f3e] text-white z-50 overflow-y-auto shadow-2xl animate-slide-in-left">
                 {/* Panel header */}
-                <div className="flex items-center justify-between p-4 bg-[#131921]">
-                  <span className="font-bold text-lg">GearScope</span>
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-[#131921] to-[#1e293b]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-[#febd69] to-[#f59e0b] rounded-full flex items-center justify-center">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#131921" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.3-4.3" />
+                      </svg>
+                    </div>
+                    <span className="font-bold text-lg">Gear<span className="gradient-text">Scope</span></span>
+                  </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-8 h-8 rounded-full hover:bg-[#37475a] flex items-center justify-center transition-colors"
+                    className="w-8 h-8 rounded-full hover:bg-[#37475a] flex items-center justify-center transition-colors duration-200"
                     aria-label="Close menu"
                   >
                     <X size={20} />
@@ -218,13 +235,15 @@ export function Header() {
                             navigate({ page: item.page } as any);
                             setMobileMenuOpen(false);
                           }}
-                          className="flex items-center gap-3 w-full text-left px-5 py-3 hover:bg-[#37475a] text-gray-200 hover:text-white transition-colors"
+                          className="flex items-center gap-3 w-full text-left px-5 py-3.5 hover:bg-[#37475a] text-gray-200 hover:text-white transition-colors duration-200 active:bg-[#4a5a6d]"
                         >
-                          <Icon size={18} className="text-[#febd69] shrink-0" />
+                          <div className="w-8 h-8 rounded-lg bg-[#37475a]/50 flex items-center justify-center">
+                            <Icon size={16} className="text-[#febd69]" />
+                          </div>
                           <span className="font-medium">{item.label}</span>
                         </button>
                         {index < navItems.length - 1 && (
-                          <div className="border-b border-gray-600/30 mx-5" />
+                          <div className="border-b border-gray-600/20 mx-5" />
                         )}
                       </React.Fragment>
                     );
@@ -238,23 +257,27 @@ export function Header() {
                       goToWishlist();
                       setMobileMenuOpen(false);
                     }}
-                    className="flex items-center gap-3 w-full text-left px-5 py-3 hover:bg-[#37475a] text-gray-200 hover:text-white transition-colors"
+                    className="flex items-center gap-3 w-full text-left px-5 py-3.5 hover:bg-[#37475a] text-gray-200 hover:text-white transition-colors duration-200"
                   >
-                    <Heart size={18} className="text-[#febd69] shrink-0" />
+                    <div className="w-8 h-8 rounded-lg bg-[#37475a]/50 flex items-center justify-center">
+                      <Heart size={16} className="text-[#febd69]" />
+                    </div>
                     <span className="font-medium">Wishlist</span>
                     {wishlistCount > 0 && (
-                      <span className="ml-auto bg-[#febd69] text-[#131921] text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      <span className="ml-auto bg-gradient-to-b from-[#febd69] to-[#f59e0b] text-[#131921] text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
                         {wishlistCount}
                       </span>
                     )}
                   </button>
                   <button
                     onClick={toggleTheme}
-                    className="flex items-center gap-3 w-full text-left px-5 py-3 hover:bg-[#37475a] text-gray-200 hover:text-white transition-colors"
+                    className="flex items-center gap-3 w-full text-left px-5 py-3.5 hover:bg-[#37475a] text-gray-200 hover:text-white transition-colors duration-200"
                   >
-                    <ThemeIcon size={18} className="text-[#febd69] shrink-0" />
+                    <div className="w-8 h-8 rounded-lg bg-[#37475a]/50 flex items-center justify-center">
+                      <ThemeIcon size={16} className="text-[#febd69]" />
+                    </div>
                     <span className="font-medium">{themeLabel}</span>
-                    <span className="ml-auto text-[11px] text-gray-400">{theme === 'system' ? 'Auto' : theme === 'dark' ? 'Dark' : 'Light'}</span>
+                    <span className="ml-auto text-[11px] text-gray-400 bg-[#37475a]/50 px-2 py-0.5 rounded-full">{theme === 'system' ? 'Auto' : theme === 'dark' ? 'Dark' : 'Light'}</span>
                   </button>
                 </div>
               </div>
