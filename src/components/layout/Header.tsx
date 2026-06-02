@@ -61,7 +61,7 @@ export function Header() {
   };
 
   return (
-    <header className={`z-50 transition-all duration-300 ${isSticky ? 'shadow-lg shadow-black/10' : ''}`}>
+    <header className={`z-50 transition-all duration-300 header-glow ${isSticky ? 'shadow-lg shadow-black/10 scrolled' : ''}`}>
       {/* Primary Header */}
       <div className={`transition-all duration-300 ${isSticky ? 'bg-[#131921]/95 backdrop-blur-md' : 'bg-[#131921]/98 backdrop-blur-sm'} text-white`}>
         <div className="max-w-7xl mx-auto px-4 py-2.5">
@@ -97,7 +97,10 @@ export function Header() {
 
             {/* Search Bar — premium focus animation */}
             <form onSubmit={handleSearch} className="hidden sm:flex flex-1 max-w-3xl">
-              <div className={`flex w-full rounded-lg overflow-hidden transition-all duration-300 ${searchFocused ? 'ring-2 ring-[#febd69]/60 shadow-lg shadow-amber-500/10 scale-[1.02]' : 'ring-0'}`}>
+              <div className={`flex w-full rounded-full overflow-hidden transition-all duration-300 border ${searchFocused ? 'ring-2 ring-[#febd69]/60 shadow-lg shadow-amber-500/10 scale-[1.02] border-[#febd69]/30' : 'border-[#3a4a5c] hover:border-[#4a5a6d]'}`}>
+                <div className="flex items-center pl-4 bg-white">
+                  <Search size={18} className="text-gray-400" />
+                </div>
                 <Input
                   type="text"
                   value={searchQuery}
@@ -105,15 +108,15 @@ export function Header() {
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => setSearchFocused(false)}
                   placeholder="Search gear, reviews, and guides..."
-                  className="rounded-r-none border-0 bg-white text-gray-900 placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 h-11 text-sm transition-shadow"
+                  className="border-0 bg-white text-gray-900 placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 h-11 text-sm rounded-none shadow-none"
                   aria-label="Search"
                 />
                 <Button
                   type="submit"
-                  className="rounded-l-none bg-gradient-to-b from-[#febd69] to-[#f3a847] hover:from-[#f3a847] hover:to-[#e8a23a] text-[#131921] px-5 h-11 transition-all duration-200 hover:shadow-md"
+                  className="rounded-none rounded-r-full bg-gradient-to-b from-[#febd69] to-[#f3a847] hover:from-[#f3a847] hover:to-[#e8a23a] text-[#131921] px-5 h-11 transition-all duration-200 hover:shadow-md"
                   aria-label="Search"
                 >
-                  <Search size={20} />
+                  Search
                 </Button>
               </div>
             </form>
@@ -138,9 +141,12 @@ export function Header() {
                 <div className="relative">
                   <Heart size={26} className="transition-transform duration-200 hover:scale-110" />
                   {wishlistCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-gradient-to-b from-[#febd69] to-[#f59e0b] text-[#131921] text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-sm">
-                      {wishlistCount}
-                    </span>
+                    <>
+                      <span className="absolute -top-1 -right-1 bg-gradient-to-b from-[#febd69] to-[#f59e0b] text-[#131921] text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-sm">
+                        {wishlistCount}
+                      </span>
+                      <span className="notification-dot" />
+                    </>
                   )}
                 </div>
                 <span className="font-bold text-sm hidden lg:block">Wishlist</span>

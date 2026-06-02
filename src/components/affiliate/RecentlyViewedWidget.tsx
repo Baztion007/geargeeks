@@ -63,7 +63,7 @@ export function RecentlyViewedWidget() {
                 <h4 className="font-medium text-xs text-gray-900 dark:text-white line-clamp-2 leading-tight mb-1">
                   {product.title}
                 </h4>
-                <StarRating rating={product.rating} size="xs" showValue={false} />
+                <StarRating rating={product.rating} size="sm" showValue={false} />
                 <p className="text-[10px] text-gray-400 mt-1 line-clamp-1">
                   {product.category}
                 </p>

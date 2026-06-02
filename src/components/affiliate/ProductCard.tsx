@@ -9,6 +9,7 @@ import { CheckPriceButton } from './AffiliateLink';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tag, Package, Heart, BarChart3, Eye, CheckCircle, Bookmark } from 'lucide-react';
+import { ScoreBadge } from '@/components/affiliate/ScoreBadge';
 import { useWishlistStore } from '@/lib/wishlist';
 import { useCompareStore } from '@/lib/compare';
 import { useBookmarkStore } from '@/lib/bookmarks';
@@ -33,25 +34,31 @@ export function ProductCard({ product, showAffiliate = true }: ProductCardProps)
   const isBookmarked = useBookmarkStore((s) => s.isBookmarked(product.slug));
   const [mounted, setMounted] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [imgLoading, setImgLoading] = useState(true);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
 
   // Fix hydration mismatch - bookmark state from localStorage differs from SSR
   React.useEffect(() => { setMounted(true); }, []);
 
   return (
-    <Card className="group overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/5 dark:hover:shadow-amber-500/10 hover:border-[#febd69]/40">
+    <Card className="group overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl card-glow-hover">
       {/* Image */}
       <div
         className="relative cursor-pointer overflow-hidden bg-gray-50 dark:bg-gray-700 aspect-square"
         onClick={() => goToProduct(product.slug)}
       >
+        {/* Skeleton loading state */}
+        {imgLoading && product.image && !imgError && (
+          <div className="absolute inset-0 img-skeleton z-[1]" />
+        )}
         {product.image && !imgError ? (
           <img
             src={product.image}
             alt={product.title}
-            className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500"
+            className={`w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500 ${imgLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
             loading="lazy"
-            onError={() => setImgError(true)}
+            onError={() => { setImgError(true); setImgLoading(false); }}
+            onLoad={() => setImgLoading(false)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center p-4 group-hover:scale-105 transition-transform duration-500">
@@ -138,8 +145,11 @@ export function ProductCard({ product, showAffiliate = true }: ProductCardProps)
           </div>
         )}
 
-        {/* Rating */}
-        <StarRating rating={product.rating} size="sm" />
+        {/* Score Badge */}
+        <div className="flex items-center gap-2">
+          <ScoreBadge rating={product.rating} size="sm" />
+          <StarRating rating={product.rating} size="sm" showValue={false} />
+        </div>
 
         {/* Excerpt */}
         <p className="text-[11px] sm:text-xs text-gray-600 dark:text-gray-400 mt-2 line-clamp-2 leading-relaxed">{product.excerpt}</p>
@@ -186,7 +196,7 @@ export function ProductCard({ product, showAffiliate = true }: ProductCardProps)
               merchant={product.merchant}
               productId={product.asin}
               size="sm"
-              className="w-full mt-2 cta-primary rounded-lg text-sm py-2.5"
+              className="w-full mt-2 cta-primary rounded-lg text-sm py-2.5 hover:shadow-lg hover:shadow-amber-500/25"
             />
           </div>
         )}

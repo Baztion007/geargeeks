@@ -636,3 +636,93 @@ Stage Summary:
 - Premium CTA buttons with shimmer animation and scale feedback
 - Consistent spacing rhythm: py-12/16, mb-8/10, tracking-tight headings
 - ESLint passes cleanly, dev server compiles without errors
+
+---
+Task ID: 5-styling-round2
+Agent: Frontend Styling Expert
+Task: Significant styling polish improvements across all major components
+
+Work Log:
+
+### 1. `/src/app/globals.css` — New Utility Classes & Enhancements
+- Added shimmer effect to `.verified-badge` via `::after` pseudo-element with `shimmerSlide` animation
+- Added global scrollbar styling for light mode (`::-webkit-scrollbar` with #f1f5f9 track, #cbd5e1 thumb)
+- Added dark mode transition utilities (`html.dark *` with background/border/color/box-shadow transitions)
+- Added animation utilities: `.animate-fade-in`, `.animate-slide-up`, `.animate-scale-in`, `.animate-bounce-down`
+- Added `.card-glow-hover` class with premium amber glow border animation on hover (light + dark)
+- Added `.glass-card-premium` class with enhanced blur/saturate backdrop-filter and subtle shadow
+- Added `.featured-ribbon` class with amber gradient background, folded corner triangle, uppercase text
+- Added `.header-glow` class with bottom border glow that activates on scroll (`.scrolled`)
+- Added `.dot-pattern` background with radial-gradient dots (amber tinted, dark mode variant)
+- Added `.gradient-cta-bg` class for subtle gradient backgrounds behind CTA buttons
+- Added `.img-skeleton` loading state with shimmer animation overlay
+- Added `.wave-separator` with SVG wave `::before` pseudo-element for footer
+- Added `.notification-dot` with pulsing red dot animation for wishlist badge
+
+### 2. `/src/components/affiliate/ProductCard.tsx` — Enhanced Loading & Hover Effects
+- Added `imgLoading` state for skeleton loading indicator
+- Added `img-skeleton` overlay div that shows while image loads (shimmer animation)
+- Image transitions from `opacity-0` to `opacity-100` on load with `onLoad` handler
+- Replaced card hover class with `card-glow-hover` for premium amber border glow
+- Enhanced CTA button with `hover:shadow-lg hover:shadow-amber-500/25` shadow
+
+### 3. `/src/components/views/HomePage.tsx` — Major Visual Improvements
+- Added `ChevronDown` import for scroll indicator
+- Hero section: added bouncing scroll indicator at bottom with "Scroll" label and `animate-bounce-down` chevron
+- Categories section: replaced card styling with `glass-card-premium` for premium glass-morphism look
+- Editor's Picks section: added `dot-pattern` background texture, `relative` positioning
+- Editor's Picks: first product gets `featured-ribbon` badge with Sparkles icon and "Featured" text
+- Testimonials section: added large decorative `"` quote mark (font-serif, text-6xl) as background element
+- Testimonial cards: added `overflow-hidden` and `relative z-10` for layered quote mark effect
+- Quote icon opacity increased from `/60` to `/70` for better visibility
+
+### 4. `/src/components/views/ProductDetailPage.tsx` — Richer Detail Experience
+- Table of Contents: added emoji icons for each section (⚖️⭐📖✓✗📊📋🎯)
+- TOC buttons: changed to `flex items-center gap-2` layout with icon + label
+- Pros card: upgraded icon container to `w-8 h-8 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200`
+- Pros items: added `shadow-sm shadow-emerald-500/20` to check icons, `leading-relaxed` to text
+- Cons card: same gradient icon upgrade with red tones
+- Cons items: matching shadow and text improvements
+- Image thumbnails: selected state ring changed to `ring-amber-500/30` with stronger shadow
+- Thumbnail hover: now shows `hover:border-amber-300 dark:hover:border-amber-600` for clear hover target
+- Top CTA: wrapped in `.gradient-cta-bg` div with rounded corners and padding
+- Final CTA card: added decorative gradient orbs (amber/orange) with blur-2xl
+- Final CTA button: wrapped in `.gradient-cta-bg` container for visual emphasis
+
+### 5. `/src/components/affiliate/ScrollProgress.tsx` — Enhanced Progress Bar
+- Changed from fixed width container to `fixed top-0 left-0 right-0` full-width container
+- Increased height from `h-1` to `h-[3px]` for better visibility
+- Added glowing shadow: `shadow-[0_0_8px_rgba(245,158,11,0.4)]` on the gradient bar
+- Inner div handles width animation instead of outer container
+
+### 6. `/src/components/layout/Header.tsx` — Modern Search & Glow Effects
+- Added `header-glow` class with `scrolled` state for bottom border amber glow
+- Search bar: completely redesigned to rounded-full (`rounded-full`) with search icon inside
+- Search bar: added persistent border (`border-[#3a4a5c]`) with hover state (`hover:border-[#4a5a6d]`)
+- Search bar: search icon (Search size={18}) displayed inside input area before text
+- Search button: changed from icon-only to "Search" text with `rounded-r-full`
+- Wishlist: added `notification-dot` (pulsing red dot) when items are in wishlist
+
+### 7. `/src/components/layout/Footer.tsx` — Wave Separator & Social Icons
+- Added `wave-separator` class to footer for curved top edge
+- Added social media icon imports: Twitter, Github, Youtube, Rss
+- Newsletter section: increased padding (py-8 → py-10), added decorative gradient orbs
+- Newsletter icon: upgraded to `w-14 h-14 rounded-2xl` with `gentle-float` animation and border
+- Newsletter heading: larger text (`text-lg`), improved description
+- Newsletter input: wider (`sm:w-72`), taller (`py-3`), rounded-xl, focus:ring-2
+- Newsletter button: changed to "Subscribe Free", `font-bold`, `rounded-xl`, `cta-primary` class
+- Bottom bar: added social media icon row (Twitter, YouTube, GitHub, RSS) with hover effects
+- Social icons: each in `w-9 h-9 rounded-full` with platform-specific hover colors
+
+Stage Summary:
+- 7 files modified with significant visual enhancements
+- New CSS utilities: glow hover, glass-morphism premium, featured ribbon, dot pattern, wave separator, notification dot, skeleton loading, bounce animation, gradient CTA background
+- ProductCard: skeleton loading state, amber glow border animation
+- HomePage: scroll indicator, glass-morphism category cards, dot pattern background, featured ribbon, decorative quote marks
+- ProductDetailPage: emoji TOC icons, enhanced pros/cons cards, gradient CTA backgrounds, decorative orbs on final CTA
+- Header: modern rounded search bar with icon, bottom glow border, notification dot on wishlist
+- Footer: wave separator, prominent newsletter CTA with animation, social media icons
+- ScrollProgress: thicker, glowing progress bar
+- All changes use warm amber/orange accent colors (no indigo/blue)
+- Dark mode supported throughout
+- Lint passes with only pre-existing errors (ReadingProgressBar.tsx, ComparePage.tsx, SearchPage.tsx)

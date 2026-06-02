@@ -34,7 +34,7 @@ import { BookmarksPage } from '@/components/views/BookmarksPage';
 import { CompareBar } from '@/components/affiliate/CompareBar';
 import { useThemeStore } from '@/lib/theme';
 import { MobileCompareFab } from '@/components/affiliate/MobileCompareFab';
-import { ScrollProgress } from '@/components/affiliate/ScrollProgress';
+import { ReadingProgressBar } from '@/components/affiliate/ReadingProgressBar';
 
 export default function Home() {
   const route = useRouterStore((s) => s.route);
@@ -126,7 +126,7 @@ export default function Home() {
         }}
       />
 
-      <ScrollProgress />
+      <ReadingProgressBar />
       <Header />
 
       <main className="flex-1">

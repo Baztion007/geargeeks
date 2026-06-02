@@ -24,6 +24,7 @@ import {
   HeartHandshake,
   Clock,
   ChevronRight,
+  ChevronDown,
   Mail,
   ArrowRight,
   TrendingUp,
@@ -274,6 +275,15 @@ function HeroSection() {
         </div>
       </div>
 
+      {/* Scroll indicator — bouncing chevron */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1 opacity-70 hover:opacity-100 transition-opacity duration-200 cursor-pointer" onClick={() => {
+        const el = document.getElementById('editors-picks');
+        el?.scrollIntoView({ behavior: 'smooth' });
+      }}>
+        <span className="text-white/60 text-[10px] font-medium tracking-widest uppercase">Scroll</span>
+        <ChevronDown className="w-5 h-5 text-amber-400 animate-bounce-down" />
+      </div>
+
       {/* Bottom accent bar */}
       <div className="h-1 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500" />
     </section>
@@ -310,7 +320,7 @@ function CategoriesSection() {
           {featuredCats.map((cat) => (
             <Card
               key={cat.id}
-              className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 card-hover-lift"
+              className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200/60 dark:border-gray-600/40 glass-card-premium card-hover-lift rounded-xl"
               onClick={() => goToCategory(cat.slug)}
             >
               {/* Category image */}
@@ -335,7 +345,7 @@ function CategoriesSection() {
                   {categoryIcons[cat.slug] || <Package className="w-8 h-8" />}
                 </div>
                 {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
                 <div className="absolute bottom-3 left-3 right-3">
                   <h3 className="font-bold text-sm text-white drop-shadow-lg">{cat.name}</h3>
                 </div>
@@ -362,8 +372,8 @@ function EditorsPicksSection() {
   const editorPicks = getEditorPicks();
 
   return (
-    <section id="editors-picks" className="py-12 sm:py-16 bg-gray-50 dark:bg-gray-800/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="editors-picks" className="py-12 sm:py-16 bg-gray-50 dark:bg-gray-800/50 relative dot-pattern">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
@@ -377,8 +387,16 @@ function EditorsPicksSection() {
         <Disclosure />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 stagger-children">
-          {editorPicks.slice(0, 4).map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {editorPicks.slice(0, 4).map((product, index) => (
+            <div key={product.id} className="relative">
+              {index === 0 && (
+                <div className="featured-ribbon">
+                  <Sparkles size={10} />
+                  Featured
+                </div>
+              )}
+              <ProductCard product={product} />
+            </div>
           ))}
         </div>
       </div>
@@ -763,11 +781,13 @@ function TestimonialsSection() {
           {testimonials.map((testimonial, idx) => (
             <Card
               key={idx}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-5 border border-gray-100 dark:border-gray-700 card-hover-lift"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-5 border border-gray-100 dark:border-gray-700 card-hover-lift relative overflow-hidden"
             >
-              <CardContent className="p-0">
-                <Quote className="w-8 h-8 text-amber-400/60 mb-3" />
-                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+              <CardContent className="p-0 relative z-10">
+                {/* Large decorative quote mark */}
+                <div className="absolute -top-2 -left-1 text-6xl font-serif text-amber-200/40 dark:text-amber-700/20 leading-none select-none pointer-events-none">&ldquo;</div>
+                <Quote className="w-8 h-8 text-amber-400/70 mb-3 relative z-10" />
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-4 relative z-10">
                   &ldquo;{testimonial.text}&rdquo;
                 </p>
                 <StarRating rating={testimonial.rating} size="sm" showValue={false} />

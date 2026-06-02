@@ -47,6 +47,7 @@ import { ImageLightbox } from '@/components/affiliate/ImageLightbox';
 import { useRecentlyViewedStore } from '@/lib/recently-viewed';
 import { ProductQuickStats } from '@/components/affiliate/ProductQuickStats';
 import { RecentlyViewedWidget } from '@/components/affiliate/RecentlyViewedWidget';
+import { ScoreBadge } from '@/components/affiliate/ScoreBadge';
 import { toast } from '@/hooks/use-toast';
 
 interface ProductDetailPageProps {
@@ -194,13 +195,13 @@ function TableOfContents() {
   const [activeSection, setActiveSection] = useState('');
 
   const sections = [
-    { id: 'verdict', label: 'Our Verdict' },
-    { id: 'features', label: 'Key Features' },
-    { id: 'full-review', label: 'Full Review' },
-    { id: 'pros-cons', label: 'Pros & Cons' },
-    { id: 'rating', label: 'Rating Breakdown' },
-    { id: 'specifications', label: 'Specifications' },
-    { id: 'who-is-it-for', label: 'Is This Right for You?' },
+    { id: 'verdict', label: 'Our Verdict', icon: '⚖️' },
+    { id: 'features', label: 'Key Features', icon: '⭐' },
+    { id: 'full-review', label: 'Full Review', icon: '📖' },
+    { id: 'pros-cons', label: 'Pros & Cons', icon: '✓✗' },
+    { id: 'rating', label: 'Rating Breakdown', icon: '📊' },
+    { id: 'specifications', label: 'Specifications', icon: '📋' },
+    { id: 'who-is-it-for', label: 'Is This Right for You?', icon: '🎯' },
   ];
 
   useEffect(() => {
@@ -243,12 +244,13 @@ function TableOfContents() {
               <li key={id}>
                 <button
                   onClick={() => handleClick(id)}
-                  className={`text-sm w-full text-left px-3 py-1.5 rounded-md transition-all duration-200 ${
+                  className={`text-sm w-full text-left px-3 py-1.5 rounded-md transition-all duration-200 flex items-center gap-2 ${
                     activeSection === id
                       ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 font-semibold toc-active-indicator'
                       : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
                 >
+                  <span className="shrink-0 text-xs">{sections.find(s => s.id === id)?.icon}</span>
                   {label}
                 </button>
               </li>
@@ -316,8 +318,8 @@ function ImageGallery({ gallery, title }: { gallery: string[]; title: string }) 
               onClick={() => setSelectedIndex(idx)}
               className={`w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all duration-300 shrink-0 thumbnail-select shadow-sm ${
                 idx === selectedIndex
-                  ? 'border-amber-500 ring-2 ring-amber-500/20 scale-105 shadow-md shadow-amber-500/10'
-                  : 'border-gray-200 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-400 hover:scale-105 hover:shadow-md'
+                  ? 'border-amber-500 ring-2 ring-amber-500/30 scale-105 shadow-md shadow-amber-500/20'
+                  : 'border-gray-200 dark:border-gray-600 hover:border-amber-300 dark:hover:border-amber-600 hover:scale-105 hover:shadow-md'
               }`}
               aria-label={`View image ${idx + 1}`}
             >
@@ -477,9 +479,13 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
             </button>
           </p>
 
-          {/* Star Rating */}
-          <div className="mb-3">
-            <StarRating rating={product.rating} size="lg" />
+          {/* Score Badge + Star Rating */}
+          <div className="mb-3 flex items-center gap-3">
+            <ScoreBadge rating={product.rating} size="md" />
+            <div>
+              <StarRating rating={product.rating} size="lg" showValue={false} />
+              <span className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{product.rating.toFixed(1)} out of 5</span>
+            </div>
           </div>
 
           {/* Best For Tags */}
@@ -522,12 +528,14 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
           <Disclosure />
 
           {/* Check Price / View Latest Deal CTA */}
-          <ViewLatestDealButton
-            merchant={product.merchant}
-            productId={product.asin}
-            size="lg"
-            className="w-full sm:w-auto cta-shimmer bg-gradient-to-r from-[#febd69] via-[#f3a847] to-[#febd69] hover:shadow-lg hover:shadow-amber-500/20 rounded-lg font-bold text-lg h-14 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-          />
+          <div className="gradient-cta-bg rounded-xl p-3 mt-3">
+            <ViewLatestDealButton
+              merchant={product.merchant}
+              productId={product.asin}
+              size="lg"
+              className="w-full sm:w-auto cta-shimmer bg-gradient-to-r from-[#febd69] via-[#f3a847] to-[#febd69] hover:shadow-lg hover:shadow-amber-500/20 rounded-lg font-bold text-lg h-14 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            />
+          </div>
 
           <p className="text-[10px] text-gray-400 mt-2">
             Price and availability are subject to change. As an affiliate, we earn from qualifying purchases.
@@ -609,18 +617,18 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
               <Card className="border-emerald-200 dark:border-emerald-800/30 pros-card rounded-xl shadow-sm">
                 <CardContent className="p-5">
                   <h3 className="font-bold text-emerald-800 dark:text-emerald-300 mb-3 text-lg flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
-                      <Check size={14} className="text-emerald-600 dark:text-emerald-400" />
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/40 dark:to-emerald-800/40 flex items-center justify-center shadow-sm">
+                      <Check size={16} className="text-emerald-600 dark:text-emerald-400" />
                     </div>
                     Pros
                   </h3>
                   <ul className="space-y-2.5">
                     {product.pros.map((pro, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <div className="bg-emerald-500 rounded-full p-0.5 shrink-0 mt-0.5">
+                      <li key={index} className="flex items-start gap-2.5 group/pro">
+                        <div className="bg-emerald-500 rounded-full p-0.5 shrink-0 mt-0.5 shadow-sm shadow-emerald-500/20">
                           <Check size={14} className="text-white" />
                         </div>
-                        <span className="text-gray-700 dark:text-gray-300 text-sm">{pro}</span>
+                        <span className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{pro}</span>
                       </li>
                     ))}
                   </ul>
@@ -631,18 +639,18 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
               <Card className="border-red-200 dark:border-red-800/30 cons-card rounded-xl shadow-sm">
                 <CardContent className="p-5">
                   <h3 className="font-bold text-red-800 dark:text-red-300 mb-3 text-lg flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
-                      <X size={14} className="text-red-600 dark:text-red-400" />
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/40 dark:to-red-800/40 flex items-center justify-center shadow-sm">
+                      <X size={16} className="text-red-600 dark:text-red-400" />
                     </div>
                     Cons
                   </h3>
                   <ul className="space-y-2.5">
                     {product.cons.map((con, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <div className="bg-red-500 rounded-full p-0.5 shrink-0 mt-0.5">
+                      <li key={index} className="flex items-start gap-2.5 group/con">
+                        <div className="bg-red-500 rounded-full p-0.5 shrink-0 mt-0.5 shadow-sm shadow-red-500/20">
                           <X size={14} className="text-white" />
                         </div>
-                        <span className="text-gray-700 dark:text-gray-300 text-sm">{con}</span>
+                        <span className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{con}</span>
                       </li>
                     ))}
                   </ul>
@@ -828,20 +836,25 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
 
       {/* Final CTA */}
       <section className="mb-8 text-center">
-        <Card className="bg-gradient-to-r from-[#0f172a] to-[#1e293b] border-0 shadow-xl overflow-hidden">
-          <CardContent className="p-8 md:p-10">
+        <Card className="bg-gradient-to-r from-[#0f172a] to-[#1e293b] border-0 shadow-xl overflow-hidden relative">
+          {/* Decorative gradient orbs */}
+          <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/5 rounded-full -translate-y-1/2 translate-x-1/4 blur-2xl" />
+          <div className="absolute bottom-0 left-0 w-36 h-36 bg-orange-500/5 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl" />
+          <CardContent className="p-8 md:p-10 relative z-10">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 tracking-tight">
               Ready to Check the {product.brand} {product.title.split(' ').slice(-2).join(' ')}?
             </h2>
             <p className="text-gray-300 mb-5">
               Check the latest price and availability on {merchantName}
             </p>
-            <CheckPriceButton
-              merchant={product.merchant}
-              productId={product.asin}
-              size="lg"
-              className="w-full sm:w-auto cta-shimmer bg-gradient-to-r from-[#febd69] via-[#f3a847] to-[#febd69] hover:shadow-lg hover:shadow-amber-500/20 rounded-lg font-bold text-lg h-14 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            />
+            <div className="gradient-cta-bg rounded-xl p-3 inline-block">
+              <CheckPriceButton
+                merchant={product.merchant}
+                productId={product.asin}
+                size="lg"
+                className="w-full sm:w-auto cta-shimmer bg-gradient-to-r from-[#febd69] via-[#f3a847] to-[#febd69] hover:shadow-lg hover:shadow-amber-500/20 rounded-lg font-bold text-lg h-14 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              />
+            </div>
             <p className="text-xs text-gray-400 mt-3">
               Price and availability are subject to change. As an affiliate, we earn from qualifying purchases.
             </p>
