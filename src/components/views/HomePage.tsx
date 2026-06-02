@@ -30,6 +30,8 @@ import {
   BookOpen,
   Zap,
   Loader2,
+  Quote,
+  CheckCircle,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -243,8 +245,8 @@ function CategoriesSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#131921]">Shop by Category</h2>
-            <p className="text-gray-500 mt-1 text-sm">Find the right equipment for your brewing style</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#131921] dark:text-white">Shop by Category</h2>
+            <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Find the right equipment for your brewing style</p>
           </div>
         </div>
 
@@ -252,7 +254,7 @@ function CategoriesSection() {
           {categories.map((cat) => (
             <Card
               key={cat.id}
-              className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200 bg-white card-hover-lift"
+              className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 card-hover-lift"
               onClick={() => goToCategory(cat.slug)}
             >
               {/* Category image */}
@@ -278,10 +280,10 @@ function CategoriesSection() {
                 </div>
               </div>
               <CardContent className="p-4">
-                <h3 className="font-bold text-sm text-[#131921] group-hover:text-[#c7511f] transition-colors line-clamp-1">
+                <h3 className="font-bold text-sm text-[#131921] dark:text-white group-hover:text-[#c7511f] transition-colors line-clamp-1">
                   {cat.name}
                 </h3>
-                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{cat.description}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{cat.description}</p>
                 <div className="mt-2 flex items-center text-xs text-[#007185] font-medium group-hover:underline">
                   {cat.productCount} Products
                   <ChevronRight className="w-3 h-3 ml-1" />
@@ -300,15 +302,15 @@ function TopPicksSection() {
   const bestSellers = getBestSellers();
 
   return (
-    <section id="top-picks" className="py-10 sm:py-14 bg-white">
+    <section id="top-picks" className="py-10 sm:py-14 bg-white dark:bg-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#131921]">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#131921] dark:text-white">
               <Star className="w-7 h-7 inline-block text-[#f90] mr-2 -mt-1" />
               Top Picks for You
             </h2>
-            <p className="text-gray-500 mt-1 text-sm">Our highest-rated coffee equipment, tried and tested</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Our highest-rated coffee equipment, tried and tested</p>
           </div>
         </div>
 
@@ -350,11 +352,11 @@ function TrustBlock() {
   ];
 
   return (
-    <section className="py-10 sm:py-14 bg-gradient-to-b from-[#eaeded] to-[#e3e6e6]">
+    <section className="py-10 sm:py-14 bg-gradient-to-b from-[#eaeded] dark:from-gray-900 to-[#e3e6e6] dark:to-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-[#131921]">Why Trust Us?</h2>
-          <p className="text-gray-500 mt-2 max-w-2xl mx-auto text-sm">
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#131921] dark:text-white">Why Trust Us?</h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-2xl mx-auto text-sm">
             We take our reviews seriously. Here&apos;s what sets BrewHub Reviews apart from other affiliate sites.
           </p>
         </div>
@@ -363,26 +365,26 @@ function TrustBlock() {
           {trustItems.map((item, idx) => (
             <Card
               key={idx}
-              className="border border-emerald-100 bg-white hover:shadow-lg transition-shadow text-center card-hover-lift"
+              className="border border-emerald-100 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-lg transition-shadow text-center card-hover-lift"
             >
               <CardContent className="p-6 flex flex-col items-center">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-50 to-emerald-100 flex items-center justify-center mb-4 gentle-float" style={{ animationDelay: `${idx * 0.3}s` }}>
                   {item.icon}
                 </div>
-                <h3 className="font-bold text-[#131921] text-base mb-2">{item.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{item.description}</p>
+                <h3 className="font-bold text-[#131921] dark:text-white text-base mb-2">{item.title}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{item.description}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
         {/* Editorial Independence Statement */}
-        <div className="mt-8 bg-white border border-emerald-200 rounded-xl p-6 max-w-3xl mx-auto">
+        <div className="mt-8 bg-white dark:bg-gray-800 border border-emerald-200 dark:border-gray-700 rounded-xl p-6 max-w-3xl mx-auto">
           <div className="flex items-start gap-4">
             <ShieldCheck className="w-10 h-10 text-emerald-600 shrink-0 mt-1" />
             <div>
-              <h3 className="font-bold text-[#131921] text-lg mb-2">Our Editorial Pledge</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
+              <h3 className="font-bold text-[#131921] dark:text-white text-lg mb-2">Our Editorial Pledge</h3>
+              <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
                 BrewHub Reviews operates with complete editorial independence. While we earn commissions through
                 Amazon&apos;s affiliate program, this never affects which products we recommend or how we rate them.
                 Our reviews are based on hands-on testing, expert evaluation, and genuine user feedback. We will
@@ -396,21 +398,87 @@ function TrustBlock() {
   );
 }
 
+// ─── Testimonials Section ────────────────────────────────────────────────────
+function TestimonialsSection() {
+  const testimonials = [
+    {
+      text: "BrewHub's espresso machine guide helped me choose the perfect Breville Barista Express. Best purchase I've made!",
+      author: 'Michael R.',
+      rating: 5,
+    },
+    {
+      text: 'The grinder comparison was incredibly detailed. I went with the Fellow Ode and couldn\'t be happier.',
+      author: 'Sarah K.',
+      rating: 5,
+    },
+    {
+      text: 'Finally found a review site that actually tests products instead of just listing specs. The pour-over guide is excellent.',
+      author: 'David L.',
+      rating: 5,
+    },
+    {
+      text: "I've bought three products based on BrewHub recommendations and they've all been spot-on. Trust this site!",
+      author: 'Emily T.',
+      rating: 5,
+    },
+  ];
+
+  return (
+    <section className="py-10 sm:py-14 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Quote className="w-7 h-7 text-[#febd69]" />
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#131921]">What Our Readers Say</h2>
+          </div>
+          <p className="text-gray-500 mt-2 max-w-2xl mx-auto text-sm">
+            Join thousands of coffee enthusiasts who trust our reviews
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 stagger-children">
+          {testimonials.map((testimonial, idx) => (
+            <Card
+              key={idx}
+              className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-5 border border-gray-100 card-hover-lift"
+            >
+              <CardContent className="p-0">
+                <Quote className="w-8 h-8 text-amber-400 mb-3" />
+                <p className="text-sm text-gray-700 leading-relaxed mb-4">
+                  &ldquo;{testimonial.text}&rdquo;
+                </p>
+                <StarRating rating={testimonial.rating} size="sm" showValue={false} />
+                <div className="mt-3 flex items-center gap-2">
+                  <span className="font-semibold text-sm text-[#131921]">{testimonial.author}</span>
+                </div>
+                <div className="mt-1 flex items-center gap-1.5">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-xs text-emerald-600 font-medium">Verified Buyer</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── Recently Updated Section ───────────────────────────────────────────────
 function RecentlyUpdatedSection() {
   const recentlyUpdated = getRecentlyUpdated();
   const goToProduct = useRouterStore((s) => s.goToProduct);
 
   return (
-    <section className="py-10 sm:py-14 bg-white">
+    <section className="py-10 sm:py-14 bg-white dark:bg-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#131921]">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#131921] dark:text-white">
               <Clock className="w-7 h-7 inline-block text-[#007185] mr-2 -mt-1" />
               Recently Updated
             </h2>
-            <p className="text-gray-500 mt-1 text-sm">Fresh reviews and re-evaluations from our team</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Fresh reviews and re-evaluations from our team</p>
           </div>
         </div>
 
@@ -418,12 +486,12 @@ function RecentlyUpdatedSection() {
           {recentlyUpdated.slice(0, 6).map((product) => (
             <Card
               key={product.id}
-              className="group cursor-pointer overflow-hidden hover:shadow-lg transition-all border border-gray-200 bg-white border-l-4 border-l-[#febd69]"
+              className="group cursor-pointer overflow-hidden hover:shadow-lg transition-all border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 border-l-4 border-l-[#febd69]"
               onClick={() => goToProduct(product.slug)}
             >
               <CardContent className="p-4 flex gap-4">
                 {/* Product image */}
-                <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-lg overflow-hidden bg-gray-50">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700">
                   {product.image ? (
                     <img
                       src={product.image}
@@ -463,12 +531,12 @@ function RecentlyUpdatedSection() {
                       })}
                     </span>
                   </div>
-                  <h3 className="font-semibold text-sm text-[#131921] group-hover:text-[#c7511f] transition-colors line-clamp-2 leading-tight">
+                  <h3 className="font-semibold text-sm text-[#131921] dark:text-white group-hover:text-[#c7511f] transition-colors line-clamp-2 leading-tight">
                     {product.title}
                   </h3>
                   <StarRating rating={product.rating} size="sm" showValue />
                   <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-base font-bold text-gray-900">{product.price}</span>
+                    <span className="text-base font-bold text-gray-900 dark:text-white">{product.price}</span>
                     {product.originalPrice && (
                       <span className="text-xs text-gray-400 line-through">{product.originalPrice}</span>
                     )}
@@ -634,11 +702,11 @@ function DealsSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#131921]">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#131921] dark:text-white">
               <Percent className="w-7 h-7 inline-block text-red-500 mr-2 -mt-1" />
               Today&apos;s Deals
             </h2>
-            <p className="text-gray-500 mt-1 text-sm">Save big on top-rated coffee equipment</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Save big on top-rated coffee equipment</p>
           </div>
         </div>
 
@@ -653,11 +721,11 @@ function DealsSection() {
             return (
               <Card
                 key={product.id}
-                className="group overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200 bg-white"
+                className="group overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
               >
                 {/* Deal image */}
                 <div
-                  className="relative cursor-pointer bg-gray-50 aspect-square overflow-hidden"
+                  className="relative cursor-pointer bg-gray-50 dark:bg-gray-700 aspect-square overflow-hidden"
                   onClick={() => goToProduct(product.slug)}
                 >
                   {product.image ? (
@@ -697,7 +765,7 @@ function DealsSection() {
                     {product.category}
                   </button>
                   <h3
-                    className="font-semibold text-sm text-gray-900 leading-tight mb-2 cursor-pointer hover:text-[#c7511f] line-clamp-2"
+                    className="font-semibold text-sm text-gray-900 dark:text-white leading-tight mb-2 cursor-pointer hover:text-[#c7511f] line-clamp-2"
                     onClick={() => goToProduct(product.slug)}
                   >
                     {product.title}
@@ -736,11 +804,12 @@ function DealsSection() {
 // ─── Main HomePage Component ────────────────────────────────────────────────
 export default function HomePage() {
   return (
-    <div className="bg-[#eaeded] min-h-screen">
+    <div className="bg-[#eaeded] dark:bg-gray-900 min-h-screen">
       <HeroBanner />
       <CategoriesSection />
       <TopPicksSection />
       <TrustBlock />
+      <TestimonialsSection />
       <RecentlyUpdatedSection />
       <NewsletterCTA />
       <DealsSection />

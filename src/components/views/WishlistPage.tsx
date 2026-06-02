@@ -23,15 +23,15 @@ export function WishlistPage() {
 
   if (wishlistedProducts.length === 0) {
     return (
-      <div className="min-h-screen bg-[#eaeded]">
+      <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
         <div className="max-w-5xl mx-auto px-4 py-6">
           <Breadcrumbs items={[{ label: 'Wishlist' }]} />
 
-          <div className="bg-white rounded-lg shadow-sm p-12 md:p-16 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-12 md:p-16 text-center">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Heart className="w-10 h-10 text-gray-300" />
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
               Your Wishlist is Empty
             </h1>
             <p className="text-gray-500 mb-8 max-w-md mx-auto">
@@ -61,12 +61,12 @@ export function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#eaeded]">
+    <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <Breadcrumbs items={[{ label: 'Wishlist' }]} />
 
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-6">
           <div className="bg-gradient-to-r from-[#131921] to-[#37475a] p-8 md:p-12 text-white">
             <div className="flex items-center gap-3 mb-4">
               <Heart className="w-10 h-10 text-red-400 fill-red-400" />
@@ -107,7 +107,7 @@ export function WishlistPage() {
         </div>
 
         {/* Continue Shopping */}
-        <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 text-center">
           <p className="text-gray-500 mb-4">Looking for more coffee gear?</p>
           <Button
             onClick={goHome}

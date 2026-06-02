@@ -75,12 +75,12 @@ export function BestSellersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#eaeded]">
+    <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <Breadcrumbs items={[{ label: 'Best Sellers' }]} />
 
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-6">
           <div className="bg-gradient-to-r from-[#131921] to-[#37475a] p-8 md:p-12 text-white">
             <div className="flex items-center gap-3 mb-4">
               <Trophy className="w-10 h-10 text-[#febd69]" />
@@ -176,7 +176,7 @@ export function BestSellersPage() {
         )}
 
         {/* Category Filter Tabs */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
           <div className="flex items-center gap-2 flex-wrap">
             <Filter size={16} className="text-gray-500 mr-1" />
             <button
@@ -206,7 +206,7 @@ export function BestSellersPage() {
         </div>
 
         {/* Ranked List */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-[#c7511f]" />
@@ -298,7 +298,7 @@ export function BestSellersPage() {
         </div>
 
         {/* Disclaimer */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
           <Disclosure />
           <div className="mt-4 text-sm text-gray-600">
             <p>

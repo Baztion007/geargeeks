@@ -71,7 +71,7 @@ export function SearchPage({ query }: SearchPageProps) {
   }, [query]);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#eaeded' }}>
+    <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Breadcrumbs */}
         <Breadcrumbs
@@ -79,7 +79,7 @@ export function SearchPage({ query }: SearchPageProps) {
         />
 
         {/* Search Bar */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-4">
           <form onSubmit={handleSearch} className="flex gap-2">
             <div className="relative flex-1">
               <Search
@@ -145,7 +145,7 @@ export function SearchPage({ query }: SearchPageProps) {
             </div>
           </>
         ) : (
-          <div className="bg-white rounded-lg border border-gray-200 p-8 mb-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 mb-6">
             {/* No Results State */}
             <div className="text-center mb-8">
               <PackageOpen size={56} className="text-gray-300 mx-auto mb-4" />
@@ -226,7 +226,7 @@ export function SearchPage({ query }: SearchPageProps) {
 
         {/* Suggestions Section (shown even with results) */}
         {searchResults.length > 0 && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp size={16} className="text-[#febd69]" />
               <h3 className="text-sm font-semibold text-gray-700">
@@ -270,7 +270,7 @@ export function SearchPage({ query }: SearchPageProps) {
         )}
 
         {/* Browse All Categories (at bottom) */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Browse All Categories
           </h3>

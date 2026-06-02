@@ -27,11 +27,22 @@ import { WishlistPage } from '@/components/views/WishlistPage';
 import { ComparePage } from '@/components/views/ComparePage';
 import { BlogPage } from '@/components/views/BlogPage';
 import { BlogPostPage } from '@/components/views/BlogPostPage';
+import { GuidesPage } from '@/components/views/GuidesPage';
 import { CompareBar } from '@/components/affiliate/CompareBar';
+import { useThemeStore } from '@/lib/theme';
+import { MobileCompareFab } from '@/components/affiliate/MobileCompareFab';
+import { ScrollProgress } from '@/components/affiliate/ScrollProgress';
 
 export default function Home() {
   const route = useRouterStore((s) => s.route);
   const navigate = useRouterStore((s) => s.navigate);
+
+  // Initialize theme on mount
+  useEffect(() => {
+    const { theme, _resolveTheme, _applyTheme } = useThemeStore.getState();
+    const resolved = _resolveTheme(theme);
+    _applyTheme(resolved);
+  }, []);
 
   // Handle browser back/forward and initial hash
   useEffect(() => {
@@ -91,6 +102,8 @@ export default function Home() {
         return <BlogPage />;
       case 'blog-post':
         return <BlogPostPage postSlug={route.slug} />;
+      case 'guides':
+        return <GuidesPage />;
       case 'not-found':
         return <NotFoundPage />;
       default:
@@ -99,7 +112,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#eaeded]">
+    <div className="min-h-screen flex flex-col bg-[#eaeded] dark:bg-gray-900">
       {/* JSON-LD Organization Schema */}
       <script
         type="application/ld+json"
@@ -108,6 +121,7 @@ export default function Home() {
         }}
       />
 
+      <ScrollProgress />
       <Header />
 
       <main className="flex-1">
@@ -127,6 +141,7 @@ export default function Home() {
       <Footer />
       <BackToTop />
       <CompareBar />
+      <MobileCompareFab />
     </div>
   );
 }

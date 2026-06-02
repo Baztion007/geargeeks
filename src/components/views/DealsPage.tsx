@@ -65,12 +65,12 @@ export function DealsPage() {
 
   if (allDeals.length === 0) {
     return (
-      <div className="min-h-screen bg-[#eaeded]">
+      <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
         <div className="max-w-5xl mx-auto px-4 py-6">
           <Breadcrumbs items={[{ label: 'Deals' }]} />
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-12 text-center">
             <Tag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Deals Available</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">No Deals Available</h2>
             <p className="text-gray-600">Check back soon for the latest coffee equipment deals!</p>
           </div>
         </div>
@@ -79,12 +79,12 @@ export function DealsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#eaeded]">
+    <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <Breadcrumbs items={[{ label: 'Deals' }]} />
 
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-6">
           <div className="bg-gradient-to-r from-[#131921] to-[#37475a] p-8 md:p-12 text-white">
             <div className="flex items-center gap-3 mb-4">
               <Tag className="w-10 h-10 text-[#febd69]" />
@@ -109,7 +109,7 @@ export function DealsPage() {
 
         {/* Featured Deal */}
         {featuredDeal && featuredDeal.originalPrice && (
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6 border-2 border-[#febd69]">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-6 border-2 border-[#febd69]">
             <div className="bg-[#febd69]/10 p-3 flex items-center gap-2">
               <Flame className="w-5 h-5 text-[#c7511f]" />
               <span className="font-bold text-[#c7511f] text-sm uppercase tracking-wide">Featured Deal</span>
@@ -149,7 +149,7 @@ export function DealsPage() {
                     {featuredDeal.category}
                   </button>
                   <h2
-                    className="text-xl font-bold text-gray-900 mb-2 cursor-pointer hover:text-[#c7511f]"
+                    className="text-xl font-bold text-gray-900 dark:text-white mb-2 cursor-pointer hover:text-[#c7511f]"
                     onClick={() => goToProduct(featuredDeal.slug)}
                   >
                     {featuredDeal.title}
@@ -182,7 +182,7 @@ export function DealsPage() {
         )}
 
         {/* Category Filter */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-semibold text-gray-700 mr-2">Filter:</span>
             <button
@@ -236,14 +236,14 @@ export function DealsPage() {
             })}
           </div>
           {filteredDeals.length === 0 && (
-            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-12 text-center">
               <p className="text-gray-500">No deals found in this category.</p>
             </div>
           )}
         </div>
 
         {/* Disclaimer */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
           <Disclosure />
           <div className="flex items-start gap-3 mt-4">
             <Clock className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />

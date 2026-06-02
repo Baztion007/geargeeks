@@ -13,6 +13,7 @@ interface RouterState {
   goToWishlist: () => void;
   goToCompare: () => void;
   goToBlogPost: (slug: string) => void;
+  goToGuides: () => void;
   goToPage: (page: RoutePath['page']) => void;
 }
 
@@ -118,6 +119,15 @@ export const useRouterStore = create<RouterState>((set) => ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return { route };
   }),
+
+  goToGuides: () => set((state) => {
+    const route: RoutePath = { page: 'guides' };
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ route }, '', '#guides');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return { route };
+  }),
 }))
 
 function routeToHash(route: RoutePath): string {
@@ -132,6 +142,7 @@ function routeToHash(route: RoutePath): string {
     case 'compare': return 'compare';
     case 'blog': return 'blog';
     case 'blog-post': return `blog/${route.slug}`;
+    case 'guides': return 'guides';
     default: return route.page;
   }
 }
@@ -160,7 +171,7 @@ export function hashToRoute(hash: string): RoutePath {
       }
       return { page: 'blog' };
     default:
-      if (['about', 'contact', 'privacy', 'terms', 'editorial-policy', 'how-we-test', 'deals', 'best-sellers', 'reviews', 'wishlist', 'compare', 'not-found'].includes(type)) {
+      if (['about', 'contact', 'privacy', 'terms', 'editorial-policy', 'how-we-test', 'deals', 'best-sellers', 'reviews', 'wishlist', 'compare', 'guides', 'not-found'].includes(type)) {
         return { page: type as RoutePath['page'] } as RoutePath;
       }
       return { page: 'not-found' };

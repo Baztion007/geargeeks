@@ -27,12 +27,12 @@ export function AboutPage() {
   const goToAuthor = useRouterStore((s) => s.goToAuthor);
 
   return (
-    <div className="min-h-screen bg-[#eaeded]">
+    <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <Breadcrumbs items={[{ label: 'About' }]} />
 
         {/* Hero Section */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-6">
           <div className="bg-gradient-to-r from-[#131921] to-[#37475a] p-8 md:p-12 text-white">
             <div className="flex items-center gap-3 mb-4">
               <Coffee className="w-10 h-10 text-[#febd69]" />
@@ -46,17 +46,17 @@ export function AboutPage() {
         </div>
 
         {/* Mission Statement */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <Target className="w-6 h-6 text-[#c7511f]" />
             <h2 className="text-2xl font-bold text-gray-900">Our Mission</h2>
           </div>
-          <p className="text-gray-700 leading-relaxed mb-4">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
             At BrewHub Reviews, we believe everyone deserves great coffee at home. Our mission is to cut
             through the marketing noise and provide honest, evidence-based reviews that help you find the
             right equipment for your needs and budget.
           </p>
-          <p className="text-gray-700 leading-relaxed mb-4">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
             We purchase and test every product we review. Our team of certified coffee professionals
             spends weeks with each piece of equipment before publishing their findings. We don&apos;t
             accept payment for positive reviews, and we never recommend products we wouldn&apos;t use
@@ -82,7 +82,7 @@ export function AboutPage() {
             ].map((item) => (
               <div
                 key={item.title}
-                className="bg-gray-50 rounded-lg p-5 border border-gray-100"
+                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-5 border border-gray-100 dark:border-gray-600"
               >
                 <item.icon className="w-8 h-8 text-[#007185] mb-3" />
                 <h3 className="font-bold text-gray-900 mb-1">{item.title}</h3>
@@ -93,13 +93,13 @@ export function AboutPage() {
         </div>
 
         {/* Affiliate Disclosure */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <Award className="w-6 h-6 text-amber-600" />
             <h2 className="text-2xl font-bold text-gray-900">Affiliate Disclosure</h2>
           </div>
           <Disclosure />
-          <div className="mt-4 space-y-3 text-gray-700 leading-relaxed">
+          <div className="mt-4 space-y-3 text-gray-700 dark:text-gray-300 leading-relaxed">
             <p>
               BrewHub Reviews is a participant in the Amazon Services LLC Associates Program, an
               affiliate advertising program designed to provide a means for sites to earn advertising
@@ -129,12 +129,12 @@ export function AboutPage() {
         </div>
 
         {/* Team / Authors Section */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-6">
             <Users className="w-6 h-6 text-[#007185]" />
             <h2 className="text-2xl font-bold text-gray-900">Our Team</h2>
           </div>
-          <p className="text-gray-700 leading-relaxed mb-6">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
             Our reviews are written by experienced coffee professionals who are passionate about
             helping you find the best equipment. Each reviewer brings unique expertise and years
             of hands-on experience.
@@ -215,12 +215,12 @@ export function AboutPage() {
         </div>
 
         {/* Editorial Standards */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <Shield className="w-6 h-6 text-emerald-600" />
             <h2 className="text-2xl font-bold text-gray-900">Editorial Standards</h2>
           </div>
-          <p className="text-gray-700 leading-relaxed mb-6">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
             We hold ourselves to the highest editorial standards to ensure our readers can trust
             every recommendation we make. Here are the principles that guide our work:
           </p>
@@ -259,7 +259,7 @@ export function AboutPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
                 {index < 5 && <Separator className="ml-12" />}

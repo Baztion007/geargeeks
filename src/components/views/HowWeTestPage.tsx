@@ -23,12 +23,12 @@ import {
 
 export function HowWeTestPage() {
   return (
-    <div className="min-h-screen bg-[#eaeded]">
+    <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <Breadcrumbs items={[{ label: 'How We Test' }]} />
 
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-6">
           <div className="bg-gradient-to-r from-[#131921] to-[#37475a] p-8 md:p-12 text-white">
             <div className="flex items-center gap-3 mb-4">
               <Microscope className="w-10 h-10 text-[#febd69]" />
@@ -42,12 +42,12 @@ export function HowWeTestPage() {
         </div>
 
         {/* Trust Banner */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border-l-4 border-emerald-500">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6 border-l-4 border-emerald-500">
           <div className="flex items-start gap-3">
             <ShieldCheck className="w-6 h-6 text-emerald-600 shrink-0 mt-0.5" />
             <div>
               <h3 className="font-bold text-gray-900 mb-1">Our Testing Promise</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
+              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                 We purchase every product we review at retail price whenever possible. Each product
                 is tested for a minimum of two weeks of daily use before we publish our findings.
                 Our testing process is standardized across all products in a category, ensuring fair
@@ -58,12 +58,12 @@ export function HowWeTestPage() {
         </div>
 
         {/* Research Process */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <BookOpen className="w-6 h-6 text-[#c7511f]" />
             <h2 className="text-2xl font-bold text-gray-900">Research Process</h2>
           </div>
-          <p className="text-gray-700 leading-relaxed mb-6">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
             Before we even unbox a product, we invest significant time in research to understand
             the landscape and set fair expectations.
           </p>
@@ -86,11 +86,11 @@ export function HowWeTestPage() {
                 desc: 'We review manufacturer specifications, technical documentation, and compare design choices against industry best practices.',
               },
             ].map((item) => (
-              <Card key={item.title} className="border border-gray-200">
+              <Card key={item.title} className="border border-gray-200 dark:border-gray-700">
                 <CardContent className="p-5">
                   <item.icon className="w-8 h-8 text-[#007185] mb-3" />
                   <h3 className="font-bold text-gray-900 mb-2">{item.title}</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{item.desc}</p>
                 </CardContent>
               </Card>
             ))}
@@ -107,19 +107,19 @@ export function HowWeTestPage() {
                 <div className="w-6 h-6 shrink-0 rounded-full bg-[#131921] text-[#febd69] flex items-center justify-center text-xs font-bold mt-0.5">
                   {index + 1}
                 </div>
-                <p className="text-gray-700 leading-relaxed">{item}</p>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{item}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Product Comparison Framework */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <GitCompare className="w-6 h-6 text-[#c7511f]" />
             <h2 className="text-2xl font-bold text-gray-900">Product Comparison Framework</h2>
           </div>
-          <p className="text-gray-700 leading-relaxed mb-6">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
             No product exists in a vacuum. We evaluate every product against its direct competitors
             to give you the most useful comparisons possible.
           </p>
@@ -149,14 +149,14 @@ export function HowWeTestPage() {
             ].map((item) => (
               <div
                 key={item.title}
-                className="bg-gray-50 rounded-lg p-5 border border-gray-100 flex items-start gap-4"
+                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-5 border border-gray-100 dark:border-gray-600 flex items-start gap-4"
               >
                 <div className="w-10 h-10 shrink-0 rounded-lg bg-[#131921] text-[#febd69] flex items-center justify-center">
                   <item.icon size={20} />
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-900 mb-1">{item.title}</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{item.desc}</p>
                 </div>
               </div>
             ))}
@@ -164,12 +164,12 @@ export function HowWeTestPage() {
         </div>
 
         {/* Evaluation Criteria */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <ListChecks className="w-6 h-6 text-[#c7511f]" />
             <h2 className="text-2xl font-bold text-gray-900">Evaluation Criteria</h2>
           </div>
-          <p className="text-gray-700 leading-relaxed mb-6">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
             Our evaluation goes beyond specs on paper. We test the things that actually matter
             in daily use.
           </p>
@@ -207,11 +207,11 @@ export function HowWeTestPage() {
                 desc: 'We have both experienced users and newcomers test each product to evaluate the learning curve and documentation quality.',
               },
             ].map((item) => (
-              <Card key={item.title} className="border border-gray-200">
+              <Card key={item.title} className="border border-gray-200 dark:border-gray-700">
                 <CardContent className="p-5">
                   <item.icon className="w-8 h-8 text-[#007185] mb-3" />
                   <h3 className="font-bold text-gray-900 mb-2">{item.title}</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{item.desc}</p>
                 </CardContent>
               </Card>
             ))}
@@ -219,12 +219,12 @@ export function HowWeTestPage() {
         </div>
 
         {/* Performance Scoring */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <Gauge className="w-6 h-6 text-[#c7511f]" />
             <h2 className="text-2xl font-bold text-gray-900">Performance Scoring</h2>
           </div>
-          <p className="text-gray-700 leading-relaxed mb-6">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
             Our performance score is the heart of every review. It reflects how well a product
             delivers on its primary promise.
           </p>
@@ -273,12 +273,12 @@ export function HowWeTestPage() {
         </div>
 
         {/* Value-for-Money Scoring */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <BadgeDollarSign className="w-6 h-6 text-[#c7511f]" />
             <h2 className="text-2xl font-bold text-gray-900">Value-for-Money Scoring</h2>
           </div>
-          <p className="text-gray-700 leading-relaxed mb-6">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
             A high-end product with outstanding performance isn&apos;t always the best recommendation.
             Our value score considers what you get relative to what you pay.
           </p>
@@ -295,19 +295,19 @@ export function HowWeTestPage() {
                 <div className="w-6 h-6 shrink-0 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold mt-0.5">
                   {index + 1}
                 </div>
-                <p className="text-gray-700 leading-relaxed">{item}</p>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{item}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Durability Considerations */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <Wrench className="w-6 h-6 text-[#c7511f]" />
             <h2 className="text-2xl font-bold text-gray-900">Durability Considerations</h2>
           </div>
-          <p className="text-gray-700 leading-relaxed mb-6">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
             Coffee equipment is an investment. We evaluate long-term durability and reliability
             to help you choose products that last.
           </p>
@@ -333,22 +333,22 @@ export function HowWeTestPage() {
             ].map((item) => (
               <div
                 key={item.title}
-                className="bg-gray-50 rounded-lg p-5 border border-gray-100"
+                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-5 border border-gray-100 dark:border-gray-600"
               >
                 <h3 className="font-bold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* User Experience Considerations */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <UserCheck className="w-6 h-6 text-[#c7511f]" />
             <h2 className="text-2xl font-bold text-gray-900">User Experience Considerations</h2>
           </div>
-          <p className="text-gray-700 leading-relaxed mb-6">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
             Great specs don&apos;t matter if a product is frustrating to use. Our UX evaluation
             covers the full ownership experience.
           </p>
@@ -383,7 +383,7 @@ export function HowWeTestPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
                 {index < 4 && <Separator className="ml-12 my-4" />}
@@ -393,7 +393,7 @@ export function HowWeTestPage() {
         </div>
 
         {/* Editorial Independence */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <Award className="w-6 h-6 text-emerald-600" />
             <h2 className="text-2xl font-bold text-gray-900">Our Testing Standards</h2>

@@ -10,6 +10,7 @@ import { Disclosure, EditorialIndependence } from '@/components/affiliate/Disclo
 import { CheckPriceButton } from '@/components/affiliate/AffiliateLink';
 import { StarRating, RatingBreakdownDisplay } from '@/components/affiliate/RatingBar';
 import { ProductCard } from '@/components/affiliate/ProductCard';
+import { UserReviewsSection } from '@/components/affiliate/UserReviewsSection';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -133,7 +134,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
   ];
 
   return (
-    <article className="max-w-5xl mx-auto px-4 py-6 pb-24 md:pb-6">
+    <article className="max-w-5xl mx-auto px-4 py-6 pb-28 md:pb-6 dark:bg-gray-800 dark:rounded-xl">
       {/* 1. Breadcrumbs */}
       <Breadcrumbs items={breadcrumbItems} />
 
@@ -212,12 +213,12 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
 
         {/* Product Details */}
         <div className="flex flex-col justify-center">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight mb-3">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white leading-tight mb-3">
             {product.title}
           </h1>
 
           {/* Brand */}
-          <p className="text-sm text-gray-500 mb-2">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
             by{' '}
             <span className="text-[#007185] font-medium hover:underline cursor-pointer">
               {product.brand}
@@ -231,7 +232,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
 
           {/* Price */}
           <div className="flex items-baseline gap-3 mb-4">
-            <span className="text-3xl font-bold text-gray-900">{product.price}</span>
+            <span className="text-3xl font-bold text-gray-900 dark:text-white">{product.price}</span>
             {product.originalPrice && (
               <span className="text-lg text-gray-400 line-through">
                 {product.originalPrice}
@@ -240,7 +241,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
           </div>
 
           {/* Excerpt */}
-          <p className="text-gray-600 mb-4 leading-relaxed">{product.excerpt}</p>
+          <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">{product.excerpt}</p>
 
           {/* Tags */}
           <div className="flex flex-wrap gap-1.5 mb-4">
@@ -289,24 +290,26 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
 
       {/* 6. Features Table */}
       <section className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Key Features</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Key Features</h2>
         <Card className="overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50">
-                <TableHead className="w-1/3 font-semibold text-gray-700">Feature</TableHead>
-                <TableHead className="font-semibold text-gray-700">Details</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Object.entries(product.features).map(([key, value], index) => (
-                <TableRow key={key} className={`${index % 2 === 0 ? 'bg-gray-50/50' : ''} hover:bg-amber-50/50 transition-colors`}>
-                  <TableCell className="font-medium text-gray-700">{key}</TableCell>
-                  <TableCell className="text-gray-600">{value}</TableCell>
+          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  <TableHead className="w-1/3 font-semibold text-gray-700">Feature</TableHead>
+                  <TableHead className="font-semibold text-gray-700">Details</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {Object.entries(product.features).map(([key, value], index) => (
+                  <TableRow key={key} className={`${index % 2 === 0 ? 'bg-gray-50/50' : ''} hover:bg-amber-50/50 transition-colors`}>
+                    <TableCell className="font-medium text-gray-700 whitespace-nowrap">{key}</TableCell>
+                    <TableCell className="text-gray-600">{value}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </Card>
       </section>
 
@@ -314,10 +317,10 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
 
       {/* 7. Full Review Content */}
       <section className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Full Review</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Full Review</h2>
         <div className="prose prose-gray max-w-none">
           {product.fullReview.split('\n\n').map((paragraph, index) => (
-            <p key={index} className="text-gray-700 leading-relaxed mb-4">
+            <p key={index} className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
               {paragraph}
             </p>
           ))}
@@ -328,7 +331,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
 
       {/* 8. Pros and Cons Lists - Side by Side */}
       <section className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Pros & Cons</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Pros & Cons</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Pros */}
           <Card className="border-emerald-200 bg-emerald-50/50">
@@ -370,7 +373,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
 
       {/* 9. Rating Breakdown */}
       <section className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Rating Breakdown</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Rating Breakdown</h2>
         <Card>
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row items-start gap-6">
@@ -396,26 +399,28 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
 
       {/* 10. Specifications Table */}
       <section className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Specifications</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Specifications</h2>
         <Card className="overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50">
-                <TableHead className="w-1/3 font-semibold text-gray-700">
-                  Specification
-                </TableHead>
-                <TableHead className="font-semibold text-gray-700">Value</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Object.entries(product.specifications).map(([key, value], index) => (
-                <TableRow key={key} className={`${index % 2 === 0 ? 'bg-gray-50/50' : ''} hover:bg-amber-50/50 transition-colors`}>
-                  <TableCell className="font-medium text-gray-700">{key}</TableCell>
-                  <TableCell className="text-gray-600">{value}</TableCell>
+          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  <TableHead className="w-1/3 font-semibold text-gray-700">
+                    Specification
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700">Value</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {Object.entries(product.specifications).map(([key, value], index) => (
+                  <TableRow key={key} className={`${index % 2 === 0 ? 'bg-gray-50/50' : ''} hover:bg-amber-50/50 transition-colors`}>
+                    <TableCell className="font-medium text-gray-700 whitespace-nowrap">{key}</TableCell>
+                    <TableCell className="text-gray-600">{value}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </Card>
       </section>
 
@@ -423,7 +428,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
 
       {/* 11. Who Is It For / Who Should Skip - Two columns */}
       <section className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Is This Right for You?</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Is This Right for You?</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Who Is It For */}
           <Card className="border-emerald-200">
@@ -434,7 +439,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
                 </div>
                 <h3 className="font-bold text-emerald-800 text-lg">Who Is It For</h3>
               </div>
-              <p className="text-gray-700 leading-relaxed text-sm">{product.whoIsItFor}</p>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">{product.whoIsItFor}</p>
             </CardContent>
           </Card>
 
@@ -447,7 +452,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
                 </div>
                 <h3 className="font-bold text-orange-800 text-lg">Who Should Skip</h3>
               </div>
-              <p className="text-gray-700 leading-relaxed text-sm">{product.whoShouldSkip}</p>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">{product.whoShouldSkip}</p>
             </CardContent>
           </Card>
         </div>
@@ -457,7 +462,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
 
       {/* 12. Review Transparency Box */}
       <section className="mb-8">
-        <Card className="bg-gray-50 border-gray-200">
+        <Card className="bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
           <CardContent className="p-5">
             <div className="flex items-start gap-3">
               <div className="bg-[#131921] rounded-full p-2 shrink-0">
@@ -520,6 +525,11 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
 
       <Separator className="my-8" />
 
+      {/* User Reviews */}
+      <UserReviewsSection productSlug={productSlug} />
+
+      <Separator className="my-8" />
+
       {/* 13. Final CTA */}
       <section className="mb-8 text-center">
         <Card className="bg-gradient-to-r from-[#131921] to-[#232f3e] border-0 shadow-xl">
@@ -544,7 +554,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
       {/* 14. Related Products */}
       {relatedProducts.length > 0 && (
         <section className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Related Products</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Related Products</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {relatedProducts.map((relatedProduct) => (
               <ProductCard key={relatedProduct.id} product={relatedProduct} />
@@ -558,7 +568,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <History size={20} className="text-gray-600" />
-            <h2 className="text-xl font-bold text-gray-900">Recently Viewed</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recently Viewed</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {recentlyViewedProducts.map((rvProduct) => (

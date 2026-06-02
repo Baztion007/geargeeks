@@ -31,10 +31,10 @@ export function ProductCard({ product, showAffiliate = true }: ProductCardProps)
   const [quickViewOpen, setQuickViewOpen] = useState(false);
 
   return (
-    <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-white border border-gray-200 rounded-lg card-hover-lift hover:border-[#febd69]/30 hover:ring-1 hover:ring-[#febd69]/20">
+    <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg card-hover-lift hover:border-[#febd69]/30 hover:ring-1 hover:ring-[#febd69]/20">
       {/* Image */}
       <div
-        className="relative cursor-pointer overflow-hidden bg-gray-50 aspect-square image-zoom"
+        className="relative cursor-pointer overflow-hidden bg-gray-50 dark:bg-gray-700 aspect-square image-zoom"
         onClick={() => goToProduct(product.slug)}
       >
         {product.image && !imgError ? (
@@ -94,18 +94,18 @@ export function ProductCard({ product, showAffiliate = true }: ProductCardProps)
       </div>
 
       {/* Content */}
-      <CardContent className="p-4">
+      <CardContent className="p-3 sm:p-4">
         {/* Category */}
         <button
           onClick={() => goToCategory(product.categorySlug)}
-          className="text-xs bg-[#007185]/10 text-[#007185] hover:text-[#c7511f] hover:bg-[#c7511f]/10 px-2 py-0.5 rounded-full font-medium transition-colors mb-1"
+          className="text-[11px] sm:text-xs bg-[#007185]/10 text-[#007185] dark:bg-[#007185]/20 dark:text-[#5cc7d4] hover:text-[#c7511f] hover:bg-[#c7511f]/10 px-2 py-0.5 rounded-full font-medium transition-colors mb-1"
         >
           {product.category}
         </button>
 
         {/* Title */}
         <h3
-          className="font-semibold text-gray-900 text-sm leading-tight mb-2 cursor-pointer hover:text-[#c7511f] line-clamp-2"
+          className="font-semibold text-gray-900 dark:text-white text-xs sm:text-sm leading-tight mb-2 cursor-pointer hover:text-[#c7511f] line-clamp-2"
           onClick={() => goToProduct(product.slug)}
         >
           {product.title}
@@ -116,47 +116,50 @@ export function ProductCard({ product, showAffiliate = true }: ProductCardProps)
 
         {/* Price */}
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-lg font-bold text-gray-900">{product.price}</span>
+          <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">{product.price}</span>
           {product.originalPrice && (
-            <span className="text-sm text-gray-400 line-through">{product.originalPrice}</span>
+            <span className="text-xs sm:text-sm text-gray-400 line-through">{product.originalPrice}</span>
           )}
         </div>
 
         {/* Excerpt */}
-        <p className="text-xs text-gray-600 mt-2 line-clamp-2">{product.excerpt}</p>
+        <p className="text-[11px] sm:text-xs text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">{product.excerpt}</p>
 
         {/* Subtle divider */}
-        <div className="border-t border-gray-100 my-2" />
+        <div className="border-t border-gray-100 dark:border-gray-700 my-2" />
 
-        {/* Compare Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleCompare(product.slug);
-          }}
-          className={`flex items-center gap-1.5 mt-2 text-xs font-medium transition-colors ${
-            isCompared
-              ? 'text-amber-700 hover:text-amber-900'
-              : 'text-gray-400 hover:text-gray-600'
-          }`}
-          aria-label={isCompared ? 'Remove from compare' : 'Add to compare'}
-        >
-          <BarChart3 size={14} className={isCompared ? 'fill-amber-200' : ''} />
-          Compare
-        </button>
+        {/* Compare & Quick View - side by side on mobile, stacked on larger screens */}
+        <div className="flex sm:flex-col gap-2 sm:gap-0">
+          {/* Compare Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleCompare(product.slug);
+            }}
+            className={`flex items-center gap-1.5 sm:mt-2 text-xs font-medium transition-colors ${
+              isCompared
+                ? 'text-amber-700 hover:text-amber-900'
+                : 'text-gray-400 hover:text-gray-600'
+            }`}
+            aria-label={isCompared ? 'Remove from compare' : 'Add to compare'}
+          >
+            <BarChart3 size={14} className={isCompared ? 'fill-amber-200' : ''} />
+            Compare
+          </button>
 
-        {/* Quick View Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setQuickViewOpen(true);
-          }}
-          className="flex items-center gap-1.5 mt-1 text-xs font-medium text-gray-400 hover:text-[#007185] transition-colors"
-          aria-label="Quick view"
-        >
-          <Eye size={14} />
-          Quick View
-        </button>
+          {/* Quick View Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setQuickViewOpen(true);
+            }}
+            className="flex items-center gap-1.5 sm:mt-1 text-xs font-medium text-gray-400 hover:text-[#007185] transition-colors"
+            aria-label="Quick view"
+          >
+            <Eye size={14} />
+            Quick View
+          </button>
+        </div>
 
         {/* Affiliate CTA */}
         {showAffiliate && (
@@ -186,11 +189,11 @@ export function ProductCardHorizontal({ product }: ProductCardHorizontalProps) {
   const [imgError, setImgError] = useState(false);
 
   return (
-    <div className="flex gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-lg transition-all cursor-pointer card-hover-lift hover:border-[#febd69]/30"
+    <div className="flex gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-lg transition-all cursor-pointer card-hover-lift hover:border-[#febd69]/30"
       onClick={() => goToProduct(product.slug)}
     >
       {/* Image */}
-      <div className="w-32 h-32 shrink-0 bg-gray-50 rounded-lg overflow-hidden">
+      <div className="w-32 h-32 shrink-0 bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden">
         {product.image && !imgError ? (
           <img
             src={product.image}
@@ -208,17 +211,17 @@ export function ProductCardHorizontal({ product }: ProductCardHorizontalProps) {
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-gray-900 text-sm leading-tight mb-1 hover:text-[#c7511f] line-clamp-2">
+        <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight mb-1 hover:text-[#c7511f] line-clamp-2">
           {product.title}
         </h3>
         <StarRating rating={product.rating} size="sm" />
         <div className="mt-1 flex items-baseline gap-2">
-          <span className="text-lg font-bold text-gray-900">{product.price}</span>
+          <span className="text-lg font-bold text-gray-900 dark:text-white">{product.price}</span>
           {product.originalPrice && (
             <span className="text-sm text-gray-400 line-through">{product.originalPrice}</span>
           )}
         </div>
-        <p className="text-xs text-gray-600 mt-1 line-clamp-2">{product.excerpt}</p>
+        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{product.excerpt}</p>
         {product.bestFor && (
           <Badge className="mt-2 bg-[#febd69] text-[#131921] hover:bg-[#f3a847] text-xs">
             Best for: {product.bestFor}

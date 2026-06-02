@@ -161,7 +161,7 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#eaeded' }}>
+    <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Breadcrumbs */}
         <Breadcrumbs
@@ -174,7 +174,7 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
         />
 
         {/* Category Header */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-4">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
             {category.name}
           </h1>
@@ -197,7 +197,7 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
         </div>
 
         {/* Filter Bar */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-4">
           <div className="flex items-center gap-2 mb-3">
             <SlidersHorizontal size={16} className="text-gray-500" />
             <span className="text-sm font-medium text-gray-700">Filters & Sort</span>
@@ -267,13 +267,13 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
 
         {/* Product Grid or Empty State */}
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 stagger-children">
             {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-lg border border-gray-200 p-10 mb-6 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-10 mb-6 text-center">
             <PackageOpen size={48} className="text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-800 mb-2">
               No products match your filters
@@ -291,12 +291,12 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
         )}
 
         {/* Category Description at Bottom */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <Disclosure />
           <h2 className="text-lg font-semibold text-gray-900 mb-3">
             About {category.name}
           </h2>
-          <p className="text-gray-600 text-sm leading-relaxed">
+          <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
             {category.description}
           </p>
           <div className="mt-4 pt-4 border-t border-gray-100">
@@ -309,7 +309,7 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
         </div>
 
         {/* Other Categories */}
-        <div className="mt-6 bg-white rounded-lg border border-gray-200 p-6">
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Explore Other Categories
           </h3>

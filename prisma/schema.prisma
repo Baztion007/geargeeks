@@ -48,3 +48,17 @@ model PriceAlert {
 
   @@unique([email, productSlug])
 }
+
+model UserReview {
+  id          String   @id @default(cuid())
+  productSlug String
+  author      String
+  rating      Float
+  title       String
+  content     String
+  pros        String?
+  cons        String?
+  verified    Boolean  @default(false)
+  helpful     Int      @default(0)
+  createdAt   DateTime @default(now())
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useCompareStore } from '@/lib/compare';
 import { useRouterStore } from '@/lib/router';
 import { getProductBySlug } from '@/data/products';
@@ -17,7 +17,7 @@ import {
   TableCell,
   TableRow,
 } from '@/components/ui/table';
-import { X, Check, Coffee, ShoppingBag, BarChart3, Plus } from 'lucide-react';
+import { X, Check, Coffee, ShoppingBag, BarChart3, Plus, ChevronLeft, ChevronRight, ArrowLeftRight } from 'lucide-react';
 
 export function ComparePage() {
   const items = useCompareStore((s) => s.items);
@@ -29,6 +29,50 @@ export function ComparePage() {
   const products = items
     .map((slug) => getProductBySlug(slug))
     .filter(Boolean);
+
+  // Scroll refs and state for mobile scroll indicators
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [showSwipeHint, setShowSwipeHint] = useState(true);
+
+  const checkScroll = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 5);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 5);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const el = scrollContainerRef.current;
+    if (el) {
+      el.addEventListener('scroll', checkScroll, { passive: true });
+      return () => el.removeEventListener('scroll', checkScroll);
+    }
+  }, [products.length]);
+
+  // Hide swipe hint after first scroll
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const handler = () => {
+      setShowSwipeHint(false);
+    };
+    el.addEventListener('touchstart', handler, { once: true, passive: true });
+    el.addEventListener('scroll', handler, { once: true, passive: true });
+    return () => {
+      el.removeEventListener('touchstart', handler);
+      el.removeEventListener('scroll', handler);
+    };
+  }, []);
+
+  const scrollByAmount = (direction: 'left' | 'right') => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const amount = 280;
+    el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
+  };
 
   // Empty state
   if (products.length < 2) {
@@ -98,16 +142,48 @@ export function ComparePage() {
         </Button>
       </div>
 
-      {/* Comparison Table - horizontally scrollable on mobile */}
-      <div className="overflow-x-auto -mx-4 px-4 pb-4">
-        <div className="min-w-[640px]">
+      {/* Swipe hint - mobile only */}
+      {showSwipeHint && (
+        <div className="md:hidden flex items-center justify-center gap-2 text-xs text-gray-400 mb-3 animate-pulse">
+          <ArrowLeftRight size={14} />
+          <span>Swipe to compare products</span>
+          <ArrowLeftRight size={14} />
+        </div>
+      )}
+
+      {/* Scroll arrows - mobile only */}
+      {canScrollLeft && (
+        <button
+          onClick={() => scrollByAmount('left')}
+          className="md:hidden fixed left-1 bottom-36 z-20 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-colors"
+          aria-label="Scroll left"
+        >
+          <ChevronLeft size={20} />
+        </button>
+      )}
+      {canScrollRight && (
+        <button
+          onClick={() => scrollByAmount('right')}
+          className="md:hidden fixed right-1 bottom-36 z-20 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-colors"
+          aria-label="Scroll right"
+        >
+          <ChevronRight size={20} />
+        </button>
+      )}
+
+      {/* Comparison Table - horizontally scrollable on mobile with snap scrolling */}
+      <div
+        ref={scrollContainerRef}
+        className="overflow-x-auto -mx-4 px-4 pb-4 scroll-smooth snap-x snap-mandatory md:snap-none custom-scrollbar"
+      >
+        <div className="min-w-[640px] md:min-w-0">
           {/* Product Headers */}
           <div className="grid gap-4" style={{ gridTemplateColumns: `200px repeat(${products.length}, 1fr)` }}>
             {/* Empty top-left cell */}
             <div />
 
             {products.map((product) => (
-              <Card key={product!.slug} className="relative">
+              <Card key={product!.slug} className="relative snap-start">
                 {/* Remove button */}
                 <button
                   onClick={() => removeItem(product!.slug)}
@@ -187,7 +263,7 @@ export function ComparePage() {
                         {products.map((product) => (
                           <TableCell
                             key={product!.slug}
-                            className={`text-sm ${isDifferent ? 'text-amber-800 font-medium' : 'text-gray-600'}`}
+                            className={`text-sm min-w-[250px] md:min-w-0 ${isDifferent ? 'text-amber-800 font-medium' : 'text-gray-600'}`}
                           >
                             {product!.features[key] ?? '—'}
                           </TableCell>
@@ -223,7 +299,7 @@ export function ComparePage() {
                         {products.map((product) => (
                           <TableCell
                             key={product!.slug}
-                            className={`text-sm ${isDifferent ? 'text-amber-800 font-medium' : 'text-gray-600'}`}
+                            className={`text-sm min-w-[250px] md:min-w-0 ${isDifferent ? 'text-amber-800 font-medium' : 'text-gray-600'}`}
                           >
                             {product!.specifications[key] ?? '—'}
                           </TableCell>
@@ -241,7 +317,48 @@ export function ComparePage() {
           {/* Pros & Cons Section */}
           <div className="mb-6">
             <h2 className="text-lg font-bold text-gray-900 mb-3">Pros & Cons</h2>
-            <div className="grid gap-4" style={{ gridTemplateColumns: `200px repeat(${products.length}, 1fr)` }}>
+            {/* On mobile: stack vertically per product. On desktop: grid layout */}
+            <div className="md:hidden space-y-4">
+              {products.map((product) => (
+                <Card key={product!.slug} className="overflow-hidden">
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-gray-900 text-sm mb-3 line-clamp-2">{product!.title}</h3>
+                    <div className="space-y-3">
+                      {/* Pros */}
+                      <div className="border border-emerald-200 bg-emerald-50/50 rounded-lg p-3">
+                        <h4 className="font-bold text-emerald-800 mb-2 text-sm">Pros</h4>
+                        <ul className="space-y-1.5">
+                          {product!.pros.map((pro, idx) => (
+                            <li key={idx} className="flex items-start gap-1.5">
+                              <div className="bg-emerald-500 rounded-full p-0.5 shrink-0 mt-0.5">
+                                <Check size={10} className="text-white" />
+                              </div>
+                              <span className="text-gray-700 text-xs">{pro}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      {/* Cons */}
+                      <div className="border border-red-200 bg-red-50/50 rounded-lg p-3">
+                        <h4 className="font-bold text-red-800 mb-2 text-sm">Cons</h4>
+                        <ul className="space-y-1.5">
+                          {product!.cons.map((con, idx) => (
+                            <li key={idx} className="flex items-start gap-1.5">
+                              <div className="bg-red-500 rounded-full p-0.5 shrink-0 mt-0.5">
+                                <X size={10} className="text-white" />
+                              </div>
+                              <span className="text-gray-700 text-xs">{con}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            {/* Desktop grid layout */}
+            <div className="hidden md:grid gap-4" style={{ gridTemplateColumns: `200px repeat(${products.length}, 1fr)` }}>
               <div /> {/* Spacer */}
 
               {products.map((product) => (
@@ -286,10 +403,28 @@ export function ComparePage() {
 
           <Separator className="my-6" />
 
-          {/* Rating Breakdown Section */}
+          {/* Rating Breakdown Section - stack vertically on mobile */}
           <div className="mb-6">
             <h2 className="text-lg font-bold text-gray-900 mb-3">Rating Breakdown</h2>
-            <div className="grid gap-4" style={{ gridTemplateColumns: `200px repeat(${products.length}, 1fr)` }}>
+            {/* Mobile: stacked vertically */}
+            <div className="md:hidden space-y-4">
+              {products.map((product) => (
+                <Card key={product!.slug}>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-gray-900 text-sm mb-3 line-clamp-2">{product!.title}</h3>
+                    <div className="flex flex-col items-center mb-3">
+                      <div className="text-3xl font-bold text-amber-600 mb-1">
+                        {product!.rating.toFixed(1)}
+                      </div>
+                      <StarRating rating={product!.rating} size="sm" showValue={false} />
+                    </div>
+                    <RatingBreakdownDisplay breakdown={product!.ratingBreakdown} />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            {/* Desktop: grid layout */}
+            <div className="hidden md:grid gap-4" style={{ gridTemplateColumns: `200px repeat(${products.length}, 1fr)` }}>
               <div /> {/* Spacer */}
 
               {products.map((product) => (

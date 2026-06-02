@@ -24,12 +24,12 @@ import {
 
 export function EditorialPolicyPage() {
   return (
-    <div className="min-h-screen bg-[#eaeded]">
+    <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <Breadcrumbs items={[{ label: 'Editorial Policy' }]} />
 
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-6">
           <div className="bg-gradient-to-r from-[#131921] to-[#37475a] p-8 md:p-12 text-white">
             <div className="flex items-center gap-3 mb-4">
               <PenTool className="w-10 h-10 text-[#febd69]" />
@@ -43,12 +43,12 @@ export function EditorialPolicyPage() {
         </div>
 
         {/* Product Selection */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <Target className="w-6 h-6 text-[#c7511f]" />
             <h2 className="text-2xl font-bold text-gray-900">How We Select Products</h2>
           </div>
-          <p className="text-gray-700 leading-relaxed mb-6">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
             We carefully curate every product that appears on BrewHub Reviews. Our selection process
             is driven by reader interest, market relevance, and our commitment to covering a diverse
             range of products across all price points.
@@ -79,11 +79,11 @@ export function EditorialPolicyPage() {
             ].map((item) => (
               <div
                 key={item.title}
-                className="bg-gray-50 rounded-lg p-5 border border-gray-100"
+                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-5 border border-gray-100 dark:border-gray-600"
               >
                 <item.icon className="w-7 h-7 text-[#007185] mb-3" />
                 <h3 className="font-bold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -97,12 +97,12 @@ export function EditorialPolicyPage() {
         </div>
 
         {/* Review Methodology */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <FlaskConical className="w-6 h-6 text-[#c7511f]" />
             <h2 className="text-2xl font-bold text-gray-900">Review Methodology</h2>
           </div>
-          <p className="text-gray-700 leading-relaxed mb-6">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
             Every product we review goes through a rigorous, standardized testing process designed
             to evaluate real-world performance, not just specifications on paper.
           </p>
@@ -146,7 +146,7 @@ export function EditorialPolicyPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{item.desc}</p>
                 </div>
               </div>
             ))}
@@ -154,12 +154,12 @@ export function EditorialPolicyPage() {
         </div>
 
         {/* Rating Criteria */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <BarChart3 className="w-6 h-6 text-[#c7511f]" />
             <h2 className="text-2xl font-bold text-gray-900">Rating Criteria</h2>
           </div>
-          <p className="text-gray-700 leading-relaxed mb-6">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
             Every product is rated across six key categories on a scale of 1.0 to 5.0. Our overall
             rating is a weighted average that reflects what matters most to coffee enthusiasts.
           </p>
@@ -222,7 +222,7 @@ export function EditorialPolicyPage() {
                           {item.weight}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -232,12 +232,12 @@ export function EditorialPolicyPage() {
         </div>
 
         {/* How Recommendations Are Made */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <ListChecks className="w-6 h-6 text-[#c7511f]" />
             <h2 className="text-2xl font-bold text-gray-900">How We Make Recommendations</h2>
           </div>
-          <p className="text-gray-700 leading-relaxed mb-6">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
             Our product recommendations are never influenced by affiliate commissions or
             manufacturer relationships. Here&apos;s how we decide what to recommend:
           </p>
@@ -255,19 +255,19 @@ export function EditorialPolicyPage() {
                 <div className="w-6 h-6 shrink-0 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold mt-0.5">
                   ✓
                 </div>
-                <p className="text-gray-700 leading-relaxed">{item}</p>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{item}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Affiliate Disclosure Practices */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <ShieldCheck className="w-6 h-6 text-[#c7511f]" />
             <h2 className="text-2xl font-bold text-gray-900">Affiliate Disclosure Practices</h2>
           </div>
-          <p className="text-gray-700 leading-relaxed mb-6">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
             We believe complete transparency about our affiliate relationships is essential to
             maintaining your trust. Here are our disclosure practices:
           </p>
@@ -285,7 +285,7 @@ export function EditorialPolicyPage() {
                 <div className="w-6 h-6 shrink-0 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold mt-0.5">
                   {index + 1}
                 </div>
-                <p className="text-gray-700 leading-relaxed">{item}</p>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{item}</p>
               </div>
             ))}
           </div>
@@ -294,7 +294,7 @@ export function EditorialPolicyPage() {
         </div>
 
         {/* Commitment to Editorial Independence */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <ShieldCheck className="w-6 h-6 text-emerald-600" />
             <h2 className="text-2xl font-bold text-gray-900">Our Commitment to Editorial Independence</h2>
@@ -331,7 +331,7 @@ export function EditorialPolicyPage() {
               <React.Fragment key={item.title}>
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{item.desc}</p>
                 </div>
                 {index < 3 && <Separator />}
               </React.Fragment>

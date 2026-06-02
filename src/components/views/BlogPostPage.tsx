@@ -51,12 +51,12 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-[#eaeded]">
+      <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
         <div className="max-w-5xl mx-auto px-4 py-6">
           <Breadcrumbs items={[{ label: 'Blog', route: { page: 'blog' } }, { label: 'Not Found' }]} />
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <Coffee className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Article Not Found</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Article Not Found</h2>
             <p className="text-gray-600 mb-6">The blog post you&apos;re looking for doesn&apos;t exist or has been moved.</p>
             <Button
               onClick={() => goToBlog('blog')}
@@ -86,7 +86,7 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#eaeded]">
+    <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <Breadcrumbs
           items={[
@@ -96,7 +96,7 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
         />
 
         {/* Hero Image */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-6">
           <HeroImage src={post.image} alt={post.title} />
         </div>
 
@@ -104,7 +104,7 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
           {/* Main Content */}
           <div className="lg:col-span-2">
             {/* Article Header */}
-            <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
               {/* Category Badge */}
               <Badge className={`mb-4 ${categoryColors[post.category] || 'bg-gray-100 text-gray-700'}`}>
                 {post.category}
@@ -147,7 +147,7 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
               {/* Article Content */}
               <div className="prose prose-gray max-w-none">
                 {paragraphs.map((paragraph, idx) => (
-                  <p key={idx} className="text-gray-700 leading-relaxed mb-4">
+                  <p key={idx} className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
                     {paragraph}
                   </p>
                 ))}
@@ -182,7 +182,7 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
             {/* Related Products */}
             {relatedProducts.length > 0 && (
               <div className="mb-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Coffee size={20} className="text-[#c7511f]" />
                   Related Products
                 </h2>
@@ -221,7 +221,7 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
           <div className="lg:col-span-1">
             {/* Author Card */}
             {author && (
-              <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">About the Author</h3>
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center overflow-hidden shrink-0">
@@ -252,7 +252,7 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
             )}
 
             {/* Article Info */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Article Details</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -278,7 +278,7 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
 
             {/* Related Articles */}
             {relatedPosts.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Related Articles</h3>
                 <div className="space-y-4">
                   {relatedPosts.map((relPost) => (

@@ -25,12 +25,12 @@ export function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#eaeded]">
+    <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <Breadcrumbs items={[{ label: 'Contact' }]} />
 
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-6">
           <div className="bg-gradient-to-r from-[#131921] to-[#37475a] p-8 md:p-12 text-white">
             <div className="flex items-center gap-3 mb-4">
               <MessageSquare className="w-10 h-10 text-[#febd69]" />
@@ -46,7 +46,7 @@ export function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8">
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <Send className="w-5 h-5 text-[#c7511f]" />
                 Send Us a Message
@@ -55,7 +55,7 @@ export function ContactPage() {
               {submitted ? (
                 <div className="text-center py-12">
                   <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Message Received!</h3>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Message Received!</h3>
                   <p className="text-gray-600 mb-6">
                     Thank you for reaching out. We typically respond within 24-48 hours.
                   </p>
@@ -129,7 +129,7 @@ export function ContactPage() {
 
           {/* Contact Info Sidebar */}
           <div className="space-y-6">
-            <Card className="border border-gray-200">
+            <Card className="border border-gray-200 dark:border-gray-700">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <Mail className="w-5 h-5 text-[#007185]" />
@@ -147,7 +147,7 @@ export function ContactPage() {
               </CardContent>
             </Card>
 
-            <Card className="border border-gray-200">
+            <Card className="border border-gray-200 dark:border-gray-700">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <Clock className="w-5 h-5 text-[#007185]" />
@@ -160,7 +160,7 @@ export function ContactPage() {
               </CardContent>
             </Card>
 
-            <Card className="border border-gray-200">
+            <Card className="border border-gray-200 dark:border-gray-700">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <HelpCircle className="w-5 h-5 text-[#007185]" />
@@ -176,7 +176,7 @@ export function ContactPage() {
         </div>
 
         {/* FAQ Section */}
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center gap-3 mb-6">
             <HelpCircle className="w-6 h-6 text-[#c7511f]" />
             <h2 className="text-2xl font-bold text-gray-900">Frequently Asked Questions</h2>
@@ -225,7 +225,7 @@ export function ContactPage() {
                 <AccordionTrigger className="text-left text-sm font-semibold text-gray-900 hover:text-[#c7511f] hover:no-underline py-4">
                   {faq.q}
                 </AccordionTrigger>
-                <AccordionContent className="text-sm text-gray-600 leading-relaxed pb-4">
+                <AccordionContent className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed pb-4">
                   {faq.a}
                 </AccordionContent>
               </AccordionItem>

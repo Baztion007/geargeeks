@@ -130,4 +130,5 @@ export type RoutePath =
   | { page: 'blog-post'; slug: string }
   | { page: 'wishlist' }
   | { page: 'compare' }
+  | { page: 'guides' }
   | { page: 'not-found' };
