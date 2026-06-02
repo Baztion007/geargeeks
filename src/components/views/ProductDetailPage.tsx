@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { getProductBySlug, getRelatedProducts } from '@/data/products';
 import { getAuthorBySlug } from '@/data/authors';
 import { getCategoryBySlug } from '@/data/categories';
@@ -21,7 +21,9 @@ import {
   TableHeader,
   TableHead,
 } from '@/components/ui/table';
-import { Check, X, Clock, User, BookOpen, Award } from 'lucide-react';
+import { Check, X, Clock, User, BookOpen, Award, History } from 'lucide-react';
+import { ImageLightbox } from '@/components/affiliate/ImageLightbox';
+import { useRecentlyViewedStore } from '@/lib/recently-viewed';
 
 interface ProductDetailPageProps {
   productSlug: string;
@@ -72,8 +74,19 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
   const goToProduct = useRouterStore((s) => s.goToProduct);
   const goToCategory = useRouterStore((s) => s.goToCategory);
   const goToAuthor = useRouterStore((s) => s.goToAuthor);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const addView = useRecentlyViewedStore((s) => s.addView);
+  const recentlyViewedItems = useRecentlyViewedStore((s) => s.items);
 
   const product = getProductBySlug(productSlug);
+
+  // Track recently viewed product
+  useEffect(() => {
+    if (productSlug) {
+      addView(productSlug);
+    }
+  }, [productSlug, addView]);
 
   if (!product) {
     return (
@@ -99,6 +112,13 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
   const category = getCategoryBySlug(product.categorySlug);
   const relatedProducts = getRelatedProducts(product.relatedProducts);
 
+  // Get recently viewed products (excluding current product), max 5
+  const recentlyViewedProducts = recentlyViewedItems
+    .filter((slug) => slug !== productSlug)
+    .map((slug) => getProductBySlug(slug))
+    .filter(Boolean)
+    .slice(0, 5);
+
   const breadcrumbItems = [
     ...(category
       ? [
@@ -112,7 +132,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
   ];
 
   return (
-    <article className="max-w-5xl mx-auto px-4 py-6">
+    <article className="max-w-5xl mx-auto px-4 py-6 pb-24 md:pb-6">
       {/* 1. Breadcrumbs */}
       <Breadcrumbs items={breadcrumbItems} />
 
@@ -134,7 +154,14 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
       {/* 2. Product Header - Image + Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Featured Image */}
-        <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100 border border-gray-200">
+        <div
+          className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100 border border-gray-200 cursor-pointer"
+          onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}
+          role="button"
+          tabIndex={0}
+          aria-label="View full-size image"
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setLightboxIndex(0); setLightboxOpen(true); } }}
+        >
           {product.image ? (
             <img
               src={product.image}
@@ -519,6 +546,46 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
           </div>
         </section>
       )}
+
+      {/* Recently Viewed Products */}
+      {recentlyViewedProducts.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <History size={20} className="text-gray-600" />
+            <h2 className="text-xl font-bold text-gray-900">Recently Viewed</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {recentlyViewedProducts.map((rvProduct) => (
+              <ProductCard key={rvProduct!.id} product={rvProduct!} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Sticky Mobile CTA */}
+      <div className="fixed bottom-0 left-0 right-0 md:hidden bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-40 safe-area-bottom">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+          <div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-xl font-bold text-gray-900">{product.price}</span>
+              {product.originalPrice && (
+                <span className="text-sm text-gray-400 line-through">{product.originalPrice}</span>
+              )}
+            </div>
+            <p className="text-[10px] text-gray-400">As an Amazon Associate I earn from qualifying purchases.</p>
+          </div>
+          <CheckPriceButton asin={product.asin} size="sm" className="shrink-0" />
+        </div>
+      </div>
+
+      {/* Image Lightbox */}
+      <ImageLightbox
+        images={product.gallery || [product.image]}
+        initialIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        productName={product.title}
+      />
     </article>
   );
 }

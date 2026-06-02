@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, ShoppingCart, Menu, X, ChevronDown } from 'lucide-react';
+import { Search, ShoppingCart, Menu, X, ChevronDown, Heart } from 'lucide-react';
 import { useRouterStore } from '@/lib/router';
+import { useWishlistStore } from '@/lib/wishlist';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -14,6 +15,8 @@ export function Header() {
   const goHome = useRouterStore((s) => s.goHome);
   const goToSearch = useRouterStore((s) => s.goToSearch);
   const goToPage = useRouterStore((s) => s.goToPage);
+  const goToWishlist = useRouterStore((s) => s.goToWishlist);
+  const wishlistCount = useWishlistStore((s) => s.items.length);
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -111,6 +114,21 @@ export function Header() {
               >
                 <span className="text-gray-300 text-[11px]">Returns</span>
                 <span className="font-bold text-sm">& Orders</span>
+              </button>
+              <button
+                className="flex items-center gap-1 hover:outline hover:outline-1 hover:outline-white rounded p-1"
+                onClick={goToWishlist}
+                aria-label="Wishlist"
+              >
+                <div className="relative">
+                  <Heart size={28} />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#febd69] text-[#131921] text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                      {wishlistCount}
+                    </span>
+                  )}
+                </div>
+                <span className="font-bold text-sm hidden lg:block">Wishlist</span>
               </button>
               <button
                 className="flex items-center gap-1 hover:outline hover:outline-1 hover:outline-white rounded p-1"

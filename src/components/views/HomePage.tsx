@@ -55,41 +55,99 @@ function HeroBanner() {
   const featured = bestSellers[0]; // top-rated product
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-r from-[#131921] via-[#1a2332] to-[#232f3e]">
-      {/* Decorative coffee beans pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-10 left-10 w-32 h-32 rounded-full border-2 border-white" />
-        <div className="absolute top-20 right-20 w-24 h-24 rounded-full border-2 border-white" />
-        <div className="absolute bottom-10 left-1/4 w-20 h-20 rounded-full border-2 border-white" />
-        <div className="absolute top-1/3 right-1/3 w-16 h-16 rounded-full border-2 border-white" />
-        <div className="absolute bottom-20 right-10 w-28 h-28 rounded-full border border-white" />
+    <section
+      className="relative overflow-hidden bg-gradient-to-r from-[#131921] via-[#1a2f3e] to-[#232f3e]"
+      style={{
+        backgroundSize: '200% 200%',
+        animation: 'gradientShift 8s ease infinite',
+      }}
+    >
+      {/* Injected keyframes for animated gradient & floating beans */}
+      <style>{`
+        @keyframes gradientShift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        @keyframes floatBean1 {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-18px) rotate(15deg); }
+        }
+        @keyframes floatBean2 {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-14px) rotate(-10deg); }
+        }
+        @keyframes floatBean3 {
+          0%, 100% { transform: translateY(0px) rotate(5deg); }
+          50% { transform: translateY(-22px) rotate(-20deg); }
+        }
+        @keyframes pulseGlow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(254, 189, 105, 0.5); }
+          50% { box-shadow: 0 0 0 12px rgba(254, 189, 105, 0); }
+        }
+      `}</style>
+
+      {/* Decorative floating coffee beans */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div
+          className="absolute top-[8%] left-[6%] w-8 h-5 rounded-full bg-amber-700/15"
+          style={{ animation: 'floatBean1 6s ease-in-out infinite' }}
+        />
+        <div
+          className="absolute top-[18%] right-[12%] w-6 h-4 rounded-full bg-amber-600/10"
+          style={{ animation: 'floatBean2 7s ease-in-out infinite 1s' }}
+        />
+        <div
+          className="absolute bottom-[20%] left-[22%] w-7 h-4 rounded-full bg-amber-800/12"
+          style={{ animation: 'floatBean3 8s ease-in-out infinite 0.5s' }}
+        />
+        <div
+          className="absolute top-[40%] right-[30%] w-5 h-3 rounded-full bg-amber-700/8"
+          style={{ animation: 'floatBean1 9s ease-in-out infinite 2s' }}
+        />
+        <div
+          className="absolute bottom-[12%] right-[8%] w-9 h-5 rounded-full bg-amber-600/10"
+          style={{ animation: 'floatBean2 7.5s ease-in-out infinite 1.5s' }}
+        />
+        {/* Original decorative circles */}
+        <div className="absolute top-10 left-10 w-32 h-32 rounded-full border-2 border-white/5" />
+        <div className="absolute top-20 right-20 w-24 h-24 rounded-full border-2 border-white/5" />
+        <div className="absolute bottom-10 left-1/4 w-20 h-20 rounded-full border-2 border-white/5" />
+        <div className="absolute top-1/3 right-1/3 w-16 h-16 rounded-full border-2 border-white/5" />
+        <div className="absolute bottom-20 right-10 w-28 h-28 rounded-full border border-white/5" />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-18 lg:py-24">
+        <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
           {/* Left content */}
           <div className="flex-1 text-center lg:text-left">
-            <Badge className="bg-[#febd69] text-[#131921] hover:bg-[#f3a847] text-sm font-semibold mb-4 px-3 py-1">
+            <Badge className="bg-[#febd69] text-[#131921] hover:bg-[#f3a847] text-sm font-semibold mb-5 px-3 py-1">
               <Star className="w-3 h-3 mr-1 fill-[#131921]" />
               #1 Rated Coffee Equipment Reviews
             </Badge>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-4">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white leading-tight mb-5">
               Find Your Perfect
               <span className="block text-[#febd69]">Coffee Setup</span>
             </h1>
-            <p className="text-lg sm:text-xl text-gray-300 mb-8 max-w-xl mx-auto lg:mx-0">
+            <p className="text-base sm:text-lg lg:text-xl text-gray-300 mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
               Expert reviews, honest ratings, and side-by-side comparisons to help you brew better coffee at home.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-              <Button
-                onClick={() => featured && goToProduct(featured.slug)}
-                className="bg-[#febd69] hover:bg-[#f3a847] text-[#131921] font-bold text-lg px-8 py-4 rounded-lg shadow-lg hover:shadow-xl transition-all active:scale-[0.98] h-auto"
-              >
-                <ShoppingBag className="w-5 h-5 mr-2" />
-                Shop Now
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
+              {/* Shop Now button with pulsing glow */}
+              <div className="relative">
+                <div
+                  className="absolute inset-0 rounded-lg"
+                  style={{ animation: 'pulseGlow 2s ease-in-out infinite' }}
+                />
+                <Button
+                  onClick={() => featured && goToProduct(featured.slug)}
+                  className="relative bg-[#febd69] hover:bg-[#f3a847] text-[#131921] font-bold text-lg px-8 py-4 rounded-lg shadow-lg hover:shadow-xl transition-all active:scale-[0.98] h-auto"
+                >
+                  <ShoppingBag className="w-5 h-5 mr-2" />
+                  Shop Now
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </div>
               <Button
                 variant="outline"
                 className="border-gray-500 text-gray-300 hover:text-white hover:border-white bg-transparent"
@@ -102,7 +160,7 @@ function HeroBanner() {
               </Button>
             </div>
 
-            <div className="mt-8 flex items-center justify-center lg:justify-start gap-6 text-sm text-gray-400">
+            <div className="mt-8 flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-sm text-gray-400">
               <span className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 Independent Reviews
@@ -584,19 +642,18 @@ function DealsSection() {
                   </h3>
                   <StarRating rating={product.rating} size="sm" />
 
-                  <div className="mt-2">
+                  <div className="mt-2 flex items-baseline gap-2">
                     <span className="text-xl font-bold text-red-600">{product.price}</span>
-                    <span className="text-sm text-gray-400 line-through ml-2">{product.originalPrice}</span>
+                    <span className="text-sm text-gray-400 line-through">{product.originalPrice}</span>
                   </div>
 
                   {/* Savings amount */}
                   {product.originalPrice && (
                     <p className="text-xs text-emerald-700 font-medium mt-1">
-                      You save{' '}
-                      {(
+                      {`You save $${(
                         parseFloat(product.originalPrice.replace(/[^0-9.]/g, '')) -
                         parseFloat(product.price.replace(/[^0-9.]/g, ''))
-                      ).toFixed(2)}
+                      ).toFixed(2)}`}
                     </p>
                   )}
 

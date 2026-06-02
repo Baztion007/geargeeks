@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useRouterStore, hashToRoute } from '@/lib/router';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -22,6 +23,9 @@ import { EditorialPolicyPage } from '@/components/views/EditorialPolicyPage';
 import { HowWeTestPage } from '@/components/views/HowWeTestPage';
 import { DealsPage } from '@/components/views/DealsPage';
 import { BestSellersPage } from '@/components/views/BestSellersPage';
+import { WishlistPage } from '@/components/views/WishlistPage';
+import { ComparePage } from '@/components/views/ComparePage';
+import { CompareBar } from '@/components/affiliate/CompareBar';
 
 export default function Home() {
   const route = useRouterStore((s) => s.route);
@@ -75,6 +79,10 @@ export default function Home() {
         return <DealsPage />;
       case 'best-sellers':
         return <BestSellersPage />;
+      case 'wishlist':
+        return <WishlistPage />;
+      case 'compare':
+        return <ComparePage />;
       case 'reviews':
         return <BestSellersPage />;
       case 'blog':
@@ -99,11 +107,22 @@ export default function Home() {
       <Header />
 
       <main className="flex-1">
-        {renderView()}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={route.page === 'product' ? `product-${route.slug}` : route.page === 'category' ? `cat-${route.slug}` : route.page === 'search' ? `search-${route.query}` : route.page}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+          >
+            {renderView()}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       <Footer />
       <BackToTop />
+      <CompareBar />
     </div>
   );
 }

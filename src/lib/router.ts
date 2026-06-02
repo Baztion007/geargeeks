@@ -10,6 +10,8 @@ interface RouterState {
   goToSearch: (query: string) => void;
   goToBuyingGuide: (slug: string) => void;
   goToAuthor: (slug: string) => void;
+  goToWishlist: () => void;
+  goToCompare: () => void;
   goToPage: (page: RoutePath['page']) => void;
 }
 
@@ -88,7 +90,25 @@ export const useRouterStore = create<RouterState>((set) => ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return { route };
   }),
-}));
+
+  goToWishlist: () => set((state) => {
+    const route: RoutePath = { page: 'wishlist' };
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ route }, '', '#wishlist');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return { route };
+  }),
+
+  goToCompare: () => set((state) => {
+    const route: RoutePath = { page: 'compare' };
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ route }, '', '#compare');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return { route };
+  }),
+}))
 
 function routeToHash(route: RoutePath): string {
   switch (route.page) {
@@ -98,6 +118,8 @@ function routeToHash(route: RoutePath): string {
     case 'search': return `search/${encodeURIComponent(route.query)}`;
     case 'buying-guide': return `guide/${route.slug}`;
     case 'author': return `author/${route.slug}`;
+    case 'wishlist': return 'wishlist';
+    case 'compare': return 'compare';
     default: return route.page;
   }
 }
@@ -121,7 +143,7 @@ export function hashToRoute(hash: string): RoutePath {
     case 'author':
       return { page: 'author', slug: rest.join('/') };
     default:
-      if (['about', 'contact', 'privacy', 'terms', 'editorial-policy', 'how-we-test', 'deals', 'best-sellers', 'reviews', 'blog', 'not-found'].includes(type)) {
+      if (['about', 'contact', 'privacy', 'terms', 'editorial-policy', 'how-we-test', 'deals', 'best-sellers', 'reviews', 'blog', 'wishlist', 'compare', 'not-found'].includes(type)) {
         return { page: type as RoutePath['page'] } as RoutePath;
       }
       return { page: 'not-found' };

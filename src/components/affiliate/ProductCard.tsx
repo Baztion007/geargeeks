@@ -8,7 +8,9 @@ import { Disclosure } from './Disclosure';
 import { CheckPriceButton } from './AffiliateLink';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tag, Coffee } from 'lucide-react';
+import { Tag, Coffee, Heart, BarChart3 } from 'lucide-react';
+import { useWishlistStore } from '@/lib/wishlist';
+import { useCompareStore } from '@/lib/compare';
 
 interface ProductCardProps {
   product: Product;
@@ -18,6 +20,12 @@ interface ProductCardProps {
 export function ProductCard({ product, showAffiliate = true }: ProductCardProps) {
   const goToProduct = useRouterStore((s) => s.goToProduct);
   const goToCategory = useRouterStore((s) => s.goToCategory);
+  const toggleWishlist = useWishlistStore((s) => s.toggleItem);
+  const isInWishlist = useWishlistStore((s) => s.isInWishlist);
+  const isWishlisted = isInWishlist(product.slug);
+  const toggleCompare = useCompareStore((s) => s.toggleItem);
+  const isInCompare = useCompareStore((s) => s.isInCompare);
+  const isCompared = isInCompare(product.slug);
   const [imgError, setImgError] = useState(false);
 
   return (
@@ -50,6 +58,23 @@ export function ProductCard({ product, showAffiliate = true }: ProductCardProps)
             {product.bestFor}
           </Badge>
         )}
+
+        {/* Heart/Wishlist button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleWishlist(product.slug);
+          }}
+          className={`absolute top-2 ${product.originalPrice ? 'right-10' : 'right-2'} w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:shadow-md transition-all z-10 ${
+            isWishlisted ? 'text-red-500' : 'text-gray-400 hover:text-red-400'
+          }`}
+          aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+        >
+          <Heart
+            size={16}
+            className={isWishlisted ? 'fill-red-500' : ''}
+          />
+        </button>
 
         {/* Sale badge */}
         {product.originalPrice && (
@@ -97,6 +122,23 @@ export function ProductCard({ product, showAffiliate = true }: ProductCardProps)
 
         {/* Excerpt */}
         <p className="text-xs text-gray-600 mt-2 line-clamp-2">{product.excerpt}</p>
+
+        {/* Compare Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleCompare(product.slug);
+          }}
+          className={`flex items-center gap-1.5 mt-2 text-xs font-medium transition-colors ${
+            isCompared
+              ? 'text-amber-700 hover:text-amber-900'
+              : 'text-gray-400 hover:text-gray-600'
+          }`}
+          aria-label={isCompared ? 'Remove from compare' : 'Add to compare'}
+        >
+          <BarChart3 size={14} className={isCompared ? 'fill-amber-200' : ''} />
+          Compare
+        </button>
 
         {/* Affiliate CTA */}
         {showAffiliate && (

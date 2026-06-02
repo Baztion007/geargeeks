@@ -7,11 +7,13 @@ import { Shield, Award, RefreshCw, Search } from 'lucide-react';
 export function Footer() {
   const goHome = useRouterStore((s) => s.goHome);
   const goToPage = useRouterStore((s) => s.goToPage);
+  const goToWishlist = useRouterStore((s) => s.goToWishlist);
   const navigate = useRouterStore((s) => s.navigate);
 
   const footerLinks = {
     'Get to Know Us': [
       { label: 'About BrewHub', action: () => goToPage('about') },
+      { label: 'Wishlist', action: () => goToWishlist() },
       { label: 'Editorial Policy', action: () => goToPage('editorial-policy') },
       { label: 'How We Test', action: () => goToPage('how-we-test') },
       { label: 'Contact Us', action: () => goToPage('contact') },
