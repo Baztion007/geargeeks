@@ -18,9 +18,10 @@ import { QuickViewModal } from './QuickViewModal';
 interface ProductCardProps {
   product: Product;
   showAffiliate?: boolean;
+  hideDisclosure?: boolean;
 }
 
-export function ProductCard({ product, showAffiliate = true }: ProductCardProps) {
+export function ProductCard({ product, showAffiliate = true, hideDisclosure = false }: ProductCardProps) {
   const goToProduct = useRouterStore((s) => s.goToProduct);
   const goToCategory = useRouterStore((s) => s.goToCategory);
   const toggleWishlist = useWishlistStore((s) => s.toggleItem);
@@ -193,7 +194,7 @@ export function ProductCard({ product, showAffiliate = true }: ProductCardProps)
         {/* Affiliate CTA — with shimmer sweep animation */}
         {showAffiliate && (
           <div className="mt-auto pt-3">
-            <Disclosure compact />
+            {!hideDisclosure && <Disclosure compact />}
             <CheckPriceButton
               merchant={product.merchant}
               productId={product.asin}

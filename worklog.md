@@ -1991,3 +1991,27 @@ Stage Summary:
 - CTA buttons aligned at bottom of each card via flex layout
 - Duplicate Affiliate Disclosure removed from DealsPage (Footer disclosure is sufficient)
 - Lint passes cleanly
+
+---
+Task ID: bugfix-guide-buttons-and-deals
+Agent: Main Developer
+Task: Fix BuyingGuide "Ready to Make Your Choice?" duplicate Amazon buttons, DealsPage Shop by Retailer alignment, and duplicate Affiliate Disclosure
+
+Work Log:
+- Analyzed user's uploaded screenshot showing 3 identical "Check Price on Amazon" buttons under "Ready to Make Your Choice?" section in BuyingGuidePage
+- Root cause: All products have `merchant: 'amazon'`, and the old code used `CheckPriceButton` with each product's merchant, producing 3 identical Amazon buttons
+- Redesigned CTA section to show each recommended product with 3 multi-retailer buttons (Amazon, Walmart, Best Buy) per product, with branded colors (orange/blue/dark blue)
+- Each product card shows product name + 3 retailer buttons with ExternalLink icon
+- Primary retailer (matching product.merchant) gets full opacity + ring highlight; others at 85% opacity
+- Added imports: `getAffiliateUrl`, `getAffiliateLinkProps`, `getMerchantName` from affiliate.ts, `Merchant` type, `ExternalLink` from lucide
+- Removed unused `CheckPriceButton` import from BuyingGuidePage.tsx
+- Fixed DealsPage "Shop by Retailer" grid alignment: added `h-full` to Card, `shrink-0` to merchant icon, `min-w-0` + `truncate` to merchant name div, `min-h-[3rem]` to description, `min-h-[1.75rem]` to highlights container
+- Fixed duplicate Affiliate Disclosure on DealsPage: added `hideDisclosure` prop to ProductCard component, used it on DealsPage's ProductCards to remove per-card compact disclosures (Footer disclosure is sufficient)
+- Verified all 3 fixes with agent-browser QA
+
+Stage Summary:
+- BuyingGuidePage "Ready to Make Your Choice?" now shows 3 product cards with multi-retailer price comparison buttons (Amazon/Walmart/Best Buy) instead of 3 identical Amazon buttons
+- DealsPage "Shop by Retailer" grid cards aligned with consistent heights
+- Duplicate Affiliate Disclosure removed from DealsPage ProductCards
+- All fixes verified via agent-browser (PASS)
+- Created cron job for webDevReview every 15 minutes

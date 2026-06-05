@@ -348,19 +348,19 @@ export function DealsPage() {
               return (
                 <Card
                   key={md.merchant}
-                  className={`group overflow-hidden bg-white dark:bg-gray-800 border ${md.borderColor} ${md.darkBorderColor} rounded-xl hover:shadow-xl transition-all duration-300 card-hover-lift flex flex-col`}
+                  className={`group overflow-hidden bg-white dark:bg-gray-800 border ${md.borderColor} ${md.darkBorderColor} rounded-xl hover:shadow-xl transition-all duration-300 card-hover-lift flex flex-col h-full`}
                 >
                   <CardContent className="p-4 sm:p-5 flex flex-col flex-1">
                     {/* Merchant header */}
                     <div className="flex items-center gap-3 mb-3">
                       <div
-                        className={`w-10 h-10 rounded-lg ${md.bgColor} ${md.darkBgColor} flex items-center justify-center`}
+                        className={`w-10 h-10 shrink-0 rounded-lg ${md.bgColor} ${md.darkBgColor} flex items-center justify-center`}
                         style={{ boxShadow: `0 0 12px ${md.color}20` }}
                       >
                         <Icon size={20} style={{ color: md.color }} />
                       </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white text-base">
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-gray-900 dark:text-white text-sm sm:text-base truncate">
                           {merchantName}
                         </h3>
                         <span className="text-[10px] uppercase tracking-wider font-medium" style={{ color: md.color }}>
@@ -370,12 +370,12 @@ export function DealsPage() {
                     </div>
 
                     {/* Description */}
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 leading-relaxed min-h-[3rem]">
                       {md.description}
                     </p>
 
                     {/* Highlights */}
-                    <div className="flex flex-wrap gap-1.5 mb-4">
+                    <div className="flex flex-wrap gap-1.5 mb-4 min-h-[1.75rem]">
                       {md.highlights.map((h) => (
                         <span
                           key={h}
@@ -444,7 +444,7 @@ export function DealsPage() {
                     </Badge>
                   </div>
                 )}
-                <ProductCard product={product} />
+                <ProductCard product={product} hideDisclosure />
               </div>
             ))}
           </div>

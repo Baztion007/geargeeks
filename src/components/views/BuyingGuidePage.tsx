@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
 import { ProductCard } from '@/components/affiliate/ProductCard';
-import { CheckPriceButton } from '@/components/affiliate/AffiliateLink';
+
 import { StarRating } from '@/components/affiliate/RatingBar';
 import { getBuyingGuideBySlug } from '@/data/buying-guides';
 import { getProductBySlug, products } from '@/data/products';
@@ -46,9 +46,12 @@ import {
   Facebook,
   Link2,
   Check,
+  ExternalLink,
 } from 'lucide-react';
 import { generateGuidePageJsonLd } from '@/lib/seo';
 import { JsonLdScript } from '@/components/affiliate/JsonLdScript';
+import { getAffiliateUrl, getAffiliateLinkProps, getMerchantName } from '@/lib/affiliate';
+import type { Merchant } from '@/lib/types';
 
 // Guide type badge configuration
 const guideTypeConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
@@ -364,18 +367,64 @@ export function BuyingGuidePage({ guideSlug }: BuyingGuidePageProps) {
           </div>
         )}
 
-        {/* CTA Block */}
-        <div className="bg-gradient-to-r from-[#131921] to-[#37475a] rounded-lg p-8 text-center text-white mb-6">
-          <h2 className="text-2xl font-bold mb-3">Ready to Make Your Choice?</h2>
-          <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+        {/* CTA Block — Multi-Retailer Price Comparison */}
+        <div className="bg-gradient-to-r from-[#131921] to-[#37475a] rounded-lg p-8 text-white mb-6">
+          <h2 className="text-2xl font-bold mb-3 text-center">Ready to Make Your Choice?</h2>
+          <p className="text-gray-300 mb-6 max-w-2xl mx-auto text-center">
             Check the latest prices and find the best deal for the gear that&apos;s right for you.
           </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {recommendedProducts.slice(0, 3).map((product) => (
-              <CheckPriceButton key={product.id} merchant={product.merchant} productId={product.asin} size="md" />
-            ))}
+          <div className="space-y-4 max-w-2xl mx-auto">
+            {recommendedProducts.slice(0, 3).map((product) => {
+              const retailers: { merchant: Merchant; label: string; color: string }[] = [
+                { merchant: 'amazon', label: 'Amazon', color: '#FF9900' },
+                { merchant: 'walmart', label: 'Walmart', color: '#0071DC' },
+                { merchant: 'bestbuy', label: 'Best Buy', color: '#0046BE' },
+              ];
+              return (
+                <div
+                  key={product.id}
+                  className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10"
+                >
+                  <h3 className="font-semibold text-white mb-3 text-sm leading-tight">{product.title}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {retailers.map((r) => {
+                      const url = getAffiliateUrl({ merchant: r.merchant, productId: product.asin });
+                      const linkProps = getAffiliateLinkProps(url);
+                      const isPrimary = product.merchant === r.merchant;
+                      return (
+                        <a
+                          key={r.merchant}
+                          {...linkProps}
+                          className={`inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold text-xs px-4 py-2 transition-all hover:shadow-md active:scale-[0.98] ${
+                            isPrimary
+                              ? 'ring-1 ring-white/30'
+                              : ''
+                          }`}
+                          style={{
+                            backgroundColor: r.color,
+                            color: '#ffffff',
+                            opacity: isPrimary ? 1 : 0.85,
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.opacity = '1';
+                            e.currentTarget.style.filter = 'brightness(1.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.opacity = isPrimary ? '1' : '0.85';
+                            e.currentTarget.style.filter = 'brightness(1)';
+                          }}
+                        >
+                          <ExternalLink size={12} />
+                          Check Price on {r.label}
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <p className="text-xs text-gray-400 mt-4">
+          <p className="text-xs text-gray-400 mt-5 text-center">
             GearGeekz earns from qualifying purchases via affiliate links. Prices and availability are subject to change on the retailer&apos;s site.
           </p>
         </div>
