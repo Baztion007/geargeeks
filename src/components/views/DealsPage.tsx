@@ -338,7 +338,7 @@ export function DealsPage() {
             Browse deals from our trusted retail partners. Each link takes you directly to the retailer for the most current pricing and availability.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {merchantDeals.map((md) => {
               const Icon = md.icon;
               const url = getAffiliateUrl({ merchant: md.merchant, productId: getMerchantProductId(md.merchant) });
@@ -348,9 +348,9 @@ export function DealsPage() {
               return (
                 <Card
                   key={md.merchant}
-                  className={`group overflow-hidden bg-white dark:bg-gray-800 border ${md.borderColor} ${md.darkBorderColor} rounded-xl hover:shadow-xl transition-all duration-300 card-hover-lift`}
+                  className={`group overflow-hidden bg-white dark:bg-gray-800 border ${md.borderColor} ${md.darkBorderColor} rounded-xl hover:shadow-xl transition-all duration-300 card-hover-lift flex flex-col`}
                 >
-                  <CardContent className="p-5">
+                  <CardContent className="p-4 sm:p-5 flex flex-col flex-1">
                     {/* Merchant header */}
                     <div className="flex items-center gap-3 mb-3">
                       <div
@@ -391,7 +391,7 @@ export function DealsPage() {
                     {/* CTA */}
                     <a
                       {...linkProps}
-                      className="inline-flex items-center justify-center gap-2 w-full rounded-lg font-semibold text-sm py-2.5 transition-all hover:shadow-md active:scale-[0.98]"
+                      className="mt-auto inline-flex items-center justify-center gap-2 w-full rounded-lg font-semibold text-sm py-2.5 transition-all hover:shadow-md active:scale-[0.98]"
                       style={{
                         backgroundColor: md.color,
                         color: '#ffffff',
@@ -551,24 +551,6 @@ export function DealsPage() {
                 </Card>
               );
             })}
-          </div>
-        </div>
-
-        {/* ─── Affiliate Disclosure ────────────────────────────────── */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 section-entrance">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-            <div>
-              <h3 className="font-bold text-gray-900 dark:text-white text-sm mb-1.5">
-                Affiliate Disclosure
-              </h3>
-              <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                GearGeekz earns commissions from qualifying purchases through affiliate links on this page.
-                We participate in affiliate programs with Amazon, Walmart, Best Buy, Target, REI, and B&amp;H Photo.
-                This does not affect which products we recommend — our editorial team independently selects and reviews all products.
-                Prices and availability are subject to change. Always verify the final price on the retailer&apos;s site before purchasing.
-              </p>
-            </div>
           </div>
         </div>
 

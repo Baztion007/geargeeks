@@ -1969,3 +1969,25 @@ Stage Summary:
 - Quick View BestFor badges now readable in dark mode
 - All "GearScope" references in config files renamed to "GearGeekz"
 - Lint passes cleanly, dev server compiles without errors
+
+---
+Task ID: 8-deals-fixes
+Agent: Main Agent
+Task: Fix Shop by Retailer row 2 alignment and remove duplicate Affiliate Disclosure on Deals page
+
+Work Log:
+- Changed DealsPage "Shop by Retailer" grid from `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` to `grid-cols-2 md:grid-cols-3`
+  - This ensures 2-column layout starts immediately (no 1-column mobile orphan), and switches to 3 columns at md breakpoint
+  - 6 items in 2 cols = 3 rows of 2; in 3 cols = 2 rows of 3 — both look balanced
+- Added `flex flex-col` to Card and `flex flex-col flex-1` to CardContent for equal-height cards
+- Added `mt-auto` to CTA button so it pushes to the bottom of each card regardless of content height
+- Adjusted padding to `p-4 sm:p-5` for better mobile spacing
+- Removed the duplicate Affiliate Disclosure section from DealsPage main content (lines 557-573)
+  - The Footer already has a full Affiliate Disclosure section, making the page-level one redundant
+- Verified with agent-browser + VLM: retailer cards properly aligned in 2x3 grid, no duplicate disclosure
+
+Stage Summary:
+- Shop by Retailer cards now use 2-col (mobile) → 3-col (md+) grid with equal heights
+- CTA buttons aligned at bottom of each card via flex layout
+- Duplicate Affiliate Disclosure removed from DealsPage (Footer disclosure is sufficient)
+- Lint passes cleanly
