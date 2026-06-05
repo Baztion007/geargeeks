@@ -7,7 +7,7 @@ import { getAuthorBySlug } from '@/data/authors';
 import { getCategoryBySlug } from '@/data/categories';
 import { useRouterStore } from '@/lib/router';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
-import { Disclosure, EditorialIndependence } from '@/components/affiliate/Disclosure';
+import { EditorialIndependence } from '@/components/affiliate/Disclosure';
 import { CheckPriceButton, ViewLatestDealButton } from '@/components/affiliate/AffiliateLink';
 import { StarRating, RatingBreakdownDisplay } from '@/components/affiliate/RatingBar';
 import { ProductCard } from '@/components/affiliate/ProductCard';
@@ -537,9 +537,6 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
           <div className="mb-4">
             <SocialShareButtons title={product.title} />
           </div>
-
-          {/* Disclosure before CTA */}
-          <Disclosure />
 
           {/* Check Price / View Latest Deal CTA */}
           <div className="gradient-cta-bg rounded-xl p-3 mt-3">

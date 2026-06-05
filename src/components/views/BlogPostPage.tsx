@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo } from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
-import { Disclosure } from '@/components/affiliate/Disclosure';
 import { ProductCard } from '@/components/affiliate/ProductCard';
 import { CheckPriceButton } from '@/components/affiliate/AffiliateLink';
 import { getBlogPostBySlug, getRelatedPosts, blogPosts } from '@/data/blog-posts';
@@ -277,11 +276,6 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
               <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <SocialShareButtons title={post.title} slug={post.slug} />
               </div>
-            </div>
-
-            {/* Affiliate Disclosure Before Products */}
-            <div className="mb-6">
-              <Disclosure />
             </div>
 
             {/* Related Products */}

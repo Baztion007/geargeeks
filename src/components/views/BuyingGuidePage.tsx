@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
-import { Disclosure } from '@/components/affiliate/Disclosure';
 import { ProductCard } from '@/components/affiliate/ProductCard';
 import { CheckPriceButton } from '@/components/affiliate/AffiliateLink';
 import { StarRating } from '@/components/affiliate/RatingBar';
@@ -252,7 +251,6 @@ export function BuyingGuidePage({ guideSlug }: BuyingGuidePageProps) {
           <div className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
             {guide.introduction}
           </div>
-          <Disclosure />
         </div>
 
         {/* Recommended Products */}

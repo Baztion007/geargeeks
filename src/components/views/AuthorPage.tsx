@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
-import { Disclosure } from '@/components/affiliate/Disclosure';
 import { ProductCard } from '@/components/affiliate/ProductCard';
 import { getAuthorBySlug } from '@/data/authors';
 import { products } from '@/data/products';
@@ -293,7 +292,6 @@ export function AuthorPage({ authorSlug }: AuthorPageProps) {
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">About {author.name.split(' ')[0]}</h2>
               </div>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{author.bio}</p>
-              <Disclosure />
             </div>
 
             {/* Expertise Areas with Skill Bars */}

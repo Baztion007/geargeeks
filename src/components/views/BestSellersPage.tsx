@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo } from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
-import { Disclosure } from '@/components/affiliate/Disclosure';
 import { ProductCard } from '@/components/affiliate/ProductCard';
 import { CheckPriceButton } from '@/components/affiliate/AffiliateLink';
 import { StarRating } from '@/components/affiliate/RatingBar';
@@ -289,8 +288,7 @@ export function BestSellersPage() {
 
         {/* Disclaimer */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
-          <Disclosure />
-          <div className="mt-4 text-sm text-gray-600">
+          <div className="text-sm text-gray-600">
             <p>
               Rankings are based on our expert review scores and reflect our team&apos;s testing and
               evaluation. Individual preferences and needs may vary. We encourage you to read our

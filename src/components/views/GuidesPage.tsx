@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
-import { Disclosure } from '@/components/affiliate/Disclosure';
 import { buyingGuides } from '@/data/buying-guides';
 import { getAuthorBySlug } from '@/data/authors';
 import { useRouterStore } from '@/lib/router';
@@ -323,10 +322,7 @@ export function GuidesPage() {
           </div>
         )}
 
-        {/* Affiliate Disclosure */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6 section-entrance">
-          <Disclosure />
-        </div>
+
       </div>
     </div>
   );

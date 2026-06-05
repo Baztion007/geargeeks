@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
-import { Disclosure } from '@/components/affiliate/Disclosure';
 import { ProductCard } from '@/components/affiliate/ProductCard';
 import { products, getProductsByCategory } from '@/data/products';
 import { buyingGuides, getBuyingGuidesByCategory } from '@/data/buying-guides';
@@ -252,10 +251,7 @@ export function RoundupsPage() {
           </div>
         </div>
 
-        {/* Affiliate Disclosure */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6 border border-gray-200 dark:border-gray-700">
-          <Disclosure />
-        </div>
+
       </div>
     </div>
   );

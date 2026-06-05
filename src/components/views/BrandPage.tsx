@@ -11,7 +11,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StarRating } from '@/components/affiliate/RatingBar';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
-import { Disclosure } from '@/components/affiliate/Disclosure';
 import { Building2, MapPin, Calendar, ExternalLink, ArrowLeft, Package, Globe, BookOpen, Users, ChevronDown, ChevronUp, Trophy, Sparkles } from 'lucide-react';
 import { generateBrandPageJsonLd } from '@/lib/seo';
 import { JsonLdScript } from '@/components/affiliate/JsonLdScript';
@@ -332,9 +331,6 @@ export function BrandPage({ brandSlug }: BrandPageProps) {
               ))}
             </div>
 
-            <div className="mt-4">
-              <Disclosure />
-            </div>
           </section>
         )}
 

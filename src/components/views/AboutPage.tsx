@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
-import { Disclosure, EditorialIndependence } from '@/components/affiliate/Disclosure';
 import { authors } from '@/data/authors';
 import { useRouterStore } from '@/lib/router';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,7 +12,6 @@ import {
   Shield,
   Search,
   Heart,
-  Award,
   Users,
   BookOpen,
   Target,
@@ -89,36 +87,6 @@ export function AboutPage() {
                 <p className="text-sm text-gray-600 dark:text-gray-300">{item.desc}</p>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Affiliate Disclosure */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Award className="w-6 h-6 text-amber-600" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Affiliate Disclosure</h2>
-          </div>
-          <Disclosure />
-          <div className="mt-4 space-y-3 text-gray-700 dark:text-gray-300 leading-relaxed">
-            <p>
-              GearScope participates in affiliate programs with multiple retailers including Amazon, Walmart,
-              Best Buy, REI, and B&amp;H Photo. When you click on one of our affiliate links and make a
-              purchase, we may receive a small commission at no additional cost to you.
-            </p>
-            <p>
-              These commissions help us maintain our website, purchase products for testing, and continue
-              producing high-quality content. We want to be completely transparent about this relationship.
-              Our editorial team operates independently from our business team, and affiliate partnerships
-              never influence which products we review or how we rate them.
-            </p>
-          </div>
-          <EditorialIndependence />
-          <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg">
-            <p className="text-sm text-blue-800 dark:text-blue-300">
-              <strong>Disclaimer:</strong> Product availability and pricing are determined by retailers and
-              are subject to change. GearScope does not set prices — always check the retailer&apos;s website
-              for the most current information before making a purchase.
-            </p>
           </div>
         </div>
 

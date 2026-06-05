@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
-import { Disclosure } from '@/components/affiliate/Disclosure';
 import { ProductCard } from '@/components/affiliate/ProductCard';
 import { getTrending, getBestSellers } from '@/data/products';
 import { categories } from '@/data/categories';
@@ -407,8 +406,7 @@ export function TrendingPage() {
 
         {/* Disclaimer */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 section-entrance">
-          <Disclosure />
-          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
             <p>
               Trending products are selected based on our expert review scores, recent updates, and editorial interest.
               These are the products our team is most excited about right now. Individual preferences and needs may vary.
