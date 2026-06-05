@@ -67,7 +67,7 @@ export function BestSellersPage() {
       );
     }
     return (
-      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-600 text-lg">
+      <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center font-bold text-gray-600 dark:text-gray-300 text-lg">
         #{rank}
       </div>
     );
@@ -173,13 +173,13 @@ export function BestSellersPage() {
         {/* Category Filter Tabs */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
           <div className="flex items-center gap-2 flex-wrap">
-            <Filter size={16} className="text-gray-500 mr-1" />
+            <Filter size={16} className="text-gray-500 dark:text-gray-400 mr-1" />
             <button
               onClick={() => setSelectedCategory('all')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 selectedCategory === 'all'
                   ? 'bg-[#131921] text-white shadow-md'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               All Categories
@@ -191,7 +191,7 @@ export function BestSellersPage() {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   selectedCategory === cat.slug
                     ? 'bg-[#131921] text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
                 {cat.name}
@@ -203,14 +203,14 @@ export function BestSellersPage() {
         {/* Ranked List */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-[#c7511f]" />
               {selectedCategory === 'all'
                 ? 'All Categories'
                 : bestSellerCategories.find((c) => c.slug === selectedCategory)?.name}{' '}
               Rankings
             </h2>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               {filteredSellers.length} product{filteredSellers.length !== 1 ? 's' : ''}
             </span>
           </div>
@@ -224,7 +224,7 @@ export function BestSellersPage() {
               return (
                 <div
                   key={product.id}
-                  className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 hover:border-[#007185]/30 hover:shadow-md transition-all cursor-pointer"
+                  className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-[#007185]/30 hover:shadow-md transition-all cursor-pointer"
                   onClick={() => goToProduct(product.slug)}
                 >
                   {/* Rank */}
@@ -252,19 +252,19 @@ export function BestSellersPage() {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs text-[#007185]">{product.category}</span>
+                      <span className="text-xs text-[#007185] dark:text-[#5bc0de]">{product.category}</span>
                       {product.reviewStatus === 'verified' && (
                         <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 text-[10px] px-1.5">
                           ✓ Verified
                         </Badge>
                       )}
                       {product.bestFor && product.bestFor.length > 0 && (
-                        <Badge className="bg-[#febd69]/20 text-[#131921] hover:bg-[#febd69]/20 text-[10px] px-1.5">
+                        <Badge className="bg-[#febd69]/20 text-[#131921] dark:text-[#febd69] hover:bg-[#febd69]/20 text-[10px] px-1.5">
                           {product.bestFor[0]}
                         </Badge>
                       )}
                     </div>
-                    <h3 className="font-semibold text-gray-900 text-sm leading-tight mb-1 line-clamp-1 hover:text-[#c7511f]">
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight mb-1 line-clamp-1 hover:text-[#c7511f] dark:hover:text-[#e8753a]">
                       {product.title}
                     </h3>
                     <StarRating rating={product.rating} size="sm" />
@@ -281,14 +281,14 @@ export function BestSellersPage() {
 
           {filteredSellers.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500">No products found in this category.</p>
+              <p className="text-gray-500 dark:text-gray-400">No products found in this category.</p>
             </div>
           )}
         </div>
 
         {/* Disclaimer */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
             <p>
               Rankings are based on our expert review scores and reflect our team&apos;s testing and
               evaluation. Individual preferences and needs may vary. We encourage you to read our

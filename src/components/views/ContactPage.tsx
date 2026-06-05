@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -73,113 +72,97 @@ export function ContactPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {/* Contact Form */}
-          <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                <Send className="w-5 h-5 text-[#c7511f]" />
-                Send Us a Message
-              </h2>
+        {/* Contact Form — full width */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <Send className="w-5 h-5 text-[#c7511f]" />
+            Send Us a Message
+          </h2>
 
-              {submitted ? (
-                <div className="text-center py-12">
-                  <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Message Received!</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-6">
-                    Thank you for reaching out. We'll get back to you as soon as possible.
-                  </p>
-                  <Button
-                    onClick={() => setSubmitted(false)}
-                    variant="outline"
-                    className="border-[#131921] text-[#131921] dark:border-gray-600 dark:text-gray-300"
-                  >
-                    Send Another Message
-                  </Button>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Name *</Label>
-                      <Input
-                        id="name"
-                        placeholder="Your name"
-                        required
-                        className="border-gray-300 focus:border-[#007185] focus:ring-[#007185]"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="your@email.com"
-                        required
-                        className="border-gray-300 focus:border-[#007185] focus:ring-[#007185]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="subject">Subject</Label>
-                    <Input
-                      id="subject"
-                      placeholder="What's this about?"
-                      className="border-gray-300 focus:border-[#007185] focus:ring-[#007185]"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="message">Message *</Label>
-                    <Textarea
-                      id="message"
-                      placeholder="Tell us what's on your mind..."
-                      rows={6}
-                      required
-                      className="border-gray-300 focus:border-[#007185] focus:ring-[#007185] resize-none"
-                    />
-                  </div>
-
-                  <p className="text-xs text-gray-500">
-                    Fields marked with * are required. We&apos;ll never share your information with third parties.
-                  </p>
-
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="bg-[#febd69] hover:bg-[#f3a847] text-[#131921] font-bold px-8 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? (
-                      <>Sending...</>
-                    ) : (
-                      <><Send size={16} className="mr-2" />Send Message</>
-                    )}
-                  </Button>
-
-                  {submitError && (
-                    <p className="text-red-500 text-sm mt-2">{submitError}</p>
-                  )}
-                </form>
-              )}
+          {submitted ? (
+            <div className="text-center py-12">
+              <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Message Received!</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Thank you for reaching out. We'll get back to you as soon as possible.
+              </p>
+              <Button
+                onClick={() => setSubmitted(false)}
+                variant="outline"
+                className="border-[#131921] text-[#131921] dark:border-gray-600 dark:text-gray-300"
+              >
+                Send Another Message
+              </Button>
             </div>
-          </div>
-
-          {/* Contact Info Sidebar */}
-          <div className="space-y-6">
-            <Card className="border border-gray-200 dark:border-gray-700">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <HelpCircle className="w-5 h-5 text-[#007185]" />
-                  <h3 className="font-bold text-gray-900 dark:text-white">Quick Answers</h3>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-gray-700 dark:text-gray-200">Name *</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="Your name"
+                    required
+                    className="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 focus:border-[#007185] focus:ring-[#007185]"
+                  />
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Many common questions are answered in our FAQ section below. Check there first for
-                  the fastest response.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-gray-700 dark:text-gray-200">Email *</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    required
+                    className="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 focus:border-[#007185] focus:ring-[#007185]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="subject" className="text-gray-700 dark:text-gray-200">Subject</Label>
+                <Input
+                  id="subject"
+                  name="subject"
+                  placeholder="What's this about?"
+                  className="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 focus:border-[#007185] focus:ring-[#007185]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="message" className="text-gray-700 dark:text-gray-200">Message *</Label>
+                <Textarea
+                  id="message"
+                  name="message"
+                  placeholder="Tell us what's on your mind..."
+                  rows={8}
+                  required
+                  className="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 focus:border-[#007185] focus:ring-[#007185] resize-none"
+                />
+              </div>
+
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Fields marked with * are required. We&apos;ll never share your information with third parties.
+              </p>
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-[#febd69] hover:bg-[#f3a847] text-[#131921] font-bold px-8 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <>Sending...</>
+                ) : (
+                  <><Send size={16} className="mr-2" />Send Message</>
+                )}
+              </Button>
+
+              {submitError && (
+                <p className="text-red-500 text-sm mt-2">{submitError}</p>
+              )}
+            </form>
+          )}
         </div>
 
         {/* FAQ Section */}

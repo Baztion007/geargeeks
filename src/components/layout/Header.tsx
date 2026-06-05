@@ -97,7 +97,7 @@ export function Header() {
                   }, 800);
                 }
               }}
-              className="flex items-center gap-2 shrink-0 hover:opacity-90 rounded-lg p-1 transition-all duration-300"
+              className="flex items-center gap-2 shrink-0 rounded-lg p-1"
               aria-label="Go to homepage"
             >
               <div className="w-9 h-9 bg-gradient-to-br from-[#febd69] to-[#f59e0b] rounded-full flex items-center justify-center shadow-md shadow-amber-500/30">

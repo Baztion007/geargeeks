@@ -1786,3 +1786,53 @@ Stage Summary:
 - Contact API auth fixed for proper admin session validation
 - All lint checks pass, no runtime errors
 - Cron job (15 min) created for ongoing QA
+
+---
+Task ID: 6-darkmode-fixes
+Agent: Main Developer
+Task: Fix dark mode text readability across Contact, Category, BestSellers pages; Remove Quick Answers; Remove logo hover tilt
+
+Work Log:
+- **ContactPage.tsx**: Removed Quick Answers sidebar, expanded contact form to full width
+  - Changed from `grid grid-cols-1 lg:grid-cols-3` layout to full-width form
+  - Removed the Card with "Quick Answers" content
+  - Added dark mode classes to all form elements: `dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:border-gray-600`
+  - Added `dark:text-gray-200` to all Label components
+  - Added `dark:text-gray-400` to helper text
+
+- **CategoryPage.tsx**: Fixed dark mode text on "Filters & Sort", "Explore Other Categories", "Brands in Electronics"
+  - All 4 SelectTrigger components: added `dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600`
+  - All 4 SelectContent components: added `dark:bg-gray-800 dark:border-gray-600`
+  - All SelectItem components: added `dark:text-gray-200 dark:focus:bg-gray-700`
+  - "Explore Other Categories" buttons: added `dark:text-gray-300 dark:border-gray-600`
+  - "Brands in {category}" buttons: added `dark:text-gray-300 dark:border-gray-600`
+
+- **BestSellersPage.tsx**: Fixed dark mode text on "All Categories Rankings" and filter tabs
+  - Rankings heading: added `dark:text-white`
+  - Product count span: added `dark:text-gray-400`
+  - Category filter tabs (inactive): added `dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600`
+  - Rank badges (#4+): added `dark:bg-gray-700 dark:text-gray-300`
+  - Product list items: added `dark:border-gray-700`
+  - Product titles: added `dark:text-white dark:hover:text-[#e8753a]`
+  - Category labels: added `dark:text-[#5bc0de]`
+  - Disclaimer text: added `dark:text-gray-400`
+  - BestFor badge: added `dark:text-[#febd69]`
+
+- **RatingBar.tsx** (fixed by sub-agent): Rating value numbers now use `dark:text-gray-200`
+
+- **Header.tsx**: Removed logo hover tilt effect
+  - Changed from `hover:opacity-90 rounded-lg p-1 transition-all duration-300` to just `rounded-lg p-1`
+  - No more hover animation on the GearScope logo
+
+- **Footer.tsx**: Reduced padding from `py-10` to `py-8` for more compact layout
+  - Footer links grid remains `grid-cols-2 md:grid-cols-4` (1 row, 4 columns on desktop)
+
+Stage Summary:
+- Contact page Quick Answers sidebar removed, form now full width
+- All dark mode text readability issues fixed across Contact, Category, BestSellers pages
+- Filter & Sort dropdowns fully readable in dark mode
+- Explore Other Categories and Brands buttons readable in dark mode
+- All Categories Rankings heading and content readable in dark mode
+- Logo hover tilt effect removed
+- Footer slightly more compact
+- Lint passes cleanly, no errors

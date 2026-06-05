@@ -411,13 +411,13 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
               value={brandFilter}
               onValueChange={(v) => setBrandFilter(v)}
             >
-              <SelectTrigger className="w-[160px] text-sm rounded-full" size="sm">
+              <SelectTrigger className="w-[160px] text-sm rounded-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600" size="sm">
                 <SelectValue placeholder="Brand" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Brands</SelectItem>
+              <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                <SelectItem value="all" className="dark:text-gray-200 dark:focus:bg-gray-700">All Brands</SelectItem>
                 {categoryBrands.map((brand) => (
-                  <SelectItem key={brand.slug} value={brand.slug}>
+                  <SelectItem key={brand.slug} value={brand.slug} className="dark:text-gray-200 dark:focus:bg-gray-700">
                     {brand.name}
                   </SelectItem>
                 ))}
@@ -429,12 +429,12 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
               value={ratingFilter}
               onValueChange={(v) => setRatingFilter(v as RatingFilter)}
             >
-              <SelectTrigger className="w-[150px] text-sm rounded-full" size="sm">
+              <SelectTrigger className="w-[150px] text-sm rounded-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600" size="sm">
                 <SelectValue placeholder="Rating" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
                 {RATING_FILTERS.map((rf) => (
-                  <SelectItem key={rf.value} value={rf.value}>
+                  <SelectItem key={rf.value} value={rf.value} className="dark:text-gray-200 dark:focus:bg-gray-700">
                     {rf.label}
                   </SelectItem>
                 ))}
@@ -447,13 +447,13 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
                 value={bestForFilter}
                 onValueChange={(v) => setBestForFilter(v)}
               >
-                <SelectTrigger className="w-[180px] text-sm rounded-full" size="sm">
+                <SelectTrigger className="w-[180px] text-sm rounded-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600" size="sm">
                   <SelectValue placeholder="Best For" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Use Cases</SelectItem>
+                <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                  <SelectItem value="all" className="dark:text-gray-200 dark:focus:bg-gray-700">All Use Cases</SelectItem>
                   {bestForOptions.map((bf) => (
-                    <SelectItem key={bf} value={bf}>
+                    <SelectItem key={bf} value={bf} className="dark:text-gray-200 dark:focus:bg-gray-700">
                       {bf}
                     </SelectItem>
                   ))}
@@ -466,12 +466,12 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
               value={sortOption}
               onValueChange={(v) => setSortOption(v as SortOption)}
             >
-              <SelectTrigger className="w-[160px] text-sm rounded-full" size="sm">
+              <SelectTrigger className="w-[160px] text-sm rounded-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600" size="sm">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
                 {SORT_OPTIONS.map((so) => (
-                  <SelectItem key={so.value} value={so.value}>
+                  <SelectItem key={so.value} value={so.value} className="dark:text-gray-200 dark:focus:bg-gray-700">
                     {so.label}
                   </SelectItem>
                 ))}
@@ -538,7 +538,7 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
                   variant="outline"
                   size="sm"
                   onClick={() => goToCategory(cat.slug)}
-                  className="text-xs hover:border-amber-500 hover:text-amber-600 dark:hover:border-amber-400 dark:hover:text-amber-400"
+                  className="text-xs text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-amber-500 hover:text-amber-600 dark:hover:border-amber-400 dark:hover:text-amber-400"
                 >
                   {cat.name}
                   <ArrowRight className="w-3 h-3 ml-1" />
@@ -561,7 +561,7 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
                   variant="outline"
                   size="sm"
                   onClick={() => goToBrand(brand.slug)}
-                  className="text-xs hover:border-amber-500 hover:text-amber-600 dark:hover:border-amber-400 dark:hover:text-amber-400"
+                  className="text-xs text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-amber-500 hover:text-amber-600 dark:hover:border-amber-400 dark:hover:text-amber-400"
                 >
                   {brand.name}
                   <ChevronRight className="w-3 h-3 ml-1" />

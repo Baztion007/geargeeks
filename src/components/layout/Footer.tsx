@@ -55,7 +55,7 @@ export function Footer() {
       </button>
 
       {/* Footer links */}
-      <div className="max-w-7xl mx-auto px-4 py-10">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {Object.entries(footerLinks).map(([title, links], idx) => (
             <div key={title}>

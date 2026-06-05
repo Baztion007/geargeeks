@@ -40,7 +40,7 @@ export function StarRating({ rating, size = 'md', showValue = true, count }: Sta
         })}
       </div>
       {showValue && (
-        <span className={`font-semibold text-gray-700 ${size === 'xs' ? 'text-[10px]' : size === 'sm' ? 'text-xs' : size === 'lg' ? 'text-lg' : 'text-sm'}`}>
+        <span className={`font-semibold text-gray-700 dark:text-gray-200 ${size === 'xs' ? 'text-[10px]' : size === 'sm' ? 'text-xs' : size === 'lg' ? 'text-lg' : 'text-sm'}`}>
           {rating.toFixed(1)}
         </span>
       )}
