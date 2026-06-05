@@ -136,6 +136,9 @@ export default function Home() {
     }
   };
 
+  // Check if current page is an admin page
+  const isAdminPage = route.page === 'admin' || route.page === 'admin-products' || route.page === 'admin-categories' || route.page === 'admin-brands' || route.page === 'admin-affiliate';
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       {/* JSON-LD Organization Schema */}
@@ -146,8 +149,8 @@ export default function Home() {
         }}
       />
 
-      <ReadingProgressBar />
-      <Header />
+      {!isAdminPage && <ReadingProgressBar />}
+      {!isAdminPage && <Header />}
 
       <main className="flex-1">
         <AnimatePresence mode="wait">
@@ -163,12 +166,12 @@ export default function Home() {
         </AnimatePresence>
       </main>
 
-      <Footer />
-      <BackToTop />
-      <BackToTopButton />
-      <CompareBar />
-      <MobileCompareFab />
-      <KeyboardShortcuts />
+      {!isAdminPage && <Footer />}
+      {!isAdminPage && <BackToTop />}
+      {!isAdminPage && <BackToTopButton />}
+      {!isAdminPage && <CompareBar />}
+      {!isAdminPage && <MobileCompareFab />}
+      {!isAdminPage && <KeyboardShortcuts />}
     </div>
   );
 }
