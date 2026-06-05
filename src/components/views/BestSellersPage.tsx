@@ -74,7 +74,7 @@ export function BestSellersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <Breadcrumbs items={[{ label: 'Best Sellers' }]} />
 
@@ -86,7 +86,7 @@ export function BestSellersPage() {
               <h1 className="text-3xl md:text-4xl font-bold">Best Sellers</h1>
             </div>
             <p className="text-lg text-gray-300 max-w-3xl">
-              Our highest-rated coffee equipment, ranked by expert review scores. Every product
+              Our highest-rated gear and products, ranked by expert review scores. Every product
               on this list has been thoroughly tested and approved by our team.
             </p>
             <div className="flex items-center gap-4 mt-4 text-sm">

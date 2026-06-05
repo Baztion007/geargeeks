@@ -162,4 +162,6 @@ export type RoutePath =
   | { page: 'admin-categories' }
   | { page: 'admin-brands' }
   | { page: 'admin-affiliate' }
+  | { page: 'best-sellers' }
+  | { page: 'deals' }
   | { page: 'not-found' };

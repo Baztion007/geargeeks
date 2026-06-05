@@ -35,6 +35,8 @@ import { GearFinderQuiz } from '@/components/affiliate/GearFinderQuiz';
 import { AffiliateSettingsPage } from '@/components/views/AffiliateSettingsPage';
 import { AdminPage } from '@/components/views/AdminPage';
 import { AdminProductsPage, AdminCategoriesPage, AdminBrandsPage, AdminAffiliatePage } from '@/components/views/AdminSubPages';
+import { BestSellersPage } from '@/components/views/BestSellersPage';
+import { DealsPage } from '@/components/views/DealsPage';
 import { CompareBar } from '@/components/affiliate/CompareBar';
 import { useThemeStore } from '@/lib/theme';
 import { MobileCompareFab } from '@/components/affiliate/MobileCompareFab';
@@ -129,6 +131,10 @@ export default function Home() {
         return <AdminBrandsPage />;
       case 'admin-affiliate':
         return <AdminAffiliatePage />;
+      case 'best-sellers':
+        return <BestSellersPage />;
+      case 'deals':
+        return <DealsPage />;
       case 'not-found':
         return <NotFoundPage />;
       default:
@@ -140,7 +146,7 @@ export default function Home() {
   const isAdminPage = route.page === 'admin' || route.page === 'admin-products' || route.page === 'admin-categories' || route.page === 'admin-brands' || route.page === 'admin-affiliate';
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
+    <div className={`min-h-screen flex flex-col ${isAdminPage ? 'bg-gray-950' : 'bg-gray-50 dark:bg-gray-950'}`}>
       {/* JSON-LD Organization Schema */}
       <script
         type="application/ld+json"
@@ -156,10 +162,10 @@ export default function Home() {
         <AnimatePresence mode="wait">
           <motion.div
             key={route.page === 'product' ? `product-${route.slug}` : route.page === 'category' ? `cat-${route.slug}` : route.page === 'brand' ? `brand-${route.slug}` : route.page === 'search' ? `search-${route.query}` : route.page === 'blog-post' ? `blog-${route.slug}` : route.page === 'buying-guide' ? `guide-${route.slug}` : route.page}
-            initial={{ opacity: 0, y: 12 }}
+            initial={isAdminPage ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
+            exit={isAdminPage ? { opacity: 1 } : { opacity: 0 }}
+            transition={{ duration: isAdminPage ? 0 : 0.25, ease: 'easeOut' }}
           >
             {renderView()}
           </motion.div>

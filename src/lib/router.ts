@@ -24,6 +24,8 @@ interface RouterState {
   goToAdminCategories: () => void;
   goToAdminBrands: () => void;
   goToAdminAffiliate: () => void;
+  goToBestSellers: () => void;
+  goToDeals: () => void;
   goToPage: (page: RoutePath['page']) => void;
 }
 
@@ -228,6 +230,24 @@ export const useRouterStore = create<RouterState>((set) => ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return { route };
   }),
+
+  goToBestSellers: () => set((state) => {
+    const route: RoutePath = { page: 'best-sellers' };
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ route }, '', '#best-sellers');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return { route };
+  }),
+
+  goToDeals: () => set((state) => {
+    const route: RoutePath = { page: 'deals' };
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ route }, '', '#deals');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return { route };
+  }),
 }))
 
 function routeToHash(route: RoutePath): string {
@@ -253,6 +273,8 @@ function routeToHash(route: RoutePath): string {
     case 'admin-categories': return 'admin-categories';
     case 'admin-brands': return 'admin-brands';
     case 'admin-affiliate': return 'admin-affiliate';
+    case 'best-sellers': return 'best-sellers';
+    case 'deals': return 'deals';
     case 'roundups': return 'roundups';
     default: return route.page;
   }
@@ -284,7 +306,7 @@ export function hashToRoute(hash: string): RoutePath {
       }
       return { page: 'blog' };
     default:
-      if (['about', 'contact', 'privacy', 'terms', 'editorial-policy', 'how-we-test', 'trending', 'roundups', 'wishlist', 'compare', 'guides', 'bookmarks', 'gear-finder', 'affiliate-settings', 'admin', 'admin-products', 'admin-categories', 'admin-brands', 'admin-affiliate', 'not-found'].includes(type)) {
+      if (['about', 'contact', 'privacy', 'terms', 'editorial-policy', 'how-we-test', 'trending', 'roundups', 'wishlist', 'compare', 'guides', 'bookmarks', 'gear-finder', 'affiliate-settings', 'admin', 'admin-products', 'admin-categories', 'admin-brands', 'admin-affiliate', 'best-sellers', 'deals', 'not-found'].includes(type)) {
         return { page: type as RoutePath['page'] } as RoutePath;
       }
       return { page: 'not-found' };

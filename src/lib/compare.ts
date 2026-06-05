@@ -74,7 +74,7 @@ export const useCompareStore = create<CompareState>()(
       },
     }),
     {
-      name: 'brewhub-compare',
+      name: 'gearscope-compare',
     }
   )
 );

@@ -271,7 +271,7 @@ function AdminDashboard() {
 
       const products: ProductItem[] = productsData.products || [];
       const categories = categoriesData.categories || [];
-      const brands = categoriesData.brands || [];
+      const brands = brandsData.brands || [];
 
       const avgRating = products.length > 0
         ? (products.reduce((sum: number, p: any) => sum + (p.rating || 0), 0) / products.length).toFixed(1)

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { toast } from '@/hooks/use-toast';
 
-const WISHLIST_STORAGE_KEY = 'brewhub-wishlist';
+const WISHLIST_STORAGE_KEY = 'gearscope-wishlist';
 
 function loadWishlist(): string[] {
   if (typeof window === 'undefined') return [];
