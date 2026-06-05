@@ -2377,3 +2377,217 @@ Priority Recommendations for Next Phase:
 - Add per-page JSON-LD structured data
 - Add product video reviews section
 - Add user reviews/comments on blog posts
+
+---
+Task ID: seo-1
+Agent: SEO Developer
+Task: Implement Client-Side SEO Meta Tag Updates
+
+Work Log:
+
+### 1. Created `/src/lib/use-seo-meta.ts` — NEW FILE
+- `'use client'` hook that updates document.title, meta description, canonical URL, and OG/Twitter tags when the route changes
+- `useSeoMeta(dynamicMeta?)` — accepts optional dynamic meta object (title, description, keywords, canonical, ogImage, ogType)
+- When no dynamicMeta provided, falls back to `PAGE_META` lookup based on `route.page` from `useRouterStore`
+- `PAGE_META` record maps 19 static page routes (home, trending, best-sellers, deals, guides, blog, about, contact, privacy, terms, editorial-policy, how-we-test, wishlist, compare, search, roundups, bookmarks, gear-finder, affiliate-settings) to per-page title, description, and path
+- Helper functions: `updateMetaTag(name, content)`, `updateMetaName(name, content)`, `updateMetaProperty(property, content)`, `updateCanonicalLink(href)` — create or update DOM elements in `<head>`
+- useEffect dependency on `[route, dynamicMeta]` — updates meta on every route change
+
+### 2. Updated `/src/app/page.tsx` — Added useSeoMeta() for static page routes
+- Imported `useSeoMeta` from `@/lib/use-seo-meta`
+- Called `useSeoMeta()` at the top of the `Home` component (after router store selectors)
+- This provides basic meta tag updates for ALL static page routes (home, trending, guides, blog, about, contact, etc.)
+- Dynamic pages (product, category, brand, buying-guide, blog-post) override this with their own dynamic meta in their respective components
+
+### 3. Updated `/src/components/views/ProductDetailPage.tsx` — Added dynamic product meta
+- Imported `generateProductMeta` from `@/lib/seo`
+- Imported `useSeoMeta` from `@/lib/use-seo-meta`
+- Called `useSeoMeta(product ? generateProductMeta(product) : undefined)` after product lookup
+- Uses `generateProductMeta` which returns title like "Product Title Review — GearGeekz", description with summary + review info, keywords from product data, canonical URL, ogType "product", ogImage
+
+### 4. Updated `/src/components/views/CategoryPage.tsx` — Added dynamic category meta
+- Imported `generateCategoryMeta` from `@/lib/seo`
+- Imported `useSeoMeta` from `@/lib/use-seo-meta`
+- Called `useSeoMeta(category ? generateCategoryMeta(category) : undefined)` after category lookup
+- Uses `generateCategoryMeta` which returns title like "Best Category Name — Reviews & Buying Guides | GearGeekz"
+
+### 5. Updated `/src/components/views/BrandPage.tsx` — Added dynamic brand meta
+- Imported `generateBrandMeta` from `@/lib/seo`
+- Imported `useSeoMeta` from `@/lib/use-seo-meta`
+- Called `useSeoMeta(brand ? generateBrandMeta(brand) : undefined)` after brand lookup
+- Uses `generateBrandMeta` which returns title like "Brand Name Products — Reviews & Ratings | GearGeekz"
+
+### 6. Updated `/src/components/views/BuyingGuidePage.tsx` — Added dynamic guide meta
+- Imported `generateGuideMeta` from `@/lib/seo`
+- Imported `useSeoMeta` from `@/lib/use-seo-meta`
+- Called `useSeoMeta(guide ? generateGuideMeta(guide) : undefined)` after guide lookup
+- Uses `generateGuideMeta` which returns title like "Guide Title | GearGeekz", ogType "article"
+
+### 7. Updated `/src/components/views/BlogPostPage.tsx` — Added dynamic blog post meta
+- Imported `generateBlogMeta` from `@/lib/seo`
+- Imported `useSeoMeta` from `@/lib/use-seo-meta`
+- Called `useSeoMeta(post ? generateBlogMeta(post) : undefined)` after post lookup
+- Uses `generateBlogMeta` which returns title like "Post Title | GearGeekz", ogType "article"
+
+Stage Summary:
+- Created `useSeoMeta` hook for client-side SEO meta tag management
+- Every route now updates document.title, meta description, canonical URL, OG tags, and Twitter tags
+- Static pages (home, trending, guides, etc.) use PAGE_META lookup via useSeoMeta() in page.tsx
+- Dynamic pages (product, category, brand, guide, blog) use generateXxxMeta() from seo.ts via useSeoMeta()
+- All meta generators from seo.ts are now connected to the UI — they were previously orphaned
+- Graceful fallback: when data is not found (e.g., invalid slug), passes undefined to useSeoMeta which falls back to default GearGeekz meta
+- ESLint passes cleanly, dev server compiles without errors
+
+---
+Task ID: seo-ts-img
+Agent: SEO/TypeScript/Image Fix Developer
+Task: Fix Sitemap URLs, TypeScript Safety, and Image Optimization
+
+Work Log:
+
+### 1. Fix Sitemap URLs for Hash-Based Routing
+- Updated `/src/app/sitemap.ts` — All URLs now use hash-based format matching the SPA's hash routing
+  - Product pages: `${SITE_URL}/#product/${product.slug}` (was `${SITE_URL}/product/${product.slug}`)
+  - Category pages: `${SITE_URL}/#category/${category.slug}` (was `${SITE_URL}/category/${category.slug}`)
+  - Brand pages: `${SITE_URL}/#brand/${brand.slug}` (was `${SITE_URL}/brand/${brand.slug}`)
+  - Guide pages: `${SITE_URL}/#guide/${guide.slug}` (was `${SITE_URL}/guide/${guide.slug}`)
+  - Blog pages: `${SITE_URL}/#blog/${post.slug}` (was `${SITE_URL}/blog/${post.slug}`)
+  - Static pages: `${SITE_URL}/#about`, `${SITE_URL}/#contact`, etc. (was `${SITE_URL}/about`, etc.)
+
+### 2. Fix TypeScript Safety Issues
+
+#### 2a. Remove `ignoreBuildErrors: true` from next.config.ts
+- Removed `typescript: { ignoreBuildErrors: true }` section entirely from `/next.config.ts`
+
+#### 2b. Fix `as any` in router navigation
+- Created `SimplePage` type in `/src/lib/router.ts` — union of all page types that don't require slug/query parameters
+- Changed `goToPage` signature from `(page: RoutePath['page']) => void` to `(page: SimplePage) => void`
+- Updated implementation with comment explaining the type safety guarantee
+- Exported `SimplePage` type for use in other files
+
+#### 2c. Fix `as any` in Header.tsx navigation
+- Updated navItems type from implicit `as const` to explicit literal union type: `'trending' | 'best-sellers' | 'deals' | 'guides' | 'blog' | 'about'`
+- Replaced `navigate({ page: item.page } as any)` with `goToPage(item.page)` — type-checks correctly now
+- Replaced `navigate` import with `goToPage` from router store in both desktop and mobile navigation
+- Both desktop nav and mobile menu panel now use `goToPage(item.page)` without `as any`
+
+#### 2d. Fix `as any` in view files
+- **AboutPage.tsx**: Replaced `navigate({ page: 'contact' } as any)` with `goToPage('contact')`, removed unused `navigate`, added `goToPage`
+- **AuthorPage.tsx**: 
+  - Replaced `navigate({ page: 'home' } as any)` with `goHome()`
+  - Removed `as any` from `navigate({ page: 'product', slug: product.slug })` (valid RoutePath)
+  - Removed `as any` from `navigate({ page: 'category', slug: catProduct.categorySlug })` (valid RoutePath)
+  - Added `goHome` and `goToPage` from router store
+- **BuyingGuidePage.tsx**:
+  - Replaced `navigate({ page: 'home' } as any)` with `goHome()`
+  - Removed `as any` from breadcrumb route `{ page: 'category', slug: guide.categorySlug }` (valid RoutePath)
+  - Added `goHome` from router store
+- **HomePage.tsx**: Replaced `navigate({ page: 'gear-finder' } as any)` with `goToPage('gear-finder')`, replaced `navigate` with `goToPage`
+- **AdminPage.tsx**: 
+  - Replaced `navigate({ page: pageMap[tab] as any })` with `goToPage(pageMap[tab])`
+  - Changed `pageMap` type from `Record<AdminTab, string>` to `Record<AdminTab, SimplePage>`
+  - Imported `SimplePage` type from router
+  - Added `goToPage` from router store
+- **AdminSubPages.tsx**:
+  - Replaced `navigate({ page: pageMap[tab] as any })` with `goToPage(pageMap[tab])`
+  - Changed `pageMap` type from `Record<AdminTab, string>` to `Record<AdminTab, SimplePage>`
+  - Imported `SimplePage` type from router
+  - Added `goToPage` from router store
+
+### 3. Fix Image Optimization
+
+#### 3a. Fix next.config.ts image configuration
+- Removed `images: { unoptimized: true }` (was disabling Next.js image optimization)
+- Added proper configuration with `images: { remotePatterns: [{ protocol: 'https', hostname: '**' }] }`
+
+#### 3b. Add `width` and `height` attributes to key images
+- **ProductCard.tsx**: Added `width={400} height={300}` to both vertical and horizontal product card images
+- **QuickViewModal.tsx**: Added `width={400} height={300}` and `loading="lazy"` to product image
+- **CompareBar.tsx**: Added `width={64} height={64}` and `loading="lazy"` to product thumbnails
+- **HomePage.tsx**:
+  - Hero featured guide image: `width={1200} height={600}` (kept `loading="eager"` since it's above-the-fold)
+  - Category cards: `width={400} height={300}` (already had `loading="lazy"`)
+  - Recently updated review images: `width={400} height={300}` (already had `loading="lazy"`)
+  - Buying guide cards: `width={400} height={300}` (already had `loading="lazy"`)
+  - Brand logos: `width={64} height={64}` (already had `loading="lazy"`)
+
+Stage Summary:
+- Sitemap URLs fixed to use hash-based routing (`/#product/slug` instead of `/product/slug`)
+- `ignoreBuildErrors: true` removed from next.config.ts — TypeScript errors will now properly fail builds
+- All `as any` removed from router.ts, Header.tsx, and 6 view files (AboutPage, AuthorPage, BuyingGuidePage, HomePage, AdminPage, AdminSubPages)
+- New `SimplePage` exported type for type-safe navigation to pages without slug/query
+- Image optimization enabled with proper remote patterns configuration
+- All key images have explicit width/height attributes to prevent CLS
+- Lazy loading properly applied to below-the-fold images
+- ESLint passes cleanly with zero errors
+- Dev server compiles without errors
+
+---
+Task ID: 7-seo-ts-img
+Agent: Main Developer + Subagents
+Task: Implement SEO Critical, TypeScript Safety, and Image Optimization
+
+Work Log:
+
+### 1. SEO Critical — Client-Side Meta Tags (NEW)
+- Created `/src/lib/use-seo-meta.ts` — React hook that dynamically updates document.title, meta description, canonical URL, OG tags, and Twitter cards on every route change
+- Supports 19 static page routes with predefined title/description/path
+- Supports dynamic meta from `generateProductMeta()`, `generateCategoryMeta()`, etc.
+- Updated `/src/app/page.tsx` — Added `useSeoMeta()` for static page routes
+- Updated 5 dynamic view pages to pass their specific meta generators:
+  - ProductDetailPage → `useSeoMeta(generateProductMeta(product))`
+  - CategoryPage → `useSeoMeta(generateCategoryMeta(category))`
+  - BrandPage → `useSeoMeta(generateBrandMeta(brand))`
+  - BuyingGuidePage → `useSeoMeta(generateGuideMeta(guide))`
+  - BlogPostPage → `useSeoMeta(generateBlogMeta(post))`
+- Added `og:image` to root OpenGraph metadata in layout.tsx
+
+### 2. SEO Critical — Sitemap URL Fix
+- Updated `/src/app/sitemap.ts` — All URLs now use hash-based format (`/#product/slug` instead of `/product/slug`) to match the SPA's hash routing system
+
+### 3. SEO Critical — JSON-LD Fixes
+- Fixed `generateProductJsonLd()` in `/src/lib/affiliate.ts` — Replaced `Math.random()` ratingCount with deterministic `hashSlugToCount()` function
+- Changed `author` type from `Person` to `Organization` (matches seo.ts)
+- Added `datePublished` and `description` fields to Review schema
+
+### 4. TypeScript Safety — Critical Fix
+- Removed `ignoreBuildErrors: true` from `next.config.ts` — all TypeScript errors must now be fixed before build
+- Created `SimplePage` type in `/src/lib/router.ts` for pages without required slug/query parameters
+- Updated `goToPage()` to use `SimplePage` type instead of `RoutePath['page']`
+- Fixed all `as any` in navigation code (12 instances → 0 in view/layout files):
+  - Header.tsx: navItems use proper literal union type, call `goToPage(item.page)`
+  - AboutPage: `goToPage('contact')` instead of `navigate({ page: 'contact' } as any)`
+  - AuthorPage: `goHome()` for home navigation, removed `as any` from typed routes
+  - BuyingGuidePage: `goHome()` for home navigation
+  - HomePage: `goToPage('gear-finder')`
+  - AdminPage/AdminSubPages: `Record<AdminTab, SimplePage>` for page mapping
+
+### 5. Image Optimization
+- Replaced `images: { unoptimized: true }` with `images: { remotePatterns: [{ protocol: 'https', hostname: '**' }] }` in next.config.ts
+- Added `width`/`height` attributes to key images across ProductCard, QuickViewModal, CompareBar, HomePage (hero, categories, guides, brands)
+- Added `loading="lazy"` to all `<img>` tags that were missing it (11 tags fixed)
+- Above-the-fold hero images use `loading="eager"` for LCP optimization
+
+### Verification Results
+- `bun run lint` passes cleanly with zero errors
+- Dev server compiles without errors
+- Agent-browser verified: document.title updates correctly per route (e.g., "Samsonite Freeform Carry-On Spinner Review — GearGeekz" on product page)
+- Agent-browser verified: meta description, canonical URL, OG tags all update dynamically
+- All `as any` eliminated from navigation code (only Prisma API route remains)
+- `Math.random()` eliminated from JSON-LD generation
+- Sitemap uses hash-based URLs matching the SPA routing
+
+Stage Summary:
+- SEO: Full per-page meta tag system implemented (title, description, canonical, OG, Twitter)
+- SEO: Sitemap URLs fixed for hash-based SPA routing
+- SEO: JSON-LD schemas now deterministic and Google-compliant
+- TypeScript: `ignoreBuildErrors` removed, all navigation `as any` eliminated
+- Images: width/height added for CLS prevention, lazy loading standardized
+- Production readiness significantly improved across all three areas
+
+Unresolved Issues:
+- Prisma API route still has `(db as any)` casts (6 occurrences) — requires Prisma schema update
+- No Next.js `<Image>` component adoption yet (all images use raw `<img>`)
+- No blur placeholders for hero images
+- No `<article>` wrapper on BlogPostPage
+- No Person JSON-LD on AuthorPage

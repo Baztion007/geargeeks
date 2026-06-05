@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { RoutePath } from '@/lib/types';
 
+// Type for pages that don't require slug or query parameters
+export type SimplePage = 'about' | 'contact' | 'privacy' | 'terms' | 'editorial-policy' | 'how-we-test' | 'trending' | 'roundups' | 'wishlist' | 'compare' | 'guides' | 'bookmarks' | 'gear-finder' | 'affiliate-settings' | 'admin' | 'admin-products' | 'admin-categories' | 'admin-brands' | 'admin-affiliate' | 'admin-messages' | 'best-sellers' | 'deals' | 'not-found' | 'home' | 'blog';
+
 interface RouterState {
   route: RoutePath;
   navigate: (route: RoutePath) => void;
@@ -27,7 +30,7 @@ interface RouterState {
   goToAdminMessages: () => void;
   goToBestSellers: () => void;
   goToDeals: () => void;
-  goToPage: (page: RoutePath['page']) => void;
+  goToPage: (page: SimplePage) => void;
 }
 
 export const useRouterStore = create<RouterState>((set) => ({
@@ -106,8 +109,9 @@ export const useRouterStore = create<RouterState>((set) => ({
     return { route };
   }),
 
-  goToPage: (page: RoutePath['page']) => set((state) => {
-    const route: RoutePath = { page } as RoutePath;
+  goToPage: (page: SimplePage) => set((state) => {
+    // This is safe because SimplePage only includes pages without required slugs/queries
+    const route = { page } as RoutePath;
     if (typeof window !== 'undefined') {
       window.history.pushState({ route }, '', `#${page}`);
     }

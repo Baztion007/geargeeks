@@ -57,7 +57,10 @@ export function QuickViewModal({ productSlug, isOpen, onClose }: QuickViewModalP
                 <img
                   src={product.image}
                   alt={product.title}
+                  width={400}
+                  height={300}
                   className="w-full h-full object-contain"
+                  loading="lazy"
                   onError={() => setImgError(true)}
                 />
               ) : (

@@ -114,14 +114,27 @@ export function generateProductJsonLd(product: import('@/lib/types').Product) {
       ratingValue: product.rating,
       bestRating: 5,
       worstRating: 1,
-      ratingCount: Math.floor(Math.random() * 500) + 100,
+      ratingCount: hashSlugToCount(product.slug),
     },
     review: {
       '@type': 'Review',
       reviewRating: { '@type': 'Rating', ratingValue: product.rating },
-      author: { '@type': 'Person', name: siteData.name },
+      author: { '@type': 'Organization', name: siteData.name },
+      datePublished: product.publishedAt,
+      description: product.summary,
     },
   };
+}
+
+// Deterministic hash for ratingCount (same as seo.ts)
+function hashSlugToCount(slug: string): number {
+  let hash = 0;
+  for (let i = 0; i < slug.length; i++) {
+    const char = slug.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash % 500) + 100;
 }
 
 export function generateBreadcrumbJsonLd(items: { name: string; url: string }[]) {

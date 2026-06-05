@@ -51,8 +51,9 @@ import { ScoreBadge } from '@/components/affiliate/ScoreBadge';
 import { toast } from '@/hooks/use-toast';
 import { useCompareStore } from '@/lib/compare';
 import { GitCompare, Plus, X as XIcon, ArrowRight } from 'lucide-react';
-import { generateProductPageJsonLd } from '@/lib/seo';
+import { generateProductPageJsonLd, generateProductMeta } from '@/lib/seo';
 import { JsonLdScript } from '@/components/affiliate/JsonLdScript';
+import { useSeoMeta } from '@/lib/use-seo-meta';
 
 interface ProductDetailPageProps {
   productSlug: string;
@@ -372,6 +373,9 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
   const removeItemFromCompare = useCompareStore((s) => s.removeItem);
 
   const product = getProductBySlug(productSlug);
+
+  // Update SEO meta tags for this product
+  useSeoMeta(product ? generateProductMeta(product) : undefined);
 
   // Track recently viewed product
   useEffect(() => {

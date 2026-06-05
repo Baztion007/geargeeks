@@ -56,6 +56,8 @@ export function ProductCard({ product, showAffiliate = true, hideDisclosure = fa
           <img
             src={product.image}
             alt={product.title}
+            width={400}
+            height={300}
             className={`w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500 ${imgLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
             loading="lazy"
             onError={() => { setImgError(true); setImgLoading(false); }}
@@ -233,6 +235,8 @@ export function ProductCardHorizontal({ product }: ProductCardHorizontalProps) {
           <img
             src={product.image}
             alt={product.title}
+            width={400}
+            height={300}
             className="w-full h-full object-contain p-2"
             loading="lazy"
             onError={() => setImgError(true)}

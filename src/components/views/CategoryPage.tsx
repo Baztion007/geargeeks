@@ -33,8 +33,9 @@ import {
   Filter,
 } from 'lucide-react';
 import type { GuideType } from '@/lib/types';
-import { generateCategoryPageJsonLd } from '@/lib/seo';
+import { generateCategoryPageJsonLd, generateCategoryMeta } from '@/lib/seo';
 import { JsonLdScript } from '@/components/affiliate/JsonLdScript';
+import { useSeoMeta } from '@/lib/use-seo-meta';
 
 interface CategoryPageProps {
   categorySlug: string;
@@ -89,6 +90,9 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
   const goToCategory = useRouterStore((s) => s.goToCategory);
   const goToBuyingGuide = useRouterStore((s) => s.goToBuyingGuide);
   const goToBrand = useRouterStore((s) => s.goToBrand);
+
+  // Update SEO meta tags for this category
+  useSeoMeta(category ? generateCategoryMeta(category) : undefined);
 
   const [brandFilter, setBrandFilter] = useState<string>('all');
   const [ratingFilter, setRatingFilter] = useState<RatingFilter>('all');

@@ -8,6 +8,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 
 import { generateOrganizationJsonLd } from '@/lib/affiliate';
+import { useSeoMeta } from '@/lib/use-seo-meta';
 
 // View imports
 import HomePage from '@/components/views/HomePage';
@@ -47,6 +48,9 @@ import { BackToTopButton } from '@/components/affiliate/BackToTopButton';
 export default function Home() {
   const route = useRouterStore((s) => s.route);
   const navigate = useRouterStore((s) => s.navigate);
+
+  // Update SEO meta tags for all static page routes
+  useSeoMeta();
 
   // Initialize theme on mount
   useEffect(() => {

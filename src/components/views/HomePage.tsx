@@ -191,7 +191,7 @@ function StatsCounterBar() {
 
 // ─── Gear Finder CTA Banner ────────────────────────────────────────────────
 function GearFinderCTA() {
-  const navigate = useRouterStore((s) => s.navigate);
+  const goToPage = useRouterStore((s) => s.goToPage);
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 py-8 sm:py-10">
@@ -234,7 +234,7 @@ function GearFinderCTA() {
             </div>
           </div>
           <Button
-            onClick={() => navigate({ page: 'gear-finder' } as any)}
+            onClick={() => goToPage('gear-finder')}
             className="bg-white text-amber-700 hover:bg-gray-100 font-bold px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] text-sm sm:text-base shrink-0"
           >
             <Target className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -369,6 +369,8 @@ function HeroSection() {
                       <img
                         src={featuredGuide.image}
                         alt={featuredGuide.title}
+                        width={1200}
+                        height={600}
                         className="w-full h-full object-cover"
                         loading="eager"
                         onError={(e) => {
@@ -472,6 +474,8 @@ function CategoriesSection() {
                 <img
                   src={cat.image}
                   alt={cat.name}
+                  width={400}
+                  height={300}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                   onError={(e) => {
@@ -610,6 +614,8 @@ function RecentlyUpdatedSection() {
                     <img
                       src={product.image}
                       alt={product.title}
+                      width={400}
+                      height={300}
                       className="w-full h-full object-contain p-1"
                       loading="lazy"
                       onError={(e) => {
@@ -689,6 +695,8 @@ function BuyingGuidesSection() {
                 <img
                   src={guide.image}
                   alt={guide.title}
+                  width={400}
+                  height={300}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                   onError={(e) => {
@@ -774,6 +782,8 @@ function FeaturedBrandsSection() {
                     <img
                       src={brand.logo}
                       alt={brand.name}
+                      width={64}
+                      height={64}
                       className="w-full h-full object-cover"
                       loading="lazy"
                       onError={(e) => {

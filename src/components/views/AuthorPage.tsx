@@ -190,6 +190,8 @@ interface AuthorPageProps {
 
 export function AuthorPage({ authorSlug }: AuthorPageProps) {
   const navigate = useRouterStore((s) => s.navigate);
+  const goHome = useRouterStore((s) => s.goHome);
+  const goToPage = useRouterStore((s) => s.goToPage);
 
   const author = getAuthorBySlug(authorSlug);
 
@@ -199,7 +201,7 @@ export function AuthorPage({ authorSlug }: AuthorPageProps) {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Author Not Found</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-4">The author you&apos;re looking for doesn&apos;t exist.</p>
-          <Button onClick={() => navigate({ page: 'home' } as any)} className="bg-[#febd69] hover:bg-[#f3a847] text-[#131921]">
+          <Button onClick={() => goHome()} className="bg-[#febd69] hover:bg-[#f3a847] text-[#131921]">
             Go Home
           </Button>
         </div>
@@ -334,7 +336,7 @@ export function AuthorPage({ authorSlug }: AuthorPageProps) {
                   {recentReviews.map((product) => (
                     <button
                       key={product.id}
-                      onClick={() => navigate({ page: 'product', slug: product.slug } as any)}
+                      onClick={() => navigate({ page: 'product', slug: product.slug })}
                       className="block w-full text-left group"
                     >
                       <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-600">
@@ -461,7 +463,7 @@ export function AuthorPage({ authorSlug }: AuthorPageProps) {
                     return (
                       <button
                         key={category}
-                        onClick={() => catProduct && navigate({ page: 'category', slug: catProduct.categorySlug } as any)}
+                        onClick={() => catProduct && navigate({ page: 'category', slug: catProduct.categorySlug })}
                         className="w-full text-left flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
                       >
                         <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-[#c7511f]">{category}</span>

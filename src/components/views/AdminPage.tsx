@@ -24,7 +24,7 @@ import {
   AlertTriangle,
   MessageSquare,
 } from 'lucide-react';
-import { useRouterStore } from '@/lib/router';
+import { useRouterStore, type SimplePage } from '@/lib/router';
 import { useAdminAuth } from '@/lib/admin-auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -244,6 +244,7 @@ function AuditLogCard({ token }: { token: string | null }) {
 function AdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useRouterStore((s) => s.navigate);
+  const goToPage = useRouterStore((s) => s.goToPage);
   const { logout } = useAdminAuth();
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
@@ -304,7 +305,7 @@ function AdminDashboard() {
 
   const handleTabChange = (tab: AdminTab) => {
     setSidebarOpen(false);
-    const pageMap: Record<AdminTab, string> = {
+    const pageMap: Record<AdminTab, SimplePage> = {
       dashboard: 'admin',
       products: 'admin-products',
       categories: 'admin-categories',
@@ -312,7 +313,7 @@ function AdminDashboard() {
       affiliate: 'admin-affiliate',
       messages: 'admin-messages',
     };
-    navigate({ page: pageMap[tab] as any });
+    goToPage(pageMap[tab]);
   };
 
   const handleSeed = async () => {

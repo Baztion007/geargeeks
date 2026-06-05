@@ -20,7 +20,7 @@ import {
   Trash2,
   RefreshCw,
 } from 'lucide-react';
-import { useRouterStore } from '@/lib/router';
+import { useRouterStore, type SimplePage } from '@/lib/router';
 import { useAdminAuth } from '@/lib/admin-auth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -141,9 +141,10 @@ export function AdminMessagesPage() {
 function AdminShell({ activeTab }: { activeTab: AdminTab }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useRouterStore((s) => s.navigate);
+  const goToPage = useRouterStore((s) => s.goToPage);
 
   const handleTabChange = (tab: AdminTab) => {
-    const pageMap: Record<AdminTab, string> = {
+    const pageMap: Record<AdminTab, SimplePage> = {
       dashboard: 'admin',
       products: 'admin-products',
       categories: 'admin-categories',
@@ -151,7 +152,7 @@ function AdminShell({ activeTab }: { activeTab: AdminTab }) {
       affiliate: 'admin-affiliate',
       messages: 'admin-messages',
     };
-    navigate({ page: pageMap[tab] as any });
+    goToPage(pageMap[tab]);
   };
 
   return (

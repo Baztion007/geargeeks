@@ -60,7 +60,10 @@ export function CompareBar() {
                         <img
                           src={product!.image}
                           alt={product!.title}
+                          width={64}
+                          height={64}
                           className="w-full h-full object-contain p-0.5"
+                          loading="lazy"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-amber-50">

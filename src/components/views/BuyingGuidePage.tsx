@@ -48,8 +48,9 @@ import {
   Check,
   ExternalLink,
 } from 'lucide-react';
-import { generateGuidePageJsonLd } from '@/lib/seo';
+import { generateGuidePageJsonLd, generateGuideMeta } from '@/lib/seo';
 import { JsonLdScript } from '@/components/affiliate/JsonLdScript';
+import { useSeoMeta } from '@/lib/use-seo-meta';
 import { getAffiliateUrl, getAffiliateLinkProps, getMerchantName } from '@/lib/affiliate';
 import type { Merchant } from '@/lib/types';
 
@@ -167,10 +168,14 @@ interface BuyingGuidePageProps {
 
 export function BuyingGuidePage({ guideSlug }: BuyingGuidePageProps) {
   const navigate = useRouterStore((s) => s.navigate);
+  const goHome = useRouterStore((s) => s.goHome);
   const goToAuthor = useRouterStore((s) => s.goToAuthor);
   const goToCategory = useRouterStore((s) => s.goToCategory);
 
   const guide = getBuyingGuideBySlug(guideSlug);
+
+  // Update SEO meta tags for this guide
+  useSeoMeta(guide ? generateGuideMeta(guide) : undefined);
 
   if (!guide) {
     return (
@@ -178,7 +183,7 @@ export function BuyingGuidePage({ guideSlug }: BuyingGuidePageProps) {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Guide Not Found</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-4">The buying guide you&apos;re looking for doesn&apos;t exist.</p>
-          <Button onClick={() => navigate({ page: 'home' } as any)} className="bg-[#febd69] hover:bg-[#f3a847] text-[#131921]">
+          <Button onClick={() => goHome()} className="bg-[#febd69] hover:bg-[#f3a847] text-[#131921]">
             Go Home
           </Button>
         </div>
@@ -201,7 +206,7 @@ export function BuyingGuidePage({ guideSlug }: BuyingGuidePageProps) {
         <JsonLdScript data={generateGuidePageJsonLd(guide)} />
         <Breadcrumbs
           items={[
-            { label: guide.category, route: { page: 'category', slug: guide.categorySlug } as any },
+            { label: guide.category, route: { page: 'category', slug: guide.categorySlug } },
             { label: guide.title },
           ]}
         />

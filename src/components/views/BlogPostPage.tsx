@@ -27,8 +27,9 @@ import {
   List,
 } from 'lucide-react';
 import { BlogComments } from '@/components/affiliate/BlogComments';
-import { generateBlogPostJsonLd } from '@/lib/seo';
+import { generateBlogPostJsonLd, generateBlogMeta } from '@/lib/seo';
 import { JsonLdScript } from '@/components/affiliate/JsonLdScript';
+import { useSeoMeta } from '@/lib/use-seo-meta';
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -144,6 +145,9 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
   const goToAuthor = useRouterStore((s) => s.goToAuthor);
   const goToBlogPost = useRouterStore((s) => s.goToBlogPost);
   const goToProduct = useRouterStore((s) => s.goToProduct);
+
+  // Update SEO meta tags for this blog post
+  useSeoMeta(post ? generateBlogMeta(post) : undefined);
 
   // Find related products by matching tags — must be before conditional return
   const relatedProducts = useMemo(() => {

@@ -62,6 +62,14 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://geargeekz.com",
     locale: "en_US",
+    images: [
+      {
+        url: "/logo.svg",
+        width: 1200,
+        height: 630,
+        alt: "GearGeekz — Gear Up Smart",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",

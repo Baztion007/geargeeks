@@ -8,13 +8,13 @@ import { useThemeStore } from '@/lib/theme';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-const navItems = [
-  { label: 'Trending', page: 'trending' as const, icon: TrendingUp },
-  { label: 'Best Sellers', page: 'best-sellers' as const, icon: Award },
-  { label: 'Deals', page: 'deals' as const, icon: Tag },
-  { label: 'Guides', page: 'guides' as const, icon: Compass },
-  { label: 'Blog', page: 'blog' as const, icon: BookOpen },
-  { label: 'About', page: 'about' as const, icon: Info },
+const navItems: { label: string; page: 'trending' | 'best-sellers' | 'deals' | 'guides' | 'blog' | 'about'; icon: typeof TrendingUp }[] = [
+  { label: 'Trending', page: 'trending', icon: TrendingUp },
+  { label: 'Best Sellers', page: 'best-sellers', icon: Award },
+  { label: 'Deals', page: 'deals', icon: Tag },
+  { label: 'Guides', page: 'guides', icon: Compass },
+  { label: 'Blog', page: 'blog', icon: BookOpen },
+  { label: 'About', page: 'about', icon: Info },
 ];
 
 export function Header() {
@@ -26,10 +26,10 @@ export function Header() {
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
 
-  const navigate = useRouterStore((s) => s.navigate);
   const goHome = useRouterStore((s) => s.goHome);
   const goToSearch = useRouterStore((s) => s.goToSearch);
   const goToWishlist = useRouterStore((s) => s.goToWishlist);
+  const goToPage = useRouterStore((s) => s.goToPage);
   const wishlistCount = useWishlistStore((s) => s.items.length);
   const theme = useThemeStore((s) => s.theme);
   const toggleTheme = useThemeStore((s) => s.toggleTheme);
@@ -247,7 +247,7 @@ export function Header() {
                 <button
                   key={item.page}
                   onClick={() => {
-                    navigate({ page: item.page } as any);
+                    goToPage(item.page);
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-[#37475a] rounded-md text-gray-200 hover:text-white transition-all duration-200 nav-underline"
                 >
@@ -306,7 +306,7 @@ export function Header() {
                   <React.Fragment key={item.page}>
                     <button
                       onClick={() => {
-                        navigate({ page: item.page } as any);
+                        goToPage(item.page);
                         setMobileMenuOpen(false);
                       }}
                       className="flex items-center gap-3 w-full text-left px-5 py-3.5 hover:bg-[#37475a] text-gray-200 hover:text-white transition-colors duration-200 active:bg-[#4a5a6d]"

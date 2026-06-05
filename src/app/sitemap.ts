@@ -20,58 +20,58 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  // Product pages
+  // Product pages (hash-based routing)
   const productPages: MetadataRoute.Sitemap = products.map((product) => ({
-    url: `${SITE_URL}/product/${product.slug}`,
+    url: `${SITE_URL}/#product/${product.slug}`,
     lastModified: new Date(product.updatedAt),
     changeFrequency: 'weekly' as const,
     priority: 0.9,
   }));
 
-  // Category pages
+  // Category pages (hash-based routing)
   const categoryPages: MetadataRoute.Sitemap = categories.map((category) => ({
-    url: `${SITE_URL}/category/${category.slug}`,
+    url: `${SITE_URL}/#category/${category.slug}`,
     lastModified: now,
     changeFrequency: 'weekly' as const,
     priority: 0.8,
   }));
 
-  // Brand pages
+  // Brand pages (hash-based routing)
   const brandPages: MetadataRoute.Sitemap = brands.map((brand) => ({
-    url: `${SITE_URL}/brand/${brand.slug}`,
+    url: `${SITE_URL}/#brand/${brand.slug}`,
     lastModified: now,
     changeFrequency: 'monthly' as const,
     priority: 0.7,
   }));
 
-  // Buying guide pages
+  // Buying guide pages (hash-based routing)
   const guidePages: MetadataRoute.Sitemap = buyingGuides.map((guide) => ({
-    url: `${SITE_URL}/guide/${guide.slug}`,
+    url: `${SITE_URL}/#guide/${guide.slug}`,
     lastModified: new Date(guide.updatedAt),
     changeFrequency: 'weekly' as const,
     priority: 0.8,
   }));
 
-  // Blog post pages
+  // Blog post pages (hash-based routing)
   const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
-    url: `${SITE_URL}/blog/${post.slug}`,
+    url: `${SITE_URL}/#blog/${post.slug}`,
     lastModified: new Date(post.updatedAt),
     changeFrequency: 'monthly' as const,
     priority: 0.7,
   }));
 
-  // Static pages
+  // Static pages (hash-based routing)
   const staticPages: MetadataRoute.Sitemap = [
-    { path: '/about', changeFrequency: 'monthly' as const, priority: 0.5 },
-    { path: '/contact', changeFrequency: 'monthly' as const, priority: 0.5 },
-    { path: '/privacy', changeFrequency: 'yearly' as const, priority: 0.3 },
-    { path: '/terms', changeFrequency: 'yearly' as const, priority: 0.3 },
-    { path: '/editorial-policy', changeFrequency: 'yearly' as const, priority: 0.4 },
-    { path: '/how-we-test', changeFrequency: 'yearly' as const, priority: 0.4 },
-    { path: '/guides', changeFrequency: 'weekly' as const, priority: 0.7 },
-    { path: '/blog', changeFrequency: 'daily' as const, priority: 0.7 },
-  ].map(({ path, changeFrequency, priority }) => ({
-    url: `${SITE_URL}${path}`,
+    { hash: 'about', changeFrequency: 'monthly' as const, priority: 0.5 },
+    { hash: 'contact', changeFrequency: 'monthly' as const, priority: 0.5 },
+    { hash: 'privacy', changeFrequency: 'yearly' as const, priority: 0.3 },
+    { hash: 'terms', changeFrequency: 'yearly' as const, priority: 0.3 },
+    { hash: 'editorial-policy', changeFrequency: 'yearly' as const, priority: 0.4 },
+    { hash: 'how-we-test', changeFrequency: 'yearly' as const, priority: 0.4 },
+    { hash: 'guides', changeFrequency: 'weekly' as const, priority: 0.7 },
+    { hash: 'blog', changeFrequency: 'daily' as const, priority: 0.7 },
+  ].map(({ hash, changeFrequency, priority }) => ({
+    url: `${SITE_URL}/#${hash}`,
     lastModified: now,
     changeFrequency,
     priority,

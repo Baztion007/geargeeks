@@ -12,8 +12,9 @@ import { Button } from '@/components/ui/button';
 import { StarRating } from '@/components/affiliate/RatingBar';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
 import { Building2, MapPin, Calendar, ExternalLink, ArrowLeft, Package, Globe, BookOpen, Users, ChevronDown, ChevronUp, Trophy, Sparkles } from 'lucide-react';
-import { generateBrandPageJsonLd } from '@/lib/seo';
+import { generateBrandPageJsonLd, generateBrandMeta } from '@/lib/seo';
 import { JsonLdScript } from '@/components/affiliate/JsonLdScript';
+import { useSeoMeta } from '@/lib/use-seo-meta';
 
 interface BrandPageProps {
   brandSlug: string;
@@ -120,6 +121,9 @@ export function BrandPage({ brandSlug }: BrandPageProps) {
   const goToCategory = useRouterStore((s) => s.goToCategory);
   const goHome = useRouterStore((s) => s.goHome);
   const goToBuyingGuide = useRouterStore((s) => s.goToBuyingGuide);
+
+  // Update SEO meta tags for this brand
+  useSeoMeta(brand ? generateBrandMeta(brand) : undefined);
 
   const brandProducts = useMemo(() => getProductsByBrand(brandSlug), [brandSlug]);
 

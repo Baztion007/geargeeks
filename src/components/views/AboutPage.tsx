@@ -21,8 +21,8 @@ import {
 } from 'lucide-react';
 
 export function AboutPage() {
-  const navigate = useRouterStore((s) => s.navigate);
   const goToAuthor = useRouterStore((s) => s.goToAuthor);
+  const goToPage = useRouterStore((s) => s.goToPage);
 
   return (
     <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
@@ -238,7 +238,7 @@ export function AboutPage() {
             We&apos;re always happy to help you find the perfect gear for your needs.
           </p>
           <button
-            onClick={() => navigate({ page: 'contact' } as any)}
+            onClick={() => goToPage('contact')}
             className="inline-flex items-center gap-2 bg-[#febd69] hover:bg-[#f3a847] text-[#131921] font-bold px-8 py-3 rounded-lg transition-all hover:shadow-lg"
           >
             Get in Touch
