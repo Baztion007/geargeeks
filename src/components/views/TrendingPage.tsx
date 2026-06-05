@@ -192,7 +192,7 @@ export function TrendingPage() {
                     />
                   ) : (
                     <div className="w-full h-full min-h-[200px] flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600">
-                      <Package className="w-16 h-16 text-gray-400" />
+                      <Package className="w-16 h-16 text-gray-400 dark:text-gray-600" />
                     </div>
                   )}
                   {/* Trending badge on image */}
@@ -218,7 +218,7 @@ export function TrendingPage() {
                         <Star
                           key={star}
                           size={18}
-                          className={star <= Math.round(filteredProducts[0].rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}
+                          className={star <= Math.round(filteredProducts[0].rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300 dark:text-gray-600'}
                         />
                       ))}
                       <span className="text-sm font-semibold text-gray-900 dark:text-white ml-1">{filteredProducts[0].rating.toFixed(1)}</span>
@@ -276,7 +276,7 @@ export function TrendingPage() {
 
             {/* Sort options */}
             <div className="flex items-center gap-2">
-              <ArrowUpDown size={14} className="text-gray-400 shrink-0" />
+              <ArrowUpDown size={14} className="text-gray-400 dark:text-gray-500 shrink-0" />
               {sortOptions.map((opt) => {
                 const Icon = opt.icon;
                 return (
@@ -356,10 +356,10 @@ export function TrendingPage() {
                         <Star
                           key={star}
                           size={14}
-                          className={star <= Math.round(product.rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}
+                          className={star <= Math.round(product.rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300 dark:text-gray-600'}
                         />
                       ))}
-                      <span className="text-xs text-gray-500 ml-1">{product.rating.toFixed(1)}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">{product.rating.toFixed(1)}</span>
                     </div>
                     {product.bestFor.length > 0 && (
                       <div className="mt-2">

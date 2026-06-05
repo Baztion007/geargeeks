@@ -337,7 +337,7 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
                     <h3 className="font-semibold text-sm text-gray-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 line-clamp-2 mb-1">
                       {guide.title}
                     </h3>
-                    <div className="flex items-center gap-2 text-[11px] text-gray-400">
+                    <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         {guide.readingTime} min
@@ -354,7 +354,7 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
         {/* ─── Active Filters Breadcrumb Trail ──────────────────────────── */}
         {hasActiveFilters && (
           <div className="mb-3 flex items-center gap-2 flex-wrap animate-fade-in">
-            <Filter className="w-3.5 h-3.5 text-gray-400" />
+            <Filter className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Active:</span>
             {brandFilter !== 'all' && (
               <Badge variant="secondary" className="text-xs gap-1 bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40">
@@ -393,7 +393,7 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
             <SlidersHorizontal size={16} style={{ color: 'var(--accent-color, #f59e0b)' }} />
             <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Filters & Sort</span>
             {!hasActiveFilters && isFilterScrolled && (
-              <span className="text-xs text-gray-400 ml-2">{filteredProducts.length} results</span>
+              <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">{filteredProducts.length} results</span>
             )}
             {hasActiveFilters && (
               <button

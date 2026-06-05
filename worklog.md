@@ -1836,3 +1836,43 @@ Stage Summary:
 - Logo hover tilt effect removed
 - Footer slightly more compact
 - Lint passes cleanly, no errors
+
+---
+Task ID: 6-fixes
+Agent: Main
+Task: Fix hero card animation, light mode text readability, remove Contact FAQ, fix dark mode text across pages
+
+Work Log:
+- Removed `parallax-float` animation class from hero card wrapper in HomePage.tsx (line 359)
+- Fixed light mode text readability on hero glass card:
+  - Changed card `text-white` to `text-gray-900 dark:text-white`
+  - Changed border to `border-white/15 dark:border-white/15 border-gray-200/60` for light mode
+  - Changed excerpt `text-gray-300/80` to `text-gray-600 dark:text-gray-300/80`
+  - Changed metadata `text-gray-400` to `text-gray-500 dark:text-gray-400`
+  - Changed image container `bg-white/10` to `bg-gray-100 dark:bg-white/10`
+- Removed FAQ/Quick Answers section from ContactPage.tsx (previously requested)
+- Cleaned up unused imports (Accordion, HelpCircle) from ContactPage.tsx
+- Fixed dark mode text issues in CategoryPage.tsx:
+  - Guide card reading time: `text-gray-400` → `text-gray-500 dark:text-gray-400`
+  - Filter icon: added `dark:text-gray-500`
+  - Filter results count: added `dark:text-gray-500`
+- Fixed dark mode text issues in TrendingPage.tsx:
+  - Empty stars: `text-gray-300` → `text-gray-300 dark:text-gray-600`
+  - Package fallback icon: added `dark:text-gray-600`
+  - Sort icon: added `dark:text-gray-500`
+  - Rating number: added `dark:text-gray-400`
+- Fixed dark mode text issues in HomePage.tsx:
+  - Date text in recently updated: added `dark:text-gray-500`
+  - ArrowRight icons in category/guide cards: added `dark:text-gray-500`
+  - Brand product count badge: `text-gray-400` → `text-gray-500 dark:text-gray-300`
+- Verified footer already uses 4-column layout (`grid-cols-2 md:grid-cols-4`)
+- Verified logo has no hover tilt effect (only opacity transition exists)
+- Lint passes cleanly
+- All fixes verified via agent-browser in both light and dark mode
+
+Stage Summary:
+- Hero card no longer has floating animation
+- Light mode text fully readable on hero glass card
+- Contact page FAQ section removed (form takes full width)
+- Dark mode text readability fixed across CategoryPage, TrendingPage, HomePage
+- Footer already 4-column, logo has no tilt — previous requests already addressed

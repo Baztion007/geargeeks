@@ -355,10 +355,10 @@ function HeroSection() {
             </div>
           </div>
 
-          {/* Right visual — featured guide card with glass morphism and parallax float */}
-          <div className="flex-shrink-0 w-full max-w-md parallax-float">
+          {/* Right visual — featured guide card with glass morphism */}
+          <div className="flex-shrink-0 w-full max-w-md">
             {featuredGuide && (
-              <Card className="glass-card-premium border border-white/15 text-white overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 hover:-translate-y-1">
+              <Card className="glass-card-premium border border-white/15 dark:border-white/15 border-gray-200/60 text-gray-900 dark:text-white overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 hover:-translate-y-1">
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-4">
                     {getGuideTypeBadge(featuredGuide.guideType)}
@@ -368,7 +368,7 @@ function HeroSection() {
                     </Badge>
                   </div>
                   {/* Guide image */}
-                  <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 bg-white/10 image-shine">
+                  <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 bg-gray-100 dark:bg-white/10 image-shine">
                     {featuredGuide.image ? (
                       <img
                         src={featuredGuide.image}
@@ -390,8 +390,8 @@ function HeroSection() {
                     </div>
                   </div>
                   <h3 className="font-bold text-lg leading-tight mb-2 line-clamp-2">{featuredGuide.title}</h3>
-                  <p className="text-sm text-gray-300/80 mb-4 line-clamp-2">{featuredGuide.excerpt}</p>
-                  <div className="flex items-center justify-between text-xs text-gray-400 mb-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-300/80 mb-4 line-clamp-2">{featuredGuide.excerpt}</p>
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-4">
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {featuredGuide.readingTime} min read
@@ -504,7 +504,7 @@ function CategoriesSection() {
                   <span className="text-xs text-[#007185] dark:text-[#5cc7d4] font-medium">
                     {cat.productCount} Products
                   </span>
-                  <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
                 </div>
               </CardContent>
             </Card>
@@ -641,7 +641,7 @@ function RecentlyUpdatedSection() {
                     {product.reviewStatus === 'new' && (
                       <Badge className="bg-violet-100 text-violet-700 text-[10px] hover:bg-violet-100 dark:bg-violet-900/30 dark:text-violet-300">New</Badge>
                     )}
-                    <span className="text-[11px] text-gray-400">
+                    <span className="text-[11px] text-gray-400 dark:text-gray-500">
                       {new Date(product.updatedAt).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -735,7 +735,7 @@ function BuyingGuidesSection() {
                   <span className="text-xs text-[#007185] dark:text-[#5cc7d4] font-medium">
                     {guide.recommendedProducts.length} products compared
                   </span>
-                  <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
                 </div>
               </CardContent>
             </Card>
@@ -799,7 +799,7 @@ function FeaturedBrandsSection() {
                 <h3 className="font-semibold text-sm text-gray-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors duration-200">
                   {brand.name}
                 </h3>
-                <span className="text-[10px] text-gray-400 mt-1 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">{brand.productCount} product{brand.productCount !== 1 ? 's' : ''}</span>
+                <span className="text-[10px] text-gray-500 dark:text-gray-300 mt-1 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">{brand.productCount} product{brand.productCount !== 1 ? 's' : ''}</span>
               </CardContent>
             </Card>
           ))}
