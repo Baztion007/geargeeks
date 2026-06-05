@@ -149,7 +149,7 @@ const dealTips: {
   {
     icon: AlertCircle,
     title: 'Beware of Fake Reviews',
-    description: 'Cross-reference reviews across multiple sources. GearScope\'s expert-tested reviews are independent and verified — we never accept payment for positive ratings.',
+    description: 'Cross-reference reviews across multiple sources. GearGeekz\'s expert-tested reviews are independent and verified — we never accept payment for positive ratings.',
   },
 ];
 
@@ -563,7 +563,7 @@ export function DealsPage() {
                 Affiliate Disclosure
               </h3>
               <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                GearScope earns commissions from qualifying purchases through affiliate links on this page.
+                GearGeekz earns commissions from qualifying purchases through affiliate links on this page.
                 We participate in affiliate programs with Amazon, Walmart, Best Buy, Target, REI, and B&amp;H Photo.
                 This does not affect which products we recommend — our editorial team independently selects and reviews all products.
                 Prices and availability are subject to change. Always verify the final price on the retailer&apos;s site before purchasing.

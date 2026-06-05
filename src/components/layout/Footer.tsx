@@ -14,7 +14,7 @@ export function Footer() {
 
   const footerLinks = {
     'Get to Know Us': [
-      { label: 'About GearScope', action: () => goToPage('about') },
+      { label: 'About GearGeekz', action: () => goToPage('about') },
       { label: 'Wishlist', action: () => goToWishlist() },
       { label: 'Editorial Policy', action: () => goToPage('editorial-policy') },
       { label: 'How We Test', action: () => goToPage('how-we-test') },
@@ -96,7 +96,7 @@ export function Footer() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-white font-bold text-lg">Get the GearScope Newsletter</h3>
+                <h3 className="text-white font-bold text-lg">Get the GearGeekz Newsletter</h3>
                 <p className="text-gray-400 text-sm">Weekly reviews, guides, and exclusive recommendations</p>
               </div>
             </div>
@@ -131,7 +131,7 @@ export function Footer() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="bg-[#131921] rounded-xl p-5 text-center border border-gray-700/30">
             <p className="text-xs text-gray-400 leading-relaxed">
-              <strong className="text-gray-300">Affiliate Disclosure:</strong> GearScope earns commissions from qualifying purchases through affiliate links on this site.
+              <strong className="text-gray-300">Affiliate Disclosure:</strong> GearGeekz earns commissions from qualifying purchases through affiliate links on this site.
               We participate in affiliate programs with Amazon, Walmart, Best Buy, and other retailers. Our recommendations are based on research,
               comparison, and editorial evaluation. Affiliate commissions do not influence our rankings or recommendations.
             </p>
@@ -143,12 +143,12 @@ export function Footer() {
       <div className="bg-[#131921] py-5">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <button onClick={goHome} className="text-white font-bold text-lg hover:opacity-80 transition-opacity">
-            Gear<span className="gradient-text">Scope</span>
+            Gear<span className="gradient-text">Geekz</span>
           </button>
           {/* Social media icons */}
           <div className="flex items-center gap-3">
             <a
-              href="https://twitter.com/gearscope"
+              href="https://twitter.com/geargeekz"
               target="_blank"
               rel="noopener noreferrer"
               className="w-9 h-9 rounded-full bg-[#232f3e]/80 hover:bg-[#1da1f2]/20 flex items-center justify-center text-gray-400 hover:text-[#1da1f2] transition-all duration-200 hover:scale-110"
@@ -157,7 +157,7 @@ export function Footer() {
               <Twitter size={16} />
             </a>
             <a
-              href="https://youtube.com/@gearscope"
+              href="https://youtube.com/@geargeekz"
               target="_blank"
               rel="noopener noreferrer"
               className="w-9 h-9 rounded-full bg-[#232f3e]/80 hover:bg-[#ff0000]/15 flex items-center justify-center text-gray-400 hover:text-[#ff0000] transition-all duration-200 hover:scale-110"
@@ -166,7 +166,7 @@ export function Footer() {
               <Youtube size={16} />
             </a>
             <a
-              href="https://github.com/gearscope"
+              href="https://github.com/geargeekz"
               target="_blank"
               rel="noopener noreferrer"
               className="w-9 h-9 rounded-full bg-[#232f3e]/80 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-all duration-200 hover:scale-110"
@@ -183,7 +183,7 @@ export function Footer() {
             </a>
           </div>
           <p className="text-gray-500 text-xs text-center">
-            © {new Date().getFullYear()} GearScope. All rights reserved.
+            © {new Date().getFullYear()} GearGeekz. All rights reserved.
             All product names, logos, and brands are property of their respective owners.
           </p>
         </div>

@@ -376,7 +376,7 @@ export function BuyingGuidePage({ guideSlug }: BuyingGuidePageProps) {
             ))}
           </div>
           <p className="text-xs text-gray-400 mt-4">
-            GearScope earns from qualifying purchases via affiliate links. Prices and availability are subject to change on the retailer&apos;s site.
+            GearGeekz earns from qualifying purchases via affiliate links. Prices and availability are subject to change on the retailer&apos;s site.
           </p>
         </div>
 

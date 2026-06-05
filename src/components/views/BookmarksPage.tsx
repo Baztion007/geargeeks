@@ -32,7 +32,7 @@ interface BookmarkWithTimestamp {
 function getBookmarkTimestamps(): BookmarkWithTimestamp[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = localStorage.getItem('gearscope-bookmark-timestamps');
+    const raw = localStorage.getItem('geargeekz-bookmark-timestamps');
     if (raw) return JSON.parse(raw);
   } catch {
     // ignore
@@ -43,7 +43,7 @@ function getBookmarkTimestamps(): BookmarkWithTimestamp[] {
 function saveBookmarkTimestamps(timestamps: BookmarkWithTimestamp[]) {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem('gearscope-bookmark-timestamps', JSON.stringify(timestamps));
+    localStorage.setItem('geargeekz-bookmark-timestamps', JSON.stringify(timestamps));
   } catch {
     // ignore
   }
@@ -126,7 +126,7 @@ export function BookmarksPage() {
     const lines = prods.map((p, i) => {
       return `${i + 1}. ${p.title} — ${p.category} — Rating: ${p.rating.toFixed(1)}/5 — ${p.brand}`;
     });
-    const formatted = `GearScope Bookmarks (${prods.length} items)\n${'='.repeat(40)}\n\n${lines.join('\n')}`;
+    const formatted = `GearGeekz Bookmarks (${prods.length} items)\n${'='.repeat(40)}\n\n${lines.join('\n')}`;
     try {
       await navigator.clipboard.writeText(formatted);
       toast({

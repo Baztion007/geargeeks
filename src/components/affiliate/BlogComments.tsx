@@ -15,7 +15,7 @@ interface Comment {
   timestamp: number;
 }
 
-const STORAGE_KEY = 'gearscope-blog-comments';
+const STORAGE_KEY = 'geargeekz-blog-comments';
 
 function getComments(): Comment[] {
   if (typeof window === 'undefined') return [];
@@ -129,7 +129,7 @@ export function BlogComments({ postSlug }: { postSlug: string }) {
       allComments.push(newComment);
       saveComments(allComments);
       // Save the last author name so they can delete their own comments
-      localStorage.setItem('gearscope-last-comment-author', authorName.trim());
+      localStorage.setItem('geargeekz-last-comment-author', authorName.trim());
       setComments(allComments.filter((c) => c.postSlug === postSlug));
       setContent('');
       setIsSubmitting(false);
@@ -154,7 +154,7 @@ export function BlogComments({ postSlug }: { postSlug: string }) {
   const canDelete = (commentAuthor: string): boolean => {
     // Simple heuristic: if the user previously submitted with this name from this browser
     // we allow deletion — this is a localStorage-only approach
-    const lastAuthor = localStorage.getItem('gearscope-last-comment-author');
+    const lastAuthor = localStorage.getItem('geargeekz-last-comment-author');
     return lastAuthor === commentAuthor;
   };
 

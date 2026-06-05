@@ -5,7 +5,7 @@ import { brands } from '@/data/brands';
 import { buyingGuides } from '@/data/buying-guides';
 import { blogPosts } from '@/data/blog-posts';
 
-const SITE_URL = 'https://gearscope.com';
+const SITE_URL = 'https://geargeekz.com';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

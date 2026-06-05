@@ -34,7 +34,7 @@ export function AboutPage() {
           <div className="bg-gradient-to-r from-[#131921] to-[#37475a] p-8 md:p-12 text-white">
             <div className="flex items-center gap-3 mb-4">
               <Package className="w-10 h-10 text-[#febd69]" />
-              <h1 className="text-3xl md:text-4xl font-bold">About GearScope</h1>
+              <h1 className="text-3xl md:text-4xl font-bold">About GearGeekz</h1>
             </div>
             <p className="text-lg text-gray-300 max-w-3xl">
               Your trusted source for honest, in-depth product reviews. We help gear enthusiasts
@@ -50,7 +50,7 @@ export function AboutPage() {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Our Mission</h2>
           </div>
           <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-            At GearScope, we believe everyone deserves the right gear for their lifestyle. Our mission is to cut
+            At GearGeekz, we believe everyone deserves the right gear for their lifestyle. Our mission is to cut
             through the marketing noise and provide honest, evidence-based reviews that help you find the
             right products for your needs — whether you&apos;re a frequent traveler, remote worker, fitness enthusiast, or outdoor adventurer.
           </p>

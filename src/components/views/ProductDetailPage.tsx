@@ -105,7 +105,7 @@ function SocialShareButtons({ title }: { title: string }) {
   const canShare = typeof navigator !== 'undefined' && !!navigator.share;
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
-  const shareText = `Check out this review: ${title} — GearScope`;
+  const shareText = `Check out this review: ${title} — GearGeekz`;
 
   const handleCopyLink = async () => {
     try {
@@ -121,7 +121,7 @@ function SocialShareButtons({ title }: { title: string }) {
   const handleNativeShare = async () => {
     try {
       await navigator.share({
-        title: `${title} — GearScope`,
+        title: `${title} — GearGeekz`,
         text: shareText,
         url: shareUrl,
       });
@@ -131,7 +131,7 @@ function SocialShareButtons({ title }: { title: string }) {
   };
 
   const handleEmailShare = () => {
-    const subject = encodeURIComponent(`${title} — GearScope Review`);
+    const subject = encodeURIComponent(`${title} — GearGeekz Review`);
     const body = encodeURIComponent(`Check out this review: ${shareUrl}`);
     window.open(`mailto:?subject=${subject}&body=${body}`);
   };

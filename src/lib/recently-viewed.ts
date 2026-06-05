@@ -23,7 +23,7 @@ export const useRecentlyViewedStore = create<RecentlyViewedState>()(
       clearRecentlyViewed: () => set({ recentlyViewed: [] }),
     }),
     {
-      name: 'gearscope-recently-viewed',
+      name: 'geargeekz-recently-viewed',
     }
   )
 );

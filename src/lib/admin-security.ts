@@ -6,7 +6,7 @@ import crypto from 'crypto';
 
 // ─── Configuration ─────────────────────────────────────────────────────────────
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'gearscope2026';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'geargeekz2026';
 const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || 'gs-default-secret-change-in-production';
 
 const MAX_LOGIN_ATTEMPTS = 5;

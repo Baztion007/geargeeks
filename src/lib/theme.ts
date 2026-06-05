@@ -63,7 +63,7 @@ export const useThemeStore = create<ThemeState>()(
       },
     }),
     {
-      name: 'gearscope-theme',
+      name: 'geargeekz-theme',
       partialize: (state) => ({ theme: state.theme }),
       onRehydrateStorage: () => {
         return (state) => {

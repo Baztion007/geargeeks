@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "GearScope — Expert Reviews. Smart Recommendations.",
-    template: "%s | GearScope",
+    default: "GearGeekz — Expert Reviews. Smart Recommendations.",
+    template: "%s | GearGeekz",
   },
   description:
     "Premium product reviews and buying guides to help you discover the right gear. We research, test, and compare travel gear, electronics, home office, fitness, and more.",
@@ -30,16 +30,16 @@ export const metadata: Metadata = {
     "fitness tracker reviews",
     "buying guides",
     "gear recommendations",
-    "GearScope",
+    "GearGeekz",
     "best travel gear 2026",
     "gear comparison",
     "expert product testing",
     "unbiased reviews",
   ],
-  authors: [{ name: "GearScope", url: "https://gearscope.com" }],
-  creator: "GearScope",
-  publisher: "GearScope",
-  metadataBase: new URL("https://gearscope.com"),
+  authors: [{ name: "GearGeekz", url: "https://geargeekz.com" }],
+  creator: "GearGeekz",
+  publisher: "GearGeekz",
+  metadataBase: new URL("https://geargeekz.com"),
   alternates: {
     canonical: "/",
   },
@@ -47,20 +47,20 @@ export const metadata: Metadata = {
     icon: "/logo.svg",
   },
   openGraph: {
-    title: "GearScope — Expert Reviews. Smart Recommendations.",
+    title: "GearGeekz — Expert Reviews. Smart Recommendations.",
     description:
       "Premium product reviews and buying guides to help you discover the right gear for your life.",
-    siteName: "GearScope",
+    siteName: "GearGeekz",
     type: "website",
-    url: "https://gearscope.com",
+    url: "https://geargeekz.com",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "GearScope — Expert Reviews. Smart Recommendations.",
+    title: "GearGeekz — Expert Reviews. Smart Recommendations.",
     description:
       "Premium product reviews and buying guides to help you discover the right gear for your life.",
-    creator: "@gearscope",
+    creator: "@geargeekz",
   },
   robots: {
     index: true,

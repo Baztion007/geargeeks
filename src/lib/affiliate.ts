@@ -67,16 +67,16 @@ export function getAffiliateLinkProps(url: string) {
 }
 
 export const siteData = {
-  name: 'GearScope',
-  url: 'https://gearscope.com',
+  name: 'GearGeekz',
+  url: 'https://geargeekz.com',
   logo: '/logo.svg',
   tagline: 'Expert Reviews. Smart Recommendations.',
   description: 'Premium product reviews and buying guides to help you discover the right gear for your life.',
-  contactEmail: 'hello@gearscope.com',
+  contactEmail: 'hello@geargeekz.com',
   socialProfiles: [
-    'https://twitter.com/gearscope',
-    'https://facebook.com/gearscope',
-    'https://instagram.com/gearscope',
+    'https://twitter.com/geargeekz',
+    'https://facebook.com/geargeekz',
+    'https://instagram.com/geargeekz',
   ],
 };
 

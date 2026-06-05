@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
             .join(', ')} | Match Score: ${item.score}%`
       );
 
-      const prompt = `You are a gear recommendation expert for GearScope, a premium product review publication. Based on the user's quiz answers and the top matching products, write a brief, personalized explanation (1-2 sentences max) for WHY each product matches their needs. Be specific and helpful, not generic.
+      const prompt = `You are a gear recommendation expert for GearGeekz, a premium product review publication. Based on the user's quiz answers and the top matching products, write a brief, personalized explanation (1-2 sentences max) for WHY each product matches their needs. Be specific and helpful, not generic.
 
 User's preferences:
 - Category: ${body.category}

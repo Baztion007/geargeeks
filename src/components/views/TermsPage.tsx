@@ -19,7 +19,7 @@ export function TermsPage() {
               <h1 className="text-3xl md:text-4xl font-bold">Terms of Service</h1>
             </div>
             <p className="text-lg text-gray-300 max-w-3xl">
-              Please read these terms carefully before using GearScope. By accessing our
+              Please read these terms carefully before using GearGeekz. By accessing our
               site, you agree to these terms.
             </p>
             <p className="text-sm text-gray-400 mt-3">Last updated: March 1, 2026</p>
@@ -29,8 +29,8 @@ export function TermsPage() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           {/* Introduction */}
           <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-            Welcome to GearScope (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). These Terms of Service
-            (&quot;Terms&quot;) govern your use of gearscope.com (the &quot;Site&quot;). By accessing or using the
+            Welcome to GearGeekz (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). These Terms of Service
+            (&quot;Terms&quot;) govern your use of geargeekz.com (the &quot;Site&quot;). By accessing or using the
             Site, you agree to be bound by these Terms. If you disagree with any part of these Terms,
             you may not access the Site.
           </p>
@@ -69,7 +69,7 @@ export function TermsPage() {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">Intellectual Property</h3>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
               All content on this Site, including but not limited to text, graphics, logos, images,
-              reviews, and software, is the property of GearScope and is protected by copyright,
+              reviews, and software, is the property of GearGeekz and is protected by copyright,
               trademark, and other intellectual property laws. You may not reproduce, distribute,
               modify, or create derivative works from our content without our express written consent.
             </p>
@@ -86,7 +86,7 @@ export function TermsPage() {
 
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
               <p className="text-sm text-amber-800 dark:text-amber-300">
-                <strong>Important:</strong> GearScope participates in affiliate programs with multiple
+                <strong>Important:</strong> GearGeekz participates in affiliate programs with multiple
                 retailers, including the Amazon Services LLC Associates Program, Walmart Affiliate Program,
                 and others. These programs are designed to provide a means for sites to earn advertising
                 fees by linking to retailers.
@@ -111,7 +111,7 @@ export function TermsPage() {
 
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">Multiple Retailers</h3>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              GearScope links to multiple retailers including Amazon, Walmart, Best Buy, REI, and B&amp;H Photo.
+              GearGeekz links to multiple retailers including Amazon, Walmart, Best Buy, REI, and B&amp;H Photo.
               Our editorial team independently selects which retailer to link to for each product based on
               availability and reader convenience, not commission rates. All affiliate relationships follow
               the same editorial independence standards.
@@ -137,7 +137,7 @@ export function TermsPage() {
 
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">Product Pricing</h3>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-              GearScope does not display product prices. Prices and availability are determined by
+              GearGeekz does not display product prices. Prices and availability are determined by
               retailers and may change at any time. Always verify the current price on the
               retailer&apos;s website before making a purchase. We are not responsible for pricing
               discrepancies or changes.
@@ -175,7 +175,7 @@ export function TermsPage() {
 
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">Limitation of Liability</h3>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-              IN NO EVENT SHALL GEARSCOPE, ITS AUTHORS, OR ITS AFFILIATES BE LIABLE FOR ANY
+              IN NO EVENT SHALL GEARGEEKZ, ITS AUTHORS, OR ITS AFFILIATES BE LIABLE FOR ANY
               INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING OUT OF OR
               RELATING TO YOUR USE OF THE SITE, INCLUDING BUT NOT LIMITED TO DAMAGES FOR LOSS OF
               PROFITS, DATA, OR OTHER INTANGIBLE LOSSES, EVEN IF WE HAVE BEEN ADVISED OF THE
@@ -192,7 +192,7 @@ export function TermsPage() {
 
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">Indemnification</h3>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              You agree to defend, indemnify, and hold harmless GearScope and its authors from
+              You agree to defend, indemnify, and hold harmless GearGeekz and its authors from
               and against any and all claims, damages, obligations, losses, liabilities, costs, or
               debt arising from your use of the Site or violation of these Terms.
             </p>
@@ -228,10 +228,10 @@ export function TermsPage() {
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               If you have any questions about these Terms, please contact us at:{' '}
               <a
-                href="mailto:legal@gearscope.com"
+                href="mailto:legal@geargeekz.com"
                 className="text-[#007185] hover:text-[#c7511f] hover:underline"
               >
-                legal@gearscope.com
+                legal@geargeekz.com
               </a>
             </p>
           </section>

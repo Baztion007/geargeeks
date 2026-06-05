@@ -74,7 +74,7 @@ export const useCompareStore = create<CompareState>()(
       },
     }),
     {
-      name: 'gearscope-compare',
+      name: 'geargeekz-compare',
     }
   )
 );

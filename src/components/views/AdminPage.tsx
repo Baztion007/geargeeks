@@ -353,7 +353,7 @@ function AdminDashboard() {
             </div>
             <div>
               <h2 className="font-bold text-sm">Admin Panel</h2>
-              <span className="text-[10px] text-gray-400">GearScope</span>
+              <span className="text-[10px] text-gray-400">GearGeekz</span>
             </div>
           </div>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 hover:bg-gray-800 rounded" aria-label="Close sidebar">

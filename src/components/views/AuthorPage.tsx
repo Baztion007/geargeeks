@@ -47,7 +47,7 @@ const expertiseLevels: Record<string, number> = {
 };
 
 // Contact form storage
-const CONTACT_MESSAGES_KEY = 'gearscope-contact-messages';
+const CONTACT_MESSAGES_KEY = 'geargeekz-contact-messages';
 
 interface ContactMessage {
   authorSlug: string;

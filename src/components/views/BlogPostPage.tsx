@@ -437,25 +437,27 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
           </div>
         )}
 
-        {/* Newsletter CTA - Full Width */}
-        <div className="bg-gradient-to-r from-[#131921] to-[#37475a] rounded-lg p-6 md:p-8 text-white mt-6">
-          <div className="flex items-center gap-3 mb-3">
-            <Mail className="w-8 h-8 text-[#febd69]" />
-            <h3 className="text-xl font-bold">Stay Updated</h3>
-          </div>
-          <p className="text-gray-300 mb-4">
-            Get the latest gear guides, reviews, and recommendations delivered straight to your inbox. No spam, ever.
-          </p>
-          <div className="flex gap-2">
-            <input
-              type="email"
-              placeholder="your@email.com"
-              className="flex-1 px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#febd69]"
-              aria-label="Email address for newsletter"
-            />
-            <Button className="bg-[#febd69] hover:bg-[#f3a847] text-[#131921] font-bold shrink-0">
-              Subscribe
-            </Button>
+        {/* Newsletter CTA - Full Width, Compact */}
+        <div className="bg-gradient-to-r from-[#131921] to-[#37475a] rounded-lg px-8 md:px-16 py-5 text-white mt-6">
+          <div className="max-w-xl mx-auto text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Mail className="w-5 h-5 text-[#febd69]" />
+              <h3 className="text-lg font-bold">Stay Updated</h3>
+            </div>
+            <p className="text-gray-300 mb-3 text-sm">
+              Get the latest gear guides, reviews, and recommendations delivered straight to your inbox. No spam, ever.
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                placeholder="your@email.com"
+                className="flex-1 px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#febd69] text-sm"
+                aria-label="Email address for newsletter"
+              />
+              <Button className="bg-[#febd69] hover:bg-[#f3a847] text-[#131921] font-bold shrink-0 text-sm">
+                Subscribe
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -491,7 +493,7 @@ function HeroImage({ src, alt }: { src: string; alt: string }) {
         <div className="w-full h-full bg-gradient-to-br from-[#131921] to-[#37475a] flex items-center justify-center">
           <div className="text-center">
             <BookOpen className="w-20 h-20 text-[#febd69]/30 mx-auto mb-2" />
-            <p className="text-gray-400 text-sm">GearScope Blog</p>
+            <p className="text-gray-400 text-sm">GearGeekz Blog</p>
           </div>
         </div>
       )}

@@ -838,10 +838,10 @@ function TrustBlock() {
     <section className="py-10 sm:py-14 bg-white dark:bg-gray-900 section-divider-wave">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Why Trust GearScope?</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Why Trust GearGeekz?</h2>
           <div className="w-16 h-1 bg-gradient-to-r from-emerald-400 to-emerald-500 mx-auto mt-4 rounded-full" />
           <p className="text-gray-500 dark:text-gray-400 mt-3 max-w-2xl mx-auto text-sm font-medium">
-            We take our reviews seriously. Here&apos;s what sets GearScope apart from other review sites.
+            We take our reviews seriously. Here&apos;s what sets GearGeekz apart from other review sites.
           </p>
         </div>
 
@@ -869,7 +869,7 @@ function TrustBlock() {
             <div>
               <h3 className="font-bold text-gray-900 dark:text-white text-base mb-1.5">Our Editorial Pledge</h3>
               <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                GearScope operates with complete editorial independence. While we earn commissions through
+                GearGeekz operates with complete editorial independence. While we earn commissions through
                 affiliate programs, this never affects which products we recommend or how we rate them.
                 Our reviews are based on hands-on testing, expert evaluation, and genuine user feedback. We will
                 always publish both pros and cons, and we will never accept payment for positive coverage.
@@ -886,7 +886,7 @@ function TrustBlock() {
 function TestimonialsSection() {
   const testimonials = [
     {
-      text: "GearScope's travel gadget guide saved me from buying the wrong power bank. The Anker 737 has been a game-changer for my international trips.",
+      text: "GearGeekz's travel gadget guide saved me from buying the wrong power bank. The Anker 737 has been a game-changer for my international trips.",
       author: 'Michael R.',
       role: 'Frequent Traveler',
       rating: 5,
@@ -904,7 +904,7 @@ function TestimonialsSection() {
       rating: 5,
     },
     {
-      text: "I've bought three products based on GearScope recommendations and they've all been spot-on. Trust this site for honest, thorough reviews!",
+      text: "I've bought three products based on GearGeekz recommendations and they've all been spot-on. Trust this site for honest, thorough reviews!",
       author: 'Emily T.',
       role: 'Tech Enthusiast',
       rating: 5,
@@ -1023,7 +1023,7 @@ function NewsletterCTA() {
               Never Miss a Review
             </h2>
             <p className="text-gray-400 text-sm max-w-md mx-auto lg:mx-0">
-              Get the latest gear reviews, buying guides, and product recommendations from GearScope delivered to your inbox. No spam, unsubscribe anytime.
+              Get the latest gear reviews, buying guides, and product recommendations from GearGeekz delivered to your inbox. No spam, unsubscribe anytime.
             </p>
           </div>
 
@@ -1034,7 +1034,7 @@ function NewsletterCTA() {
                   <ShieldCheck className="w-10 h-10 text-emerald-400 mx-auto mb-2" />
                   <h3 className="text-white font-bold text-lg">You&apos;re In!</h3>
                   <p className="text-emerald-200 text-sm mt-1">
-                    Check your inbox for a confirmation email from GearScope.
+                    Check your inbox for a confirmation email from GearGeekz.
                   </p>
                   <Button
                     variant="outline"
@@ -1122,7 +1122,7 @@ function BrowseAllCategoriesSection() {
             Browse All Categories
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">
-            Explore all {categories.length} product categories on GearScope
+            Explore all {categories.length} product categories on GearGeekz
           </p>
         </div>
 

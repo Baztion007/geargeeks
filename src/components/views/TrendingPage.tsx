@@ -140,7 +140,7 @@ export function TrendingPage() {
                   <TrendingUp className="w-7 h-7 text-white" />
                 </div>
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                  Trending on <span className="text-gradient">GearScope</span>
+                  Trending on <span className="text-gradient">GearGeekz</span>
                 </h1>
               </div>
               <p className="text-lg text-gray-300 max-w-3xl leading-relaxed">

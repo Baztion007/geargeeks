@@ -62,7 +62,7 @@ const TRENDING_SEARCHES = [
 ];
 
 // Recent searches localStorage key
-const RECENT_SEARCHES_KEY = 'gearscope-recent-searches';
+const RECENT_SEARCHES_KEY = 'geargeekz-recent-searches';
 const MAX_RECENT_SEARCHES = 5;
 
 function getRecentSearches(): string[] {

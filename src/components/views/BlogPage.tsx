@@ -81,7 +81,7 @@ export function BlogPage() {
           <div className="bg-gradient-to-r from-[#131921] to-[#37475a] p-8 md:p-12 text-white">
             <div className="flex items-center gap-3 mb-4">
               <BookOpen className="w-10 h-10 text-[#febd69]" />
-              <h1 className="text-3xl md:text-4xl font-bold">GearScope Blog</h1>
+              <h1 className="text-3xl md:text-4xl font-bold">GearGeekz Blog</h1>
             </div>
             <p className="text-lg text-gray-300 max-w-3xl">
               Expert guides, comparisons, and insights for gear enthusiasts and savvy shoppers

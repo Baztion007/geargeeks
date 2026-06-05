@@ -19,7 +19,7 @@ export function PrivacyPage() {
               <h1 className="text-3xl md:text-4xl font-bold">Privacy Policy</h1>
             </div>
             <p className="text-lg text-gray-300 max-w-3xl">
-              Your privacy is important to us. This policy explains how GearScope collects,
+              Your privacy is important to us. This policy explains how GearGeekz collects,
               uses, and protects your information.
             </p>
             <p className="text-sm text-gray-400 mt-3">Last updated: March 1, 2026</p>
@@ -29,9 +29,9 @@ export function PrivacyPage() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
           {/* Introduction */}
           <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-            GearScope (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy.
+            GearGeekz (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy.
             This Privacy Policy explains how we collect, use, disclose, and safeguard your information
-            when you visit our website gearscope.com (the &quot;Site&quot;). Please read this policy
+            when you visit our website geargeekz.com (the &quot;Site&quot;). Please read this policy
             carefully. If you do not agree with the terms of this privacy policy, please do not
             access the Site.
           </p>
@@ -162,7 +162,7 @@ export function PrivacyPage() {
 
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-4 mb-3">Affiliate Programs</h3>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-              GearScope participates in affiliate programs with multiple retailers including Amazon,
+              GearGeekz participates in affiliate programs with multiple retailers including Amazon,
               Walmart, Best Buy, REI, and B&amp;H Photo. When you click on an affiliate link on our Site,
               you will be redirected to the retailer&apos;s website. The retailer may set cookies on your
               device and collect information about your browsing and purchasing behavior. Please refer
@@ -233,10 +233,10 @@ export function PrivacyPage() {
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               To exercise any of these rights, please contact us at{' '}
               <a
-                href="mailto:privacy@gearscope.com"
+                href="mailto:privacy@geargeekz.com"
                 className="text-[#007185] hover:text-[#c7511f] hover:underline"
               >
-                privacy@gearscope.com
+                privacy@geargeekz.com
               </a>
               .
             </p>
@@ -265,10 +265,10 @@ export function PrivacyPage() {
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               If you have any questions or concerns about this Privacy Policy, please contact us at:{' '}
               <a
-                href="mailto:privacy@gearscope.com"
+                href="mailto:privacy@geargeekz.com"
                 className="text-[#007185] hover:text-[#c7511f] hover:underline"
               >
-                privacy@gearscope.com
+                privacy@geargeekz.com
               </a>
             </p>
           </section>

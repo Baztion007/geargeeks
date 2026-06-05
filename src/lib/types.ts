@@ -1,4 +1,4 @@
-// Core types for the premium product review publication — GearScope
+// Core types for the premium product review publication — GearGeekz
 
 export interface Product {
   id: string;

@@ -43,7 +43,7 @@ export function QuickViewModal({ productSlug, isOpen, onClose }: QuickViewModalP
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 shadow-2xl">
         <DialogTitle className="sr-only">Quick View: {product.title}</DialogTitle>
         <DialogDescription className="sr-only">
           Quick overview of {product.title} including rating, pros, and cons.
@@ -69,7 +69,7 @@ export function QuickViewModal({ productSlug, isOpen, onClose }: QuickViewModalP
           </div>
 
           {/* Product Info - Right Side */}
-          <div className="md:w-3/5 p-5 md:p-6 flex flex-col gap-3 bg-white dark:bg-gray-800">
+          <div className="md:w-3/5 p-5 md:p-6 flex flex-col gap-3 bg-white dark:bg-gray-900">
             {/* Category Badge */}
             <Badge variant="outline" className="w-fit text-xs text-[#007185] dark:text-[#5cc7d4] border-[#007185]/30 dark:border-[#5cc7d4]/30">
               {product.category}
@@ -96,7 +96,7 @@ export function QuickViewModal({ productSlug, isOpen, onClose }: QuickViewModalP
             )}
 
             {/* Summary */}
-            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{product.summary}</p>
+            <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">{product.summary}</p>
 
             {/* Pros (first 3) */}
             {product.pros.length > 0 && (

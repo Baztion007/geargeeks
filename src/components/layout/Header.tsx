@@ -80,7 +80,8 @@ export function Header() {
             {/* Logo */}
             <button
               onClick={() => goHome()}
-              className="flex items-center gap-2 shrink-0 rounded-lg p-1"
+              onDoubleClick={(e) => { e.preventDefault(); goHome(); }}
+              className="flex items-center gap-2 shrink-0 rounded-lg p-1 select-none"
               aria-label="Go to homepage"
             >
               <div className="w-9 h-9 bg-gradient-to-br from-[#febd69] to-[#f59e0b] rounded-full flex items-center justify-center shadow-md shadow-amber-500/30">
@@ -91,7 +92,7 @@ export function Header() {
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-bold tracking-tight leading-none">
-                  Gear<span className="gradient-text">Scope</span>
+                  Gear<span className="gradient-text">Geekz</span>
                 </span>
                 <span className="text-[9px] text-gray-400 leading-none hidden sm:block tracking-wide">Expert Reviews. Smart Recommendations.</span>
               </div>
@@ -184,7 +185,7 @@ export function Header() {
       {/* Secondary Navigation */}
       <div className="bg-[#232f3e] text-white">
         <div className="max-w-7xl mx-auto px-4">
-          <nav className="hidden md:flex items-center gap-1 h-10 text-sm" aria-label="Main navigation">
+          <nav className="hidden md:flex items-center justify-center gap-1 h-10 text-sm" aria-label="Main navigation">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -221,7 +222,7 @@ export function Header() {
                         <path d="m21 21-4.3-4.3" />
                       </svg>
                     </div>
-                    <span className="font-bold text-lg">Gear<span className="gradient-text">Scope</span></span>
+                    <span className="font-bold text-lg">Gear<span className="gradient-text">Geekz</span></span>
                   </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}

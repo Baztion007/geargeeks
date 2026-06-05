@@ -756,7 +756,7 @@ export function GearFinderQuiz() {
         <div className="mt-6 text-center">
           <p className="text-[11px] text-gray-400 dark:text-gray-500">
             Recommendations are based on our editorial reviews and your preferences.
-            GearScope earns commissions from qualifying purchases through affiliate links.
+            GearGeekz earns commissions from qualifying purchases through affiliate links.
           </p>
         </div>
       </div>

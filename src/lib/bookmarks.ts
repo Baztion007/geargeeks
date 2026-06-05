@@ -29,7 +29,7 @@ export const useBookmarkStore = create<BookmarkState>()(
       clearBookmarks: () => set({ bookmarks: [] }),
     }),
     {
-      name: 'gearscope-bookmarks',
+      name: 'geargeekz-bookmarks',
     }
   )
 );

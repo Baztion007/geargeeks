@@ -131,8 +131,8 @@ const DEFAULT_SETTINGS: AffiliateSettings = {
 
 // ── Storage Keys ───────────────────────────────────────────────────────────
 
-const CONFIG_STORAGE_KEY = 'gearscope-affiliate-config';
-const SETTINGS_STORAGE_KEY = 'gearscope-affiliate-settings';
+const CONFIG_STORAGE_KEY = 'geargeekz-affiliate-config';
+const SETTINGS_STORAGE_KEY = 'geargeekz-affiliate-settings';
 
 // ── Helper: localStorage with SSR safety ───────────────────────────────────
 

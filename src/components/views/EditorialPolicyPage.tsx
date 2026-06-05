@@ -49,7 +49,7 @@ export function EditorialPolicyPage() {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">How We Select Products</h2>
           </div>
           <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-            We carefully curate every product that appears on GearScope. Our selection process
+            We carefully curate every product that appears on GearGeekz. Our selection process
             is driven by reader interest, market relevance, and our commitment to covering a diverse
             range of products across all categories.
           </p>
@@ -306,7 +306,7 @@ export function EditorialPolicyPage() {
               or affiliate partner can influence our reviews, ratings, or recommendations. We would
               rather lose an affiliate partnership than compromise our integrity.&quot;
             </p>
-            <p className="text-emerald-700 dark:text-emerald-400 text-sm mt-3">— The GearScope Team</p>
+            <p className="text-emerald-700 dark:text-emerald-400 text-sm mt-3">— The GearGeekz Team</p>
           </div>
 
           <div className="space-y-4">
@@ -317,7 +317,7 @@ export function EditorialPolicyPage() {
               },
               {
                 title: 'No Paid Placements',
-                desc: 'We never accept payment for positive reviews, preferential rankings, or product placement. "Sponsored" content does not exist on GearScope.',
+                desc: 'We never accept payment for positive reviews, preferential rankings, or product placement. "Sponsored" content does not exist on GearGeekz.',
               },
               {
                 title: 'Honest Criticism',
