@@ -1876,3 +1876,30 @@ Stage Summary:
 - Contact page FAQ section removed (form takes full width)
 - Dark mode text readability fixed across CategoryPage, TrendingPage, HomePage
 - Footer already 4-column, logo has no tilt — previous requests already addressed
+
+---
+Task ID: 7-trending-quickview
+Agent: Main
+Task: Fix product card alignment in Trending Now section and dark mode Quick View text readability
+
+Work Log:
+- Fixed ProductCard alignment: Added `flex flex-col h-full` to Card component so all cards stretch to equal height in grid
+- Fixed ProductCard content: Added `flex flex-col flex-1` to CardContent and `mt-auto pt-3` to CTA container to push buttons to bottom
+- Fixed TrendingSection wrapper: Added `flex` to grid item wrapper so child card stretches to full height
+- Fixed QuickViewModal dark mode text readability:
+  - Image container: `bg-gray-50` → `bg-gray-50 dark:bg-gray-700`
+  - Fallback image: Added `dark:from-gray-600 dark:to-gray-700 dark:text-amber-300`
+  - Category badge: Added `dark:text-[#5cc7d4] dark:border-[#5cc7d4]/30`
+  - Title: `text-gray-900` → `text-gray-900 dark:text-white`
+  - Summary: `text-gray-600` → `text-gray-600 dark:text-gray-300`
+  - Pros heading: Added `dark:text-gray-200`
+  - Pros items: Added `dark:text-gray-300`
+  - Cons heading: Added `dark:text-gray-200`
+  - Cons items: Added `dark:text-gray-300`
+  - Read Full Review button: Added `dark:text-[#5cc7d4] dark:border-[#5cc7d4]/30 dark:hover:bg-[#5cc7d4]/10`
+- Lint passes cleanly
+- Verified with agent-browser: cards aligned, Quick View text readable in dark mode
+
+Stage Summary:
+- Product cards now have consistent height and aligned CTAs across the Trending Now grid
+- Quick View modal fully readable in dark mode with proper text contrast

@@ -572,7 +572,7 @@ function TrendingSection() {
         {/* Mobile: horizontal scroll, Desktop: grid */}
         <div className="flex lg:grid lg:grid-cols-5 gap-4 overflow-x-auto pb-4 lg:pb-0 scrollbar-hide snap-x snap-mandatory">
           {trending.slice(0, 5).map((product) => (
-            <div key={product.id} className="min-w-[280px] lg:min-w-0 snap-start">
+            <div key={product.id} className="min-w-[280px] lg:min-w-0 snap-start flex">
               <ProductCard product={product} />
             </div>
           ))}

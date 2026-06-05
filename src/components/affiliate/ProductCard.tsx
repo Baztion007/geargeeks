@@ -41,7 +41,7 @@ export function ProductCard({ product, showAffiliate = true }: ProductCardProps)
   React.useEffect(() => { setMounted(true); }, []);
 
   return (
-    <Card className="group overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl card-border-animate card-entrance-scroll">
+    <Card className="group overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl card-border-animate card-entrance-scroll flex flex-col h-full">
       {/* Image */}
       <div
         className="relative cursor-pointer overflow-hidden bg-gray-50 dark:bg-gray-700 aspect-square image-shine"
@@ -118,7 +118,7 @@ export function ProductCard({ product, showAffiliate = true }: ProductCardProps)
       </div>
 
       {/* Content */}
-      <CardContent className="p-4 sm:p-5">
+      <CardContent className="p-4 sm:p-5 flex flex-col flex-1">
         {/* Category — colored left border accent */}
         <button
           onClick={() => goToCategory(product.categorySlug)}
@@ -192,7 +192,7 @@ export function ProductCard({ product, showAffiliate = true }: ProductCardProps)
 
         {/* Affiliate CTA — with shimmer sweep animation */}
         {showAffiliate && (
-          <div className="mt-3">
+          <div className="mt-auto pt-3">
             <Disclosure compact />
             <CheckPriceButton
               merchant={product.merchant}
