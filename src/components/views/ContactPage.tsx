@@ -7,14 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Mail, MessageSquare, Clock, HelpCircle, Send, CheckCircle2 } from 'lucide-react';
+import { MessageSquare, HelpCircle, Send, CheckCircle2 } from 'lucide-react';
 
 export function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -57,7 +56,7 @@ export function ContactPage() {
                   <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Message Received!</h3>
                   <p className="text-gray-600 dark:text-gray-400 mb-6">
-                    Thank you for reaching out. We typically respond within 24-48 hours.
+                    Thank you for reaching out. We'll get back to you as soon as possible.
                   </p>
                   <Button
                     onClick={() => setSubmitted(false)}
@@ -132,37 +131,6 @@ export function ContactPage() {
             <Card className="border border-gray-200 dark:border-gray-700">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <Mail className="w-5 h-5 text-[#007185]" />
-                  <h3 className="font-bold text-gray-900 dark:text-white">Email Us</h3>
-                </div>
-                <a
-                  href="mailto:hello@gearscope.com"
-                  className="text-[#007185] hover:text-[#c7511f] hover:underline text-sm break-all"
-                >
-                  hello@gearscope.com
-                </a>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  For review inquiries, corrections, or general questions.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border border-gray-200 dark:border-gray-700">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <Clock className="w-5 h-5 text-[#007185]" />
-                  <h3 className="font-bold text-gray-900 dark:text-white">Response Time</h3>
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  We aim to respond to all inquiries within <strong>24-48 hours</strong> during
-                  business days.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border border-gray-200 dark:border-gray-700">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
                   <HelpCircle className="w-5 h-5 text-[#007185]" />
                   <h3 className="font-bold text-gray-900 dark:text-white">Quick Answers</h3>
                 </div>
@@ -190,7 +158,7 @@ export function ContactPage() {
               },
               {
                 q: 'Can I suggest a product for review?',
-                a: 'Absolutely! Use the contact form above or email us directly. We prioritize products that multiple readers request, so your suggestion really does matter.',
+                a: 'Absolutely! Use the contact form above to submit your suggestion. We prioritize products that multiple readers request, so your suggestion really does matter.',
               },
               {
                 q: 'Do you accept sponsored reviews?',
@@ -206,7 +174,7 @@ export function ContactPage() {
               },
               {
                 q: 'I found an error in a review. How can I report it?',
-                a: 'We take accuracy very seriously. If you spot an error, please contact us through the form above or email hello@gearscope.com with the details. We\'ll investigate and correct any mistakes promptly.',
+                a: 'We take accuracy very seriously. If you spot an error, please contact us through the form above with the details. We\'ll investigate and correct any mistakes promptly.',
               },
               {
                 q: 'What product categories do you cover?',
