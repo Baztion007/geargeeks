@@ -30,6 +30,7 @@ import { BlogComments } from '@/components/affiliate/BlogComments';
 import { generateBlogPostJsonLd, generateBlogMeta } from '@/lib/seo';
 import { JsonLdScript } from '@/components/affiliate/JsonLdScript';
 import { useSeoMeta } from '@/lib/use-seo-meta';
+import { LqipImage } from '@/components/ui/lqip-image';
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -198,14 +199,22 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
           ]}
         />
 
-        {/* Hero Image */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-6">
-          <HeroImage src={post.image} alt={post.title} />
-        </div>
+        <article itemScope itemType="https://schema.org/BlogPosting">
+          <meta itemProp="image" content={post.image} />
+          <meta itemProp="dateModified" content={post.updatedAt} />
+          {author && (
+            <span itemProp="author" itemScope itemType="https://schema.org/Person" className="hidden">
+              <meta itemProp="name" content={author.name} />
+            </span>
+          )}
+          {/* Hero Image */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-6">
+            <HeroImage src={post.image} alt={post.title} />
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Content */}
+            <div className="lg:col-span-2">
             {/* Article Header */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 md:p-8 mb-6">
               {/* Category Badge */}
@@ -214,7 +223,7 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
               </Badge>
 
               {/* Title */}
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4 leading-tight" itemProp="headline">
                 {post.title}
               </h1>
 
@@ -237,7 +246,7 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
                 )}
                 <span className="flex items-center gap-1">
                   <Calendar size={14} />
-                  {formatDate(post.publishedAt)}
+                  <time dateTime={post.publishedAt} itemProp="datePublished">{formatDate(post.publishedAt)}</time>
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock size={14} />
@@ -256,7 +265,7 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
               <TableOfContents content={post.content} />
 
               {/* Article Content */}
-              <div className="prose prose-gray max-w-none">
+              <div className="prose prose-gray max-w-none" itemProp="articleBody">
                 {paragraphs.map((paragraph, idx) => (
                   <p key={idx} id={`section-${idx}`} className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4 scroll-mt-4">
                     {paragraph}
@@ -444,6 +453,7 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
         <div className="mt-6">
           <BlogComments postSlug={postSlug} />
         </div>
+        </article>
       </div>
     </div>
   );
@@ -456,28 +466,27 @@ function getReadTime(content: string): string {
 }
 
 function HeroImage({ src, alt }: { src: string; alt: string }) {
-  const [imgError, setImgError] = useState(false);
-
   return (
-    <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] bg-gray-100">
-      {src && !imgError ? (
-        <img
-          src={src}
-          alt={alt}
-          className="w-full h-full object-cover"
-          loading="eager"
-          onError={() => setImgError(true)}
-        />
-      ) : (
-        <div className="w-full h-full bg-gradient-to-br from-[#131921] to-[#37475a] flex items-center justify-center">
-          <div className="text-center">
-            <BookOpen className="w-20 h-20 text-[#febd69]/30 mx-auto mb-2" />
-            <p className="text-gray-400 text-sm">GearGeekz Blog</p>
+    <div className="relative w-full">
+      <LqipImage
+        src={src}
+        alt={alt}
+        aspectClass="aspect-[16/9] sm:aspect-[21/9]"
+        imgClassName="w-full h-full object-cover"
+        loading="eager"
+        blurAmount={25}
+        className="w-full"
+        fallback={
+          <div className="w-full h-full bg-gradient-to-br from-[#131921] to-[#37475a] flex items-center justify-center">
+            <div className="text-center">
+              <BookOpen className="w-20 h-20 text-[#febd69]/30 mx-auto mb-2" />
+              <p className="text-gray-400 text-sm">GearGeekz Blog</p>
+            </div>
           </div>
-        </div>
-      )}
+        }
+      />
       {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
     </div>
   );
 }

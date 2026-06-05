@@ -8,6 +8,7 @@ import { useRouterStore } from '@/lib/router';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { LqipImage } from '@/components/ui/lqip-image';
 import {
   BookOpen,
   Search,
@@ -188,28 +189,28 @@ interface FeaturedArticleHeroProps {
 }
 
 function FeaturedArticleHero({ post, author, onReadMore }: FeaturedArticleHeroProps) {
-  const [imgError, setImgError] = useState(false);
   const goToAuthor = useRouterStore((s) => s.goToAuthor);
 
   return (
     <div className="relative rounded-lg overflow-hidden shadow-md mb-6 cursor-pointer group" onClick={onReadMore}>
       {/* Hero image with gradient overlay */}
       <div className="relative aspect-[21/9] sm:aspect-[21/7] overflow-hidden">
-        {post.image && !imgError ? (
-          <img
-            src={post.image}
-            alt={post.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-            loading="eager"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#131921] to-[#37475a] flex items-center justify-center">
-            <Package className="w-24 h-24 text-[#febd69]/30" />
-          </div>
-        )}
+        <LqipImage
+          src={post.image}
+          alt={post.title}
+          aspectClass="aspect-[21/9] sm:aspect-[21/7]"
+          imgClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          loading="eager"
+          blurAmount={25}
+          className="w-full"
+          fallback={
+            <div className="w-full h-full bg-gradient-to-br from-[#131921] to-[#37475a] flex items-center justify-center">
+              <Package className="w-24 h-24 text-[#febd69]/30" />
+            </div>
+          }
+        />
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#131921] via-[#131921]/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#131921] via-[#131921]/60 to-transparent pointer-events-none" />
       </div>
 
       {/* Content overlay */}
@@ -286,29 +287,29 @@ interface BlogCardProps {
 }
 
 function BlogCard({ post, author, onReadMore }: BlogCardProps) {
-  const [imgError, setImgError] = useState(false);
   const goToAuthor = useRouterStore((s) => s.goToAuthor);
 
   return (
     <article className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col">
       {/* Image */}
       <div
-        className="relative cursor-pointer overflow-hidden aspect-[16/9] bg-gray-100"
+        className="relative cursor-pointer overflow-hidden"
         onClick={onReadMore}
       >
-        {post.image && !imgError ? (
-          <img
-            src={post.image}
-            alt={post.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#131921] to-[#37475a] flex items-center justify-center">
-            <Package className="w-16 h-16 text-[#febd69]/50" />
-          </div>
-        )}
+        <LqipImage
+          src={post.image}
+          alt={post.title}
+          aspectClass="aspect-[16/9]"
+          imgClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          loading="lazy"
+          blurAmount={15}
+          className="w-full"
+          fallback={
+            <div className="w-full h-full bg-gradient-to-br from-[#131921] to-[#37475a] flex items-center justify-center">
+              <Package className="w-16 h-16 text-[#febd69]/50" />
+            </div>
+          }
+        />
 
         {/* Category Badge */}
         <Badge

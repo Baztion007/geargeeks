@@ -10,6 +10,7 @@ import { blogPosts } from '@/data/blog-posts';
 import { getAffiliateUrl, getMerchantName, siteData } from '@/lib/affiliate';
 import { getAffiliateLinkProps } from '@/lib/affiliate';
 import { ProductCard } from '@/components/affiliate/ProductCard';
+import { LqipImage } from '@/components/ui/lqip-image';
 
 import { StarRating } from '@/components/affiliate/RatingBar';
 import { Badge } from '@/components/ui/badge';
@@ -364,28 +365,27 @@ function HeroSection() {
                     </Badge>
                   </div>
                   {/* Guide image */}
-                  <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 bg-gray-100 dark:bg-white/10 image-shine">
+                  <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 image-shine">
                     {featuredGuide.image ? (
-                      <img
+                      <LqipImage
                         src={featuredGuide.image}
                         alt={featuredGuide.title}
-                        width={1200}
-                        height={600}
-                        className="w-full h-full object-cover"
+                        aspectClass="aspect-video"
+                        imgClassName="w-full h-full object-cover"
                         loading="eager"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          if (target.nextElementSibling) (target.nextElementSibling as HTMLElement).style.display = 'flex';
-                        }}
+                        blurAmount={20}
+                        className="w-full rounded-xl"
+                        fallback={
+                          <div className="w-full h-full bg-gradient-to-br from-sky-900/60 to-teal-900/60 flex items-center justify-center">
+                            <Compass className="w-16 h-16 text-sky-300/60" />
+                          </div>
+                        }
                       />
-                    ) : null}
-                    <div
-                      className="w-full h-full bg-gradient-to-br from-sky-900/60 to-teal-900/60 items-center justify-center"
-                      style={{ display: featuredGuide.image ? 'none' : 'flex' }}
-                    >
-                      <Compass className="w-16 h-16 text-sky-300/60" />
-                    </div>
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-sky-900/60 to-teal-900/60 flex items-center justify-center">
+                        <Compass className="w-16 h-16 text-sky-300/60" />
+                      </div>
+                    )}
                   </div>
                   <h3 className="font-bold text-lg leading-tight mb-2 line-clamp-2">{featuredGuide.title}</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-300/80 mb-4 line-clamp-2">{featuredGuide.excerpt}</p>

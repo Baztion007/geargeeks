@@ -33,6 +33,8 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { generateAuthorJsonLd } from '@/lib/seo';
+import { JsonLdScript } from '@/components/affiliate/JsonLdScript';
 
 // Skill bar data — maps expertise areas to proficiency percentages
 const expertiseLevels: Record<string, number> = {
@@ -226,6 +228,8 @@ export function AuthorPage({ authorSlug }: AuthorPageProps) {
   return (
     <div className="min-h-screen bg-[#eaeded] dark:bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 py-6">
+        {/* Person structured data for SEO */}
+        <JsonLdScript data={generateAuthorJsonLd(author, authorProducts.length)} />
         <Breadcrumbs items={[{ label: author.name }]} />
 
         {/* Author Hero */}

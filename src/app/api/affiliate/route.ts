@@ -210,28 +210,26 @@ function getEnvOverridesMap(): Record<string, boolean> {
 // ── Helper: Try Prisma model first, fall back to raw SQL ───────────────────
 
 async function getMerchantConfigs(): Promise<MerchantConfig[]> {
-  // Try using the Prisma model if available
-  if ((db as any).affiliateMerchantConfig) {
-    try {
-      const rows = await (db as any).affiliateMerchantConfig.findMany({
-        orderBy: { priority: 'asc' },
-      });
-      if (rows.length > 0) {
-        return rows.map((r: any) => ({
-          id: r.merchantId as Merchant,
-          name: r.name,
-          affiliateTag: r.affiliateTag,
-          baseUrl: r.baseUrl,
-          urlTemplate: r.urlTemplate,
-          enabled: r.enabled,
-          priority: r.priority,
-          color: r.color,
-          icon: r.icon,
-        }));
-      }
-    } catch (error) {
-      console.error('Prisma model query failed, falling back to raw SQL:', error);
+  // Try using the Prisma model
+  try {
+    const rows = await db.affiliateMerchantConfig.findMany({
+      orderBy: { priority: 'asc' },
+    });
+    if (rows.length > 0) {
+      return rows.map((r) => ({
+        id: r.merchantId as Merchant,
+        name: r.name,
+        affiliateTag: r.affiliateTag,
+        baseUrl: r.baseUrl,
+        urlTemplate: r.urlTemplate,
+        enabled: r.enabled,
+        priority: r.priority,
+        color: r.color,
+        icon: r.icon,
+      }));
     }
+  } catch (error) {
+    console.error('Prisma model query failed, falling back to raw SQL:', error);
   }
 
   // Fall back to raw SQL (works even when Prisma model is stale in dev)
@@ -251,26 +249,24 @@ async function getMerchantConfigs(): Promise<MerchantConfig[]> {
 
 async function getGlobalSettings() {
   // Try Prisma model first
-  if ((db as any).affiliateGlobalSettings) {
-    try {
-      const row = await (db as any).affiliateGlobalSettings.findUnique({
-        where: { id: 'default' },
-      });
-      if (row) {
-        return {
-          linkStrategy: row.linkStrategy as 'direct' | 'redirect' | 'cloaked',
-          redirectPrefix: row.redirectPrefix,
-          nofollowEnabled: row.nofollowEnabled,
-          sponsoredEnabled: row.sponsoredEnabled,
-          noopenerEnabled: row.noopenerEnabled,
-          openInNewTab: row.openInNewTab,
-          clickTracking: row.clickTracking,
-          impressionTracking: row.impressionTracking,
-        };
-      }
-    } catch (error) {
-      console.error('Prisma settings query failed, falling back to raw SQL:', error);
+  try {
+    const row = await db.affiliateGlobalSettings.findUnique({
+      where: { id: 'default' },
+    });
+    if (row) {
+      return {
+        linkStrategy: row.linkStrategy as 'direct' | 'redirect' | 'cloaked',
+        redirectPrefix: row.redirectPrefix,
+        nofollowEnabled: row.nofollowEnabled,
+        sponsoredEnabled: row.sponsoredEnabled,
+        noopenerEnabled: row.noopenerEnabled,
+        openInNewTab: row.openInNewTab,
+        clickTracking: row.clickTracking,
+        impressionTracking: row.impressionTracking,
+      };
     }
+  } catch (error) {
+    console.error('Prisma settings query failed, falling back to raw SQL:', error);
   }
 
   // Fall back to raw SQL
@@ -306,24 +302,22 @@ async function upsertMerchantConfig(merchantId: string, data: Record<string, any
   }
 
   // Try Prisma model first
-  if ((db as any).affiliateMerchantConfig) {
-    try {
-      const existing = await (db as any).affiliateMerchantConfig.findUnique({
+  try {
+    const existing = await db.affiliateMerchantConfig.findUnique({
+      where: { merchantId },
+    });
+    if (existing) {
+      return await db.affiliateMerchantConfig.update({
         where: { merchantId },
+        data,
       });
-      if (existing) {
-        return await (db as any).affiliateMerchantConfig.update({
-          where: { merchantId },
-          data,
-        });
-      } else {
-        return await (db as any).affiliateMerchantConfig.create({
-          data: { merchantId, ...data },
-        });
-      }
-    } catch (error) {
-      console.error('Prisma merchant upsert failed, falling back to raw SQL:', error);
+    } else {
+      return await db.affiliateMerchantConfig.create({
+        data: { merchantId, ...data },
+      });
     }
+  } catch (error) {
+    console.error('Prisma merchant upsert failed, falling back to raw SQL:', error);
   }
 
   // Fall back to raw SQL
@@ -382,16 +376,14 @@ async function upsertGlobalSettings(data: Record<string, any>) {
   }
 
   // Try Prisma model first
-  if ((db as any).affiliateGlobalSettings) {
-    try {
-      return await (db as any).affiliateGlobalSettings.upsert({
-        where: { id: 'default' },
-        update: data,
-        create: { id: 'default', ...data },
-      });
-    } catch (error) {
-      console.error('Prisma settings upsert failed, falling back to raw SQL:', error);
-    }
+  try {
+    return await db.affiliateGlobalSettings.upsert({
+      where: { id: 'default' },
+      update: data,
+      create: { id: 'default', ...data },
+    });
+  } catch (error) {
+    console.error('Prisma settings upsert failed, falling back to raw SQL:', error);
   }
 
   // Fall back to raw SQL

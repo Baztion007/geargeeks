@@ -1,4 +1,4 @@
-import type { Product, Category, Brand, BuyingGuide, BlogPost } from '@/lib/types';
+import type { Product, Category, Brand, BuyingGuide, BlogPost, Author } from '@/lib/types';
 import { getAffiliateUrl, getMerchantName, siteData } from '@/lib/affiliate';
 
 const SITE_URL = siteData.url;
@@ -426,5 +426,63 @@ export function generateBlogPostJsonLd(post: BlogPost): object {
 
   return {
     '@graph': [blogSchema, breadcrumbSchema],
+  };
+}
+
+export function generateAuthorJsonLd(author: Author, productCount: number): object {
+  const personSchema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: author.name,
+    url: `${SITE_URL}/author/${author.slug}`,
+    image: author.photo.startsWith('http') ? author.photo : `${SITE_URL}${author.photo}`,
+    description: author.bio,
+    jobTitle: 'Product Reviewer',
+    worksFor: {
+      '@type': 'Organization',
+      name: siteData.name,
+      url: SITE_URL,
+    },
+    knowsAbout: author.expertise,
+  };
+
+  // Add social links as sameAs
+  if (author.socialLinks) {
+    const sameAs: string[] = [];
+    if (author.socialLinks.twitter) sameAs.push(author.socialLinks.twitter);
+    if (author.socialLinks.linkedin) sameAs.push(author.socialLinks.linkedin);
+    if (sameAs.length > 0) {
+      personSchema.sameAs = sameAs;
+    }
+  }
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: SITE_URL,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: author.name,
+        item: `${SITE_URL}/author/${author.slug}`,
+      },
+    ],
+  };
+
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `Reviews by ${author.name}`,
+    numberOfItems: productCount,
+  };
+
+  return {
+    '@graph': [personSchema, breadcrumbSchema, itemListSchema],
   };
 }

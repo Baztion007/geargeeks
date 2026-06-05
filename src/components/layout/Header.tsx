@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState } from 'react';
 import { Search, Menu, X, Heart, TrendingUp, BookOpen, Info, Compass, Sun, Moon, Monitor, Award, Tag } from 'lucide-react';
 import { useRouterStore } from '@/lib/router';
 import { useWishlistStore } from '@/lib/wishlist';
@@ -21,10 +21,6 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [showSecondaryNav, setShowSecondaryNav] = useState(true);
-  const lastScrollY = useRef(0);
-  const ticking = useRef(false);
 
   const goHome = useRouterStore((s) => s.goHome);
   const goToSearch = useRouterStore((s) => s.goToSearch);
@@ -36,36 +32,6 @@ export function Header() {
   const themeIcon = theme === 'dark' ? Sun : theme === 'light' ? Moon : Monitor;
   const ThemeIcon = themeIcon;
   const themeLabel = theme === 'dark' ? 'Light mode' : theme === 'light' ? 'Dark mode' : 'System theme';
-
-  // Smart scroll handler: hide secondary nav on scroll down, show on scroll up
-  const handleScroll = useCallback(() => {
-    if (ticking.current) return;
-    ticking.current = true;
-
-    requestAnimationFrame(() => {
-      const currentScrollY = window.scrollY;
-      const isScrollingDown = currentScrollY > lastScrollY.current;
-      const pastThreshold = currentScrollY > 60;
-
-      setIsScrolled(pastThreshold);
-
-      // Hide secondary nav when scrolling down past threshold
-      // Show it again when scrolling up
-      if (pastThreshold && isScrollingDown) {
-        setShowSecondaryNav(false);
-      } else if (!isScrollingDown || !pastThreshold) {
-        setShowSecondaryNav(true);
-      }
-
-      lastScrollY.current = currentScrollY;
-      ticking.current = false;
-    });
-  }, []);
-
-  React.useEffect(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
 
   // Prevent body scroll when mobile menu is open
   React.useEffect(() => {
@@ -89,10 +55,10 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 transition-all duration-300">
-      {/* Primary Header Bar — always visible */}
-      <div className={`transition-all duration-300 ${isScrolled ? 'bg-[#131921]/97 backdrop-blur-lg shadow-lg shadow-black/15' : 'bg-[#131921]/98 backdrop-blur-sm'} text-white`}>
-        <div className={`max-w-7xl mx-auto px-4 transition-all duration-300 ${isScrolled ? 'py-1.5' : 'py-2.5'}`}>
+    <header className="z-50">
+      {/* Primary Header Bar */}
+      <div className="bg-[#131921] text-white">
+        <div className="max-w-7xl mx-auto px-4 py-2.5">
           <div className="flex items-center gap-3 lg:gap-4">
             {/* Mobile menu button */}
             <button
@@ -109,8 +75,8 @@ export function Header() {
               className="flex items-center gap-2 shrink-0 rounded-lg p-1 select-none"
               aria-label="Go to homepage"
             >
-              <div className={`bg-gradient-to-br from-[#febd69] to-[#f59e0b] rounded-full flex items-center justify-center shadow-md shadow-amber-500/30 transition-all duration-300 ${isScrolled ? 'w-8 h-8' : 'w-9 h-9'}`}>
-                <svg width={isScrolled ? 16 : 20} height={isScrolled ? 16 : 20} viewBox="0 0 24 24" fill="none" stroke="#131921" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="bg-gradient-to-br from-[#febd69] to-[#f59e0b] rounded-full flex items-center justify-center shadow-md shadow-amber-500/30 w-9 h-9">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#131921" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" />
                   <path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
                   <path d="M12 2v2" />
@@ -123,7 +89,7 @@ export function Header() {
                   <path d="m19.07 4.93-1.41 1.41" />
                 </svg>
               </div>
-              <span className={`font-bold tracking-tight leading-none transition-all duration-300 ${isScrolled ? 'text-lg' : 'text-xl'}`}>
+              <span className="font-bold tracking-tight leading-none text-xl">
                 Gear<span className="gradient-text">Geekz</span>
               </span>
             </button>
@@ -141,12 +107,12 @@ export function Header() {
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => setSearchFocused(false)}
                   placeholder="Search gear, reviews, and guides..."
-                  className={`border-0 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm rounded-none shadow-none min-w-[200px] transition-all duration-300 ${isScrolled ? 'h-9' : 'h-11'}`}
+                  className="border-0 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm rounded-none shadow-none min-w-[200px] h-11"
                   aria-label="Search"
                 />
                 <Button
                   type="submit"
-                  className={`rounded-none rounded-r-full bg-gradient-to-b from-[#febd69] to-[#f3a847] hover:from-[#f3a847] hover:to-[#e8a23a] text-[#131921] px-5 transition-all duration-200 hover:shadow-md ${isScrolled ? 'h-9' : 'h-11'}`}
+                  className="rounded-none rounded-r-full bg-gradient-to-b from-[#febd69] to-[#f3a847] hover:from-[#f3a847] hover:to-[#e8a23a] text-[#131921] px-5 transition-all duration-200 hover:shadow-md h-11"
                   aria-label="Search"
                 >
                   Search
@@ -235,10 +201,8 @@ export function Header() {
         </div>
       </div>
 
-      {/* Secondary Navigation — collapses on scroll */}
-      <div
-        className={`bg-[#232f3e] text-white transition-all duration-300 overflow-hidden ${showSecondaryNav ? 'max-h-10 opacity-100' : 'max-h-0 opacity-0'}`}
-      >
+      {/* Secondary Navigation */}
+      <div className="bg-[#232f3e] text-white">
         <div className="max-w-7xl mx-auto px-4">
           <nav className="hidden md:flex items-center justify-center gap-1 h-10 text-sm" aria-label="Main navigation">
             {navItems.map((item) => {
