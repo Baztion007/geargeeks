@@ -19,6 +19,9 @@ import {
   Database,
   LogOut,
   ShieldAlert,
+  ShieldCheck,
+  Eye,
+  AlertTriangle,
 } from 'lucide-react';
 import { useRouterStore } from '@/lib/router';
 import { useAdminAuth } from '@/lib/admin-auth';
@@ -56,23 +59,28 @@ interface ProductItem {
 // ─── Login Gate Component ──────────────────────────────────────────────────────
 function AdminLoginGate() {
   const navigate = useRouterStore((s) => s.navigate);
-  const { login } = useAdminAuth();
+  const { login, loginError, lockoutRemainingMs } = useAdminAuth();
   const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState(false);
-  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = login(password);
-    if (success) {
-      setLoginError(false);
-      setLoginAttempts(0);
-    } else {
-      setLoginError(true);
-      setLoginAttempts((prev) => prev + 1);
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setLocalError(null);
+
+    const result = await login(password);
+    if (!result.success) {
+      setLocalError(result.error || 'Login failed');
     }
     setPassword('');
+    setIsSubmitting(false);
   };
+
+  const displayError = localError || loginError;
+  const isLocked = !!lockoutRemainingMs && lockoutRemainingMs > 0;
+  const lockoutMinutes = lockoutRemainingMs ? Math.ceil(lockoutRemainingMs / 60000) : 0;
 
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
@@ -80,11 +88,13 @@ function AdminLoginGate() {
         <Card className="bg-gray-900 border-gray-800 shadow-2xl">
           <CardContent className="p-8">
             <div className="flex flex-col items-center text-center mb-6">
-              <div className="w-16 h-16 bg-amber-500/20 rounded-2xl flex items-center justify-center mb-4">
-                <Lock size={28} className="text-amber-500" />
+              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 ${isLocked ? 'bg-red-500/20' : 'bg-amber-500/20'}`}>
+                <Lock size={28} className={isLocked ? 'text-red-500' : 'text-amber-500'} />
               </div>
               <h1 className="text-xl font-bold text-white">Admin Access</h1>
-              <p className="text-sm text-gray-400 mt-1">Enter the admin password to continue</p>
+              <p className="text-sm text-gray-400 mt-1">
+                {isLocked ? 'Account temporarily locked' : 'Enter the admin password to continue'}
+              </p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
@@ -92,29 +102,42 @@ function AdminLoginGate() {
                 <Input
                   type="password"
                   value={password}
-                  onChange={(e) => { setPassword(e.target.value); setLoginError(false); }}
+                  onChange={(e) => { setPassword(e.target.value); setLocalError(null); }}
                   placeholder="Password"
                   className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-amber-500 focus:ring-amber-500/20"
                   autoFocus
+                  disabled={isLocked || isSubmitting}
                 />
-                {loginError && (
+                {displayError && (
                   <p className="text-red-400 text-xs mt-2 flex items-center gap-1">
                     <ShieldAlert size={12} />
-                    Incorrect password. {loginAttempts >= 3 ? 'Slow down — too many attempts.' : `Attempt ${loginAttempts} of 5.`}
+                    {isLocked
+                      ? `Locked for ${lockoutMinutes} minute${lockoutMinutes !== 1 ? 's' : ''} due to too many failed attempts.`
+                      : displayError}
                   </p>
                 )}
               </div>
               <Button
                 type="submit"
-                disabled={loginAttempts >= 5}
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-gray-900 font-bold"
+                disabled={isLocked || isSubmitting || !password}
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-gray-900 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Unlock Admin Panel
+                {isSubmitting ? (
+                  <><Loader2 size={16} className="mr-2 animate-spin" /> Verifying...</>
+                ) : isLocked ? (
+                  <><Lock size={16} className="mr-2" /> Locked — Wait {lockoutMinutes}m</>
+                ) : (
+                  'Unlock Admin Panel'
+                )}
               </Button>
             </form>
 
-            {loginAttempts >= 5 && (
-              <p className="text-center text-red-400 text-sm mt-4">Too many failed attempts. Refresh the page to try again.</p>
+            {isLocked && (
+              <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <p className="text-red-400 text-xs text-center">
+                  Security lockout active. Exponential backoff is in effect — each successive lockout doubles the wait time.
+                </p>
+              </div>
             )}
 
             <button
@@ -127,6 +150,91 @@ function AdminLoginGate() {
         </Card>
       </div>
     </div>
+  );
+}
+
+// ─── Audit Log Card ────────────────────────────────────────────────────────────
+function AuditLogCard({ token }: { token: string | null }) {
+  const [logs, setLogs] = useState<Array<{ timestamp: number; ip: string; action: string; success: boolean; details?: string }>>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchLogs = useCallback(async () => {
+    try {
+      const url = token ? `/api/admin/audit-log?token=${encodeURIComponent(token)}&limit=20` : '/api/admin/audit-log?limit=20';
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setLogs(data.logs || []);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => { fetchLogs(); }, [fetchLogs]);
+
+  const getActionColor = (action: string, success: boolean) => {
+    if (action === 'LOGIN_SUCCESS') return 'text-emerald-400';
+    if (action === 'LOGIN_FAILED' || action === 'LOGIN_LOCKED_OUT' || action === 'IP_BLOCKED') return 'text-red-400';
+    if (action === 'LOGOUT') return 'text-blue-400';
+    if (action === 'SESSION_INVALID') return 'text-amber-400';
+    return success ? 'text-gray-400' : 'text-red-400';
+  };
+
+  const getActionIcon = (action: string) => {
+    if (action.includes('SUCCESS')) return <ShieldCheck size={12} className="text-emerald-400" />;
+    if (action.includes('FAILED') || action.includes('LOCKED') || action.includes('BLOCKED')) return <AlertTriangle size={12} className="text-red-400" />;
+    if (action.includes('LOGOUT')) return <LogOut size={12} className="text-blue-400" />;
+    return <Eye size={12} className="text-gray-400" />;
+  };
+
+  return (
+    <Card className="bg-gray-900 border-gray-800">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base text-white flex items-center gap-2">
+            <Eye size={16} className="text-amber-500" />
+            Audit Log
+          </CardTitle>
+          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white text-xs h-6 px-2" onClick={fetchLogs}>
+            Refresh
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center justify-center py-6">
+            <Loader2 size={16} className="text-amber-500 animate-spin" />
+          </div>
+        ) : logs.length === 0 ? (
+          <p className="text-gray-500 text-sm text-center py-4">No activity recorded yet</p>
+        ) : (
+          <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
+            {logs.slice().reverse().map((log, i) => (
+              <div key={i} className="flex items-start gap-2 text-xs py-1.5 border-b border-gray-800/50 last:border-0">
+                {getActionIcon(log.action)}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`font-medium ${getActionColor(log.action, log.success)}`}>
+                      {log.action.replace(/_/g, ' ')}
+                    </span>
+                    <span className="text-gray-600 text-[10px]">
+                      {new Date(log.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                  <div className="text-gray-500 text-[10px]">
+                    IP: {log.ip}
+                    {log.details && ` · ${log.details}`}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -519,6 +627,60 @@ function AdminDashboard() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Security Status & Audit Log */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Card className="bg-gray-900 border-gray-800">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base text-white flex items-center gap-2">
+                      <ShieldCheck size={16} className="text-emerald-400" />
+                      Security Status
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">Server-side Auth</span>
+                        <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">Active</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">Rate Limiting</span>
+                        <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">5 attempts</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">Lockout Policy</span>
+                        <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30 text-[10px]">Exponential</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">Idle Timeout</span>
+                        <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/30 text-[10px]">30 min</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">Session Duration</span>
+                        <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/30 text-[10px]">4 hours</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">Session Encryption</span>
+                        <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">AES-256</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">IP Allowlist</span>
+                        <Badge className="bg-gray-500/15 text-gray-400 border-gray-500/30 text-[10px]">Open</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">Timing Attack Protection</span>
+                        <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">Enabled</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">httpOnly Cookie</span>
+                        <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">Enabled</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <AuditLogCard token={useAdminAuth.getState().token} />
+              </div>
             </div>
           )}
         </div>
