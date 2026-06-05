@@ -411,7 +411,7 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
               value={brandFilter}
               onValueChange={(v) => setBrandFilter(v)}
             >
-              <SelectTrigger className="w-[160px] text-sm rounded-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600" size="sm">
+              <SelectTrigger className="w-full sm:w-[160px] text-sm rounded-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600" size="sm">
                 <SelectValue placeholder="Brand" />
               </SelectTrigger>
               <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
@@ -429,7 +429,7 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
               value={ratingFilter}
               onValueChange={(v) => setRatingFilter(v as RatingFilter)}
             >
-              <SelectTrigger className="w-[150px] text-sm rounded-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600" size="sm">
+              <SelectTrigger className="w-full sm:w-[150px] text-sm rounded-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600" size="sm">
                 <SelectValue placeholder="Rating" />
               </SelectTrigger>
               <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
@@ -447,7 +447,7 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
                 value={bestForFilter}
                 onValueChange={(v) => setBestForFilter(v)}
               >
-                <SelectTrigger className="w-[180px] text-sm rounded-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600" size="sm">
+                <SelectTrigger className="w-full sm:w-[180px] text-sm rounded-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600" size="sm">
                   <SelectValue placeholder="Best For" />
                 </SelectTrigger>
                 <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
@@ -466,7 +466,7 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
               value={sortOption}
               onValueChange={(v) => setSortOption(v as SortOption)}
             >
-              <SelectTrigger className="w-[160px] text-sm rounded-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600" size="sm">
+              <SelectTrigger className="w-full sm:w-[160px] text-sm rounded-full dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600" size="sm">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent className="dark:bg-gray-800 dark:border-gray-600">

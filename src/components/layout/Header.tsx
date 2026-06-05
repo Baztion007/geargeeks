@@ -63,7 +63,7 @@ export function Header() {
   };
 
   return (
-    <header className={`z-50 transition-all duration-300 header-glow header-glow-intense ${isSticky ? 'shadow-lg shadow-black/10 scrolled' : ''}`}>
+    <header className={`sticky top-0 z-50 transition-all duration-300 header-glow header-glow-intense ${isSticky ? 'shadow-lg shadow-black/10 scrolled' : ''}`}>
       {/* Primary Header */}
       <div className={`transition-all duration-300 ${isSticky ? 'bg-[#131921]/95 backdrop-blur-md' : 'bg-[#131921]/98 backdrop-blur-sm'} text-white`}>
         <div className="max-w-7xl mx-auto px-4 py-2.5">

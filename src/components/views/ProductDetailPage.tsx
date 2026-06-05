@@ -446,6 +446,11 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
       {/* 1. Breadcrumbs */}
       <Breadcrumbs items={breadcrumbItems} />
 
+      {/* Mobile TOC (shown only on mobile) */}
+      <div className="md:hidden mb-4">
+        <TableOfContents />
+      </div>
+
       {/* Product Quick Stats */}
       <div className="mb-4">
         <ProductQuickStats product={product} />
@@ -754,11 +759,6 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
             </div>
           </section>
         </div>
-      </div>
-
-      {/* Mobile TOC (shown only on mobile) */}
-      <div className="md:hidden mb-8">
-        <TableOfContents />
       </div>
 
       <Separator className="my-8" />

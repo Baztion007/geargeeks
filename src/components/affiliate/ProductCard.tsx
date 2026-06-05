@@ -93,11 +93,11 @@ export function ProductCard({ product, showAffiliate = true, hideDisclosure = fa
               if (isBookmarked) removeBookmark(product.slug);
               else addBookmark(product.slug);
             }}
-            className="w-8 h-8 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110"
+            className="w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110"
             aria-label={mounted && isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
           >
             <Bookmark
-              size={16}
+              size={18}
               className={mounted && isBookmarked ? 'fill-amber-500 text-amber-500' : 'text-gray-400 hover:text-amber-400'}
             />
           </button>
@@ -106,12 +106,12 @@ export function ProductCard({ product, showAffiliate = true, hideDisclosure = fa
               e.stopPropagation();
               toggleWishlist(product.slug);
             }}
-            className="w-8 h-8 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110"
+            className="w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110"
             aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
             style={{ color: isWishlisted ? '#ef4444' : undefined }}
           >
             <Heart
-              size={16}
+              size={18}
               className={isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-400 hover:text-red-400'}
             />
           </button>

@@ -16,10 +16,12 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   
-  // Allowed dev origins for the sandbox
-  allowedDevOrigins: [
-    '.space-z.ai',
-  ],
+  // Allowed dev origins for the sandbox (development only)
+  ...(process.env.NODE_ENV === 'development'
+    ? {
+        allowedDevOrigins: ['.space-z.ai'],
+      }
+    : {}),
 };
 
 export default nextConfig;

@@ -713,7 +713,7 @@ html.dark *::after {
 
 /* ─── GearGeekz Header Bottom Glow ──────────────────────────────────────── */
 .header-glow {
-  position: relative;
+  /* position: relative removed — Tailwind sticky class provides the containing block for ::after */
 }
 .header-glow::after {
   content: '';

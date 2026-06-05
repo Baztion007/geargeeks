@@ -54,14 +54,14 @@ export function Footer() {
         Back to top
       </button>
 
-      {/* Footer links */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {Object.entries(footerLinks).map(([title, links], idx) => (
-            <div key={title}>
-              <h3 className="text-white font-bold mb-4 text-sm uppercase tracking-wider">{title}</h3>
-              <div className="h-0.5 w-10 bg-gradient-to-r from-[#febd69] to-transparent mb-4 rounded-full" />
-              <ul className="space-y-2.5">
+      {/* Footer links — centered */}
+      <div className="max-w-7xl mx-auto px-4 py-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center md:text-left">
+          {Object.entries(footerLinks).map(([title, links]) => (
+            <div key={title} className="flex flex-col items-center md:items-start">
+              <h3 className="text-white font-bold mb-3 text-sm uppercase tracking-wider">{title}</h3>
+              <div className="h-0.5 w-10 bg-gradient-to-r from-[#febd69] to-transparent mb-3 rounded-full" />
+              <ul className="space-y-2">
                 {links.map((link) => (
                   <li key={link.label}>
                     <button

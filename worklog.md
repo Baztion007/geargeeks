@@ -2015,3 +2015,176 @@ Stage Summary:
 - Duplicate Affiliate Disclosure removed from DealsPage ProductCards
 - All fixes verified via agent-browser (PASS)
 - Created cron job for webDevReview every 15 minutes
+
+---
+Task ID: prod-readiness
+Agent: Production Readiness Developer
+Task: Fix production readiness issues (P1, P5, P6, P14, P15, P16)
+
+Work Log:
+
+### P1: Add error boundary
+- Created `/src/app/error.tsx` — global error boundary component
+  - 'use client' directive per Next.js App Router convention
+  - Accepts `error` (Error & { digest?: string }) and `reset()` props
+  - GearGeekz branding with amber "Gear" + white "Geekz" title
+  - Warning triangle icon in red-tinted circle
+  - "Something Went Wrong" heading with friendly message
+  - Error digest displayed when available (for debugging)
+  - "Try Again" button calling `reset()` with refresh icon
+  - "Go Home" link (`<a href="/">`) with home icon
+  - Dark mode compatible styling (bg-gray-950, bg-gray-900, text-white, etc.)
+
+### P5: Add viewport configuration and theme color
+- Updated `/src/app/layout.tsx`:
+  - Added `Viewport` type import from "next"
+  - Added `viewport` export with `width: 'device-width'`, `initialScale: 1`, `maximumScale: 5`, `themeColor: '#131921'`
+  - Theme color matches header background for seamless mobile browser chrome
+
+### P6: Fix package.json name
+- Updated `/package.json`:
+  - Changed `"name": "nextjs_tailwind_shadcn_ts"` → `"name": "geargeekz"`
+
+### P14: Add apple-touch-icon
+- Created `/public/apple-touch-icon.svg` — SVG touch icon with:
+  - 180x180 viewBox with rounded corners (rx=40)
+  - #131921 background matching header color
+  - Amber "G" letter and white "GEEKZ" text
+- Updated `/src/app/layout.tsx` icons config:
+  - Added `apple: "/apple-touch-icon.svg"` alongside existing `icon: "/logo.svg"`
+
+### P15: Create not-found.tsx
+- Created `/src/app/not-found.tsx` — server component (no 'use client')
+  - Exports `metadata` with title "404 — Page Not Found" and description
+  - GearGeekz branding matching error.tsx and client-side NotFoundPage style
+  - Sad face SVG icon in gray circle
+  - "Page Not Found" heading with friendly message
+  - "Go to Homepage" CTA button with amber styling
+  - Dark mode compatible with dark: classes
+  - Returns proper 404 HTTP status per Next.js convention
+
+### P16: Conditional dev origin config
+- Updated `/next.config.ts`:
+  - Wrapped `allowedDevOrigins` in conditional spread: `...(process.env.NODE_ENV === 'development' ? { allowedDevOrigins: ['.space-z.ai'] } : {})`
+  - Ensures sandbox origin only configured in development, not in production builds
+
+### Verification
+- Ran `bun run lint` — passes cleanly with no errors
+- All 6 production readiness issues resolved
+
+Stage Summary:
+- Global error boundary catches runtime errors with branded UI and recovery options
+- Viewport meta properly configured with device-width, initial scale 1, max scale 5, and theme color #131921
+- Package name corrected from template default to "geargeekz"
+- Apple touch icon created and referenced in metadata
+- Server-side 404 page with proper HTTP status and branded UI
+- Dev-only origin config prevents sandbox origin in production builds
+- ESLint passes cleanly
+
+---
+Task ID: mobile-fixes
+Agent: Mobile Responsiveness Fixer
+Task: Fix critical and high-priority mobile responsiveness issues
+
+Work Log:
+
+### M1: CategoryPage filter bar overflow on mobile (CRITICAL)
+- File: `/src/components/views/CategoryPage.tsx`
+- Changed BestFor SelectTrigger from `w-[180px]` to `w-full sm:w-[180px]`
+- Changed Sort SelectTrigger from `w-[160px]` to `w-full sm:w-[160px]`
+- Brand and Rating selects already had responsive widths (`w-full sm:w-[160px]`, `w-full sm:w-[150px]`)
+- Filter bar already uses `flex flex-wrap gap-3` for wrapping on mobile
+
+### M2: ProductDetailPage mobile TOC placement (CRITICAL)
+- File: `/src/components/views/ProductDetailPage.tsx`
+- Moved the `md:hidden` TableOfContents block from AFTER the main content grid (after the Review Transparency section) to BEFORE the main content grid (right after breadcrumbs)
+- Mobile users now see navigation first, before scrolling through all content
+
+### M3: ProductCard touch targets too small (HIGH)
+- File: `/src/components/affiliate/ProductCard.tsx`
+- Changed Bookmark button from `w-8 h-8` to `w-10 h-10` (32px → 40px)
+- Changed Heart button from `w-8 h-8` to `w-10 h-10` (32px → 40px)
+- Changed both icon sizes from `size={16}` to `size={18}` for visual balance with larger buttons
+
+### M5: BuyingGuidePage CTA padding on mobile (HIGH)
+- File: `/src/components/views/BuyingGuidePage.tsx`
+- Changed CTA block "Ready to Make Your Choice?" padding from `p-8` to `p-4 sm:p-6 md:p-8`
+
+### M7: BlogPostPage hero image aspect ratio on mobile (HIGH)
+- File: `/src/components/views/BlogPostPage.tsx`
+- Changed hero image aspect ratio from `aspect-[21/9]` to `aspect-[16/9] sm:aspect-[21/9]`
+
+### M8: Social share buttons touch targets (HIGH)
+- File: `/src/components/views/BuyingGuidePage.tsx`
+  - Changed Twitter share button from `w-8 h-8` to `w-10 h-10`
+  - Changed Facebook share button from `w-8 h-8` to `w-10 h-10`
+  - Changed Copy Link button from `w-8 h-8` to `w-10 h-10`
+- File: `/src/components/views/BlogPostPage.tsx`
+  - Changed Twitter share button from `w-8 h-8` to `w-10 h-10`
+  - Changed Facebook share button from `w-8 h-8` to `w-10 h-10`
+  - Changed Copy Link button from `w-8 h-8` to `w-10 h-10`
+
+Lint: `bun run lint` passes cleanly with no errors.
+
+Stage Summary:
+- 6 mobile responsiveness issues fixed across 5 files
+- Filter selects now responsive on mobile (full width → fixed on sm+)
+- Mobile TOC moved to top of product detail page for better navigation
+- Touch targets increased from 32px to 40px on Bookmark, Heart, and social share buttons
+- CTA padding responsive: 16px → 24px → 32px across breakpoints
+- Hero image uses taller 16:9 ratio on mobile, ultrawide 21:9 on desktop
+- All changes are minimal and targeted — no large rewrites
+
+---
+Task ID: ux-and-prod-round
+Agent: Main Developer
+Task: Center footer links, create sticky header, mobile responsiveness fixes, production readiness
+
+Work Log:
+
+### Footer Links Centering
+- Changed footer grid from left-aligned to centered on mobile (`text-center md:text-left`)
+- Added `flex flex-col items-center md:items-start` to each footer column
+- Increased gap from gap-6 to gap-8, py-8 to py-10 for better spacing
+
+### Sticky Header
+- Added `sticky top-0` to header element in Header.tsx
+- Fixed CSS override: `.header-glow` had `position: relative` which overrode Tailwind's `sticky`
+- Removed `position: relative` from `.header-glow` in globals.css (sticky also creates containing block for ::after)
+- Verified header stays at viewport top during scroll
+
+### Mobile Responsiveness Fixes (6 issues)
+- M1 (CRITICAL): CategoryPage filter bar Select widths changed from fixed `w-[180px]`/`w-[160px]` to `w-full sm:w-[180px]`/`w-full sm:w-[160px]`
+- M2 (CRITICAL): ProductDetailPage mobile TOC moved from after content to before content (right after breadcrumbs)
+- M3 (HIGH): ProductCard Bookmark/Heart buttons increased from w-8 h-8 to w-10 h-10 (40px touch targets)
+- M5 (HIGH): BuyingGuidePage CTA padding changed from p-8 to p-4 sm:p-6 md:p-8
+- M7 (HIGH): BlogPostPage hero aspect ratio changed from aspect-[21/9] to aspect-[16/9] sm:aspect-[21/9]
+- M8 (HIGH): Social share buttons in BuyingGuidePage and BlogPostPage increased from w-8 h-8 to w-10 h-10
+
+### Production Readiness Fixes (6 issues)
+- P1 (CRITICAL): Created `/src/app/error.tsx` — global error boundary with GearGeekz branding, Try Again and Go Home buttons, dark mode support
+- P5 (HIGH): Added viewport export in layout.tsx with themeColor '#131921', device-width, initialScale 1, maximumScale 5
+- P6 (HIGH): Changed package.json name from "nextjs_tailwind_shadcn_ts" to "geargeekz"
+- P14 (LOW): Created apple-touch-icon.svg (180x180 with GearGeekz branding) and added to metadata icons
+- P15 (LOW): Created `/src/app/not-found.tsx` — server component with proper 404 status, GearGeekz branding
+- P16 (LOW): Made allowedDevOrigins conditional on NODE_ENV === 'development' in next.config.ts
+
+Stage Summary:
+- Footer links centered on mobile, left-aligned on desktop
+- Sticky header working (fixed CSS override issue)
+- 6 mobile responsiveness issues fixed
+- 6 production readiness issues fixed
+- Lint passes cleanly, dev server compiles without errors
+- All fixes verified via agent-browser
+
+Known Remaining Issues:
+- P2: TypeScript ignoreBuildErrors still true in next.config.ts (needs careful type fix migration)
+- P3: Hash-based routing (not SEO-crawlable) — major architectural change needed
+- P4: React strict mode disabled
+- P7: No image optimization pipeline
+- P8: Console.error in API routes should use structured logging
+- P9: z-ai-web-dev-sdk in dependencies (should be devDependencies)
+- P11: No robots.txt/sitemap generation
+- M4: ProductDetailPage thumbnail gallery needs overflow-x-auto
+- M6: ComparePage remove button touch target too small
+- M9-M16: Various medium/low mobile responsiveness items
