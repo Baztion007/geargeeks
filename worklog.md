@@ -345,3 +345,30 @@ Stage Summary:
 - Consider adding a 404.html redirect for SPA routing on GitHub Pages
 - Newsletter/contact form could use Formspree or similar service for GitHub Pages
 - Migrate in-memory state to Cloudflare KV or D1
+
+---
+
+Task ID: 10
+Agent: Main
+Task: Fix preview not working — dev server not running
+
+Work Log:
+- Diagnosed that dev server was not running, causing the preview panel to show ERR_CONNECTION_REFUSED
+- Investigated server stability issues: background processes were being killed when bash sessions ended
+- Found that `nohup`, `disown`, and `setsid` approaches all failed to keep the server alive
+- Solution: Used `child_process.spawn` with `detached: true` and `child.unref()` from a Node.js script to create a truly independent process
+- Started the server using this detached approach — server now stays alive independently
+- Verified all pages render correctly via agent-browser:
+  - Homepage: hero section, navigation, featured guide card all load correctly
+  - Trending page: 25 products, Hot Right Now section works
+  - Blog page: articles and featured content render properly
+  - Best Sellers page: product listings display correctly
+- Verified footer renders: navigation columns, newsletter, affiliate disclosure, social links
+- Confirmed lint passes for `src/` directory (no errors)
+- Removed temporary `start-server.js` file
+
+Stage Summary:
+- Dev server is now running on port 3000 as a detached process
+- Preview panel should work correctly
+- All main pages verified working via agent-browser and VLM
+- Server stays alive even when bash sessions end
