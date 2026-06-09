@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { adminSecurity } from '@/lib/admin-security';
 
-export const runtime = 'edge';
-
 // Rate limiting: max 3 messages per IP per hour (kept in-memory for perf)
 const contactRateLimit = new Map<string, { count: number; resetAt: number }>();
 const MAX_MESSAGES_PER_HOUR = 3;

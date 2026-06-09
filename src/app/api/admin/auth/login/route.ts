@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminSecurity } from '@/lib/admin-security';
 
-export const runtime = 'edge';
-
 function getClientIP(request: NextRequest): string {
   // Check common proxy headers first
   const forwarded = request.headers.get('x-forwarded-for');

@@ -11,9 +11,9 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
-    "pages:build": "npx @cloudflare/next-on-pages",
-    "pages:deploy": "npx @cloudflare/next-on-pages && npx wrangler pages deploy .vercel/output/static",
-    "pages:dev": "npx wrangler pages dev .vercel/output/static --compatibility-date=2024-12-01"
+    "pages:build": "bash scripts/add-edge-runtime.sh && npx @cloudflare/next-on-pages",
+    "pages:deploy": "bash scripts/add-edge-runtime.sh && npx @cloudflare/next-on-pages && npx wrangler pages deploy .vercel/output/static",
+    "pages:dev": "bash scripts/add-edge-runtime.sh && npx @cloudflare/next-on-pages && npx wrangler pages dev .vercel/output/static --compatibility-date=2024-12-01"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-export const runtime = 'edge';
-
 // JSON string fields that need parsing when reading from DB
 const JSON_ARRAY_FIELDS = ['gallery', 'pros', 'cons', 'tags', 'bestFor', 'relatedProducts'] as const;
 const JSON_OBJECT_FIELDS = ['features', 'ratingBreakdown', 'specifications'] as const;

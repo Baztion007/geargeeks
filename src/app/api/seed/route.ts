@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-export const runtime = 'edge';
-
 // POST /api/seed — Seed database from TypeScript data files
 // Query param: ?force=true to force reseed even if data exists
 export async function POST(req: NextRequest) {

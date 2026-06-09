@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-export const runtime = 'edge';
-
 // JSON array fields that need parsing for brands
 const BRAND_JSON_ARRAY_FIELDS = ['categories'] as const;
 

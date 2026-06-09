@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-export const runtime = 'edge';
-
 function stringifyCategory(data: Record<string, unknown>) {
   return { ...data };
 }

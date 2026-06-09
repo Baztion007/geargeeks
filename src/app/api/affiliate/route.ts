@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import type { Merchant } from '@/lib/types';
 
-export const runtime = 'edge';
-
 // ── In-memory click tracking ───────────────────────────────────────────────
 
 interface ClickLog {
