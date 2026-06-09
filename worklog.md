@@ -274,3 +274,74 @@ Stage Summary:
 - Consider using Cloudflare D1 as an alternative to Turso for tighter integration
 - Add Open Graph meta tags to more pages
 - More pages could benefit from LQIP (CategoryPage hero, ProductDetailPage gallery)
+
+---
+
+Task ID: 9
+Agent: Main
+Task: Add GitHub Pages static export support
+
+Work Log:
+- Audited data flow: all public-facing pages use static imports from `@/data/` (no API calls needed for rendering)
+- API routes only used by admin, newsletter, contact, reviews, gear finder — these gracefully fail on static hosting
+- **Updated `next.config.ts`** with dual-mode support:
+  - `STATIC_EXPORT=true` env var switches to `output: 'export'` (GitHub Pages)
+  - Default remains `output: 'standalone'` (Cloudflare Pages)
+  - Added `basePath` support via `NEXT_PUBLIC_BASE_PATH` env var for repo subpath deployments
+- **Created `scripts/build-static.sh`** — automated static build script:
+  - Temporarily moves API routes, sitemap.ts, and robots.ts (incompatible with `output: 'export'`)
+  - Builds static site with `STATIC_EXPORT=true`
+  - Restores all moved files after build
+  - Supports optional base-path argument: `bash scripts/build-static.sh /geargeekz`
+- **Added npm scripts**: `static:build` and `static:preview`
+- **Created `.github/workflows/deploy-pages.yml`** — GitHub Actions workflow:
+  - Triggers on push to `main` branch
+  - Installs Bun, generates Prisma client, runs static build
+  - Deploys to GitHub Pages using `actions/deploy-pages@v4`
+- **Updated `.gitignore`** — added `/.static-build-backup/`
+- Tested static build: output is 11MB in `out/` directory
+  - 268KB compiled Tailwind CSS
+  - 12 JS chunks (2.1MB total)
+  - 367KB index.html (full SSR'd SPA)
+- Verified in browser: all sections render correctly (Popular Categories, Editor's Picks, Trending Now, Recently Updated, Buying Guides, Featured Brands)
+- Zero errors in browser console
+
+Stage Summary:
+- **Three deployment targets now supported**:
+  1. `bun run dev` — local development with file: SQLite
+  2. `bun run pages:build` — Cloudflare Pages with Turso + edge runtime
+  3. `bun run static:build` — GitHub Pages static export (no server needed)
+- Static site includes all product data, categories, brands, buying guides, blog posts
+- Admin panel and API-dependent features (newsletter, contact form) won't work on GitHub Pages
+- Files: `next.config.ts`, `scripts/build-static.sh`, `package.json`, `.github/workflows/deploy-pages.yml`, `.gitignore`
+
+---
+
+## Project Status
+
+### Current State
+- **GearGeekz** supports three deployment targets: local dev, Cloudflare Pages, GitHub Pages
+- All public-facing content renders from static TypeScript data files
+- Tailwind CSS fully compiled at build time (268KB)
+- Static export produces a fully functional SPA with hash-based routing
+
+### Deployment Guide
+
+| Target | Command | Output |
+|--------|---------|--------|
+| Local dev | `bun run dev` | http://localhost:3000 |
+| Cloudflare Pages | `bun run pages:build` | `.vercel/output/static/` |
+| GitHub Pages | `bun run static:build` | `out/` |
+| GitHub Pages (subpath) | `bash scripts/build-static.sh /repo-name` | `out/` |
+
+### GitHub Pages Setup
+1. Push to GitHub
+2. Go to repo Settings → Pages → Source: GitHub Actions
+3. The workflow in `.github/workflows/deploy-pages.yml` auto-deploys on push to `main`
+4. For custom repo subpath, set `NEXT_PUBLIC_BASE_PATH` env var in the workflow
+
+### Unresolved / Next Phase Recommendations
+- Add a `.nojekyll` file to `public/` for GitHub Pages (prevents Jekyll processing)
+- Consider adding a 404.html redirect for SPA routing on GitHub Pages
+- Newsletter/contact form could use Formspree or similar service for GitHub Pages
+- Migrate in-memory state to Cloudflare KV or D1
