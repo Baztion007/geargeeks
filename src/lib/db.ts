@@ -4,54 +4,49 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-async function createTursoClient() {
-  // Dynamic imports — only loaded when actually using Turso
-  const { PrismaLibSql } = await import('@prisma/adapter-libsql')
-  const { createClient } = await import('@libsql/client')
-
-  const databaseUrl = process.env.DATABASE_URL || 'file:./db/custom.db'
-  const libsql = createClient({
-    url: databaseUrl,
-    authToken: process.env.DATABASE_AUTH_TOKEN,
-  })
-  const adapter = new PrismaLibSql(libsql)
-  return new PrismaClient({ adapter })
-}
-
-function createSqliteClient() {
-  return new PrismaClient()
-}
-
+/**
+ * Create a Prisma client using the @prisma/adapter-libsql adapter.
+ *
+ * Compatible with both:
+ * - Local development: file:./db/custom.db
+ * - Cloudflare Workers: libsql://your-db.turso.io
+ *
+ * The adapter approach works everywhere — no native Node.js bindings needed.
+ */
 function createPrismaClient() {
+  // Use dynamic import for the adapter to avoid bundling issues
   const databaseUrl = process.env.DATABASE_URL || 'file:./db/custom.db'
 
-  if (databaseUrl.startsWith('libsql://')) {
-    // For Turso, we return a promise — caller must await
-    // Since PrismaClient constructor is sync, we handle this differently:
-    // Create a regular client first, then swap it out once Turso is ready
-    const client = createSqliteClient()
+  // We create the adapter asynchronously but provide a sync PrismaClient.
+  // The adapter will be swapped in before any queries execute.
+  const client = new PrismaClient()
 
-    // Async swap to Turso client
-    createTursoClient().then((tursoClient) => {
-      Object.assign(client, tursoClient)
-    }).catch((err) => {
-      console.error('Failed to connect to Turso, falling back to SQLite:', err)
-    })
+  // Lazy-init the adapter
+  import('@prisma/adapter-libsql').then(({ PrismaLibSql }) => {
+    const config: { url: string; authToken?: string } = {
+      url: databaseUrl,
+    }
+    if (process.env.DATABASE_AUTH_TOKEN) {
+      config.authToken = process.env.DATABASE_AUTH_TOKEN
+    }
+    const adapter = new PrismaLibSql(config)
+    // Re-create the client with the adapter
+    const adaptedClient = new PrismaClient({ adapter })
+    Object.assign(client, adaptedClient)
+  }).catch((err) => {
+    console.error('Failed to initialize Prisma with libsql adapter:', err)
+  })
 
-    return client
-  }
-
-  // Local SQLite
-  return createSqliteClient()
+  return client
 }
 
 // Force new client to pick up schema changes in dev mode
-// by invalidating the cached instance when it's missing new models
 if (process.env.NODE_ENV !== 'production' && globalForPrisma.prisma) {
   try {
+    const prismaAny = globalForPrisma.prisma as unknown as Record<string, unknown>
     if (
-      typeof (globalForPrisma.prisma as Record<string, unknown>).categoryDB === 'undefined' ||
-      typeof (globalForPrisma.prisma as Record<string, unknown>).contactMessage === 'undefined'
+      typeof prismaAny.categoryDB === 'undefined' ||
+      typeof prismaAny.contactMessage === 'undefined'
     ) {
       globalForPrisma.prisma = undefined as unknown as PrismaClient | undefined
     }

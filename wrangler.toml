@@ -5,7 +5,13 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 NEXT_PUBLIC_SITE_URL = "https://geargeekz.com"
 
-# For production, set these in Cloudflare Pages dashboard:
+# For production, set these as Secrets in Cloudflare Pages dashboard:
+# ADMIN_PASSWORD
+# ADMIN_SESSION_SECRET
+# DATABASE_URL (libsql://... Turso URL)
+# DATABASE_AUTH_TOKEN (Turso auth token)
+#
+# For optional affiliate tag overrides:
 # NEXT_PUBLIC_AFFILIATE_TAG_AMAZON
 # NEXT_PUBLIC_AFFILIATE_TAG_WALMART
 # NEXT_PUBLIC_AFFILIATE_TAG_BESTBUY

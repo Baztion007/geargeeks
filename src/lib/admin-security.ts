@@ -1,8 +1,9 @@
 // ─── Server-side Admin Security Module ────────────────────────────────────────
 // Provides: rate limiting, IP-based restrictions, audit logging, session management,
 // brute-force protection with exponential backoff, and encrypted session tokens.
-
-import crypto from 'crypto';
+//
+// Cloudflare-compatible: Uses Web Crypto API instead of Node.js crypto.
+// Works in both Node.js and Cloudflare Workers environments.
 
 // ─── Configuration ─────────────────────────────────────────────────────────────
 
@@ -19,33 +20,52 @@ const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes of inactivity = auto-logout
 // e.g. ADMIN_ALLOWED_IPS="192.168.1.0/24,10.0.0.0/8"
 const ALLOWED_IP_RANGES: string[] = (process.env.ADMIN_ALLOWED_IPS || '').split(',').filter(Boolean);
 
-// ─── Encryption helpers ────────────────────────────────────────────────────────
+// ─── Web Crypto helpers ────────────────────────────────────────────────────────
 
-function getEncryptionKey(): Buffer {
-  // Derive a 32-byte key from the session secret
-  return crypto.createHash('sha256').update(SESSION_SECRET).digest();
+function getTextEncoder(): TextEncoder {
+  return new TextEncoder();
 }
 
-function encrypt(text: string): string {
-  const key = getEncryptionKey();
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-  let encrypted = cipher.update(text, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  return iv.toString('hex') + ':' + encrypted;
+async function deriveKey(): Promise<CryptoKey> {
+  // Derive a 256-bit AES-CBC key from the session secret using SHA-256
+  const encoder = getTextEncoder();
+  const keyMaterial = await crypto.subtle.digest('SHA-256', encoder.encode(SESSION_SECRET));
+  return crypto.subtle.importKey('raw', keyMaterial, { name: 'AES-CBC' }, false, ['encrypt', 'decrypt']);
 }
 
-function decrypt(encryptedText: string): string | null {
+function arrayBufferToHex(buffer: ArrayBuffer): string {
+  return Array.from(new Uint8Array(buffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+function hexToUint8Array(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+  }
+  return bytes;
+}
+
+async function encrypt(text: string): Promise<string> {
+  const key = await deriveKey();
+  const iv = crypto.getRandomValues(new Uint8Array(16));
+  const encoder = getTextEncoder();
+  const encrypted = await crypto.subtle.encrypt({ name: 'AES-CBC', iv }, key, encoder.encode(text));
+  return arrayBufferToHex(iv.buffer as ArrayBuffer) + ':' + arrayBufferToHex(encrypted);
+}
+
+async function decrypt(encryptedText: string): Promise<string | null> {
   try {
-    const key = getEncryptionKey();
+    const key = await deriveKey();
     const parts = encryptedText.split(':');
     if (parts.length !== 2) return null;
-    const iv = Buffer.from(parts[0], 'hex');
-    const encrypted = parts[1];
-    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    return decrypted;
+    const iv = hexToUint8Array(parts[0]);
+    const encrypted = hexToUint8Array(parts[1]);
+    const decrypted = await crypto.subtle.decrypt(
+      { name: 'AES-CBC', iv: iv.buffer as ArrayBuffer },
+      key,
+      encrypted.buffer as ArrayBuffer,
+    );
+    return new TextDecoder().decode(decrypted);
   } catch {
     return null;
   }
@@ -71,6 +91,8 @@ function isIPAllowed(ip: string): boolean {
 }
 
 // ─── In-memory rate limiting store ─────────────────────────────────────────────
+// NOTE: On Cloudflare Workers, this state is per-isolate and not shared.
+// For production, consider using Cloudflare KV or D1 for persistent rate limiting.
 
 interface LoginAttemptRecord {
   attempts: number;
@@ -109,7 +131,7 @@ interface SessionData {
   ip: string;
 }
 
-function createSessionToken(ip: string): string {
+async function createSessionToken(ip: string): Promise<string> {
   const session: SessionData = {
     authenticated: true,
     createdAt: Date.now(),
@@ -120,8 +142,8 @@ function createSessionToken(ip: string): string {
   return encrypt(JSON.stringify(session));
 }
 
-function validateSessionToken(token: string, ip: string): { valid: boolean; reason?: string } {
-  const decrypted = decrypt(token);
+async function validateSessionToken(token: string, ip: string): Promise<{ valid: boolean; reason?: string }> {
+  const decrypted = await decrypt(token);
   if (!decrypted) return { valid: false, reason: 'Invalid token' };
 
   try {
@@ -141,8 +163,8 @@ function validateSessionToken(token: string, ip: string): { valid: boolean; reas
   }
 }
 
-function refreshSessionToken(token: string): string | null {
-  const decrypted = decrypt(token);
+async function refreshSessionToken(token: string): Promise<string | null> {
+  const decrypted = await decrypt(token);
   if (!decrypted) return null;
 
   try {
@@ -198,24 +220,39 @@ function resetAttempts(ip: string) {
 function verifyPassword(password: string): boolean {
   // Constant-time comparison to prevent timing attacks
   const expected = ADMIN_PASSWORD;
-  const passwordBuf = Buffer.from(password, 'utf8');
-  const expectedBuf = Buffer.from(expected, 'utf8');
-
-  // If lengths differ, use expected length to prevent length-based timing leak
-  // but still perform comparison to consume similar time
-  if (passwordBuf.length !== expectedBuf.length) {
-    // Use a dummy comparison to maintain constant time
-    crypto.timingSafeEqual(passwordBuf, Buffer.alloc(passwordBuf.length));
+  if (password.length !== expected.length) {
+    // Perform a dummy comparison to maintain constant time
+    constantTimeCompare(password, password);
     return false;
   }
-  return crypto.timingSafeEqual(passwordBuf, expectedBuf);
+  return constantTimeCompare(password, expected);
+}
+
+/**
+ * Constant-time string comparison.
+ * Uses bitwise XOR to compare each character, accumulating differences.
+ * Total time is proportional to the length of the shorter string.
+ */
+function constantTimeCompare(a: string, b: string): boolean {
+  const aLen = a.length;
+  const bLen = b.length;
+  const len = Math.max(aLen, bLen);
+  let result = aLen ^ bLen; // If lengths differ, result is non-zero
+
+  for (let i = 0; i < len; i++) {
+    const aChar = i < aLen ? a.charCodeAt(i) : 0;
+    const bChar = i < bLen ? b.charCodeAt(i) : 0;
+    result |= aChar ^ bChar;
+  }
+
+  return result === 0;
 }
 
 // ─── Exported API ──────────────────────────────────────────────────────────────
 
 export const adminSecurity = {
   // Authentication
-  login(password: string, ip: string): { success: boolean; token?: string; error?: string; lockoutRemainingMs?: number } {
+  async login(password: string, ip: string): Promise<{ success: boolean; token?: string; error?: string; lockoutRemainingMs?: number }> {
     addAuditEntry(ip, 'LOGIN_ATTEMPT', false);
 
     // Check IP allowlist
@@ -235,7 +272,7 @@ export const adminSecurity = {
     const valid = verifyPassword(password);
     if (valid) {
       resetAttempts(ip);
-      const token = createSessionToken(ip);
+      const token = await createSessionToken(ip);
       addAuditEntry(ip, 'LOGIN_SUCCESS', true);
       return { success: true, token };
     }
@@ -257,10 +294,10 @@ export const adminSecurity = {
   },
 
   // Session validation
-  validateSession(token: string, ip: string): { valid: boolean; reason?: string; refreshedToken?: string } {
-    const result = validateSessionToken(token, ip);
+  async validateSession(token: string, ip: string): Promise<{ valid: boolean; reason?: string; refreshedToken?: string }> {
+    const result = await validateSessionToken(token, ip);
     if (result.valid) {
-      const refreshedToken = refreshSessionToken(token);
+      const refreshedToken = await refreshSessionToken(token);
       return { valid: true, refreshedToken: refreshedToken || undefined };
     }
     addAuditEntry(ip, 'SESSION_INVALID', false, result.reason);
@@ -285,7 +322,6 @@ export const adminSecurity = {
     }
 
     // In production, this would update a database or env var
-    // For now, we log the attempt (password change requires server restart with new env)
     addAuditEntry(ip, 'PASSWORD_CHANGE_ATTEMPT', true, 'Password change requires updating ADMIN_PASSWORD env var and restarting server');
     return { success: false, error: 'Password changes require updating the ADMIN_PASSWORD environment variable on the server. Contact your server administrator.' };
   },

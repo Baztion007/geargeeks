@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+export const runtime = 'edge';
+
 // JSON array fields that need parsing for brands
 const BRAND_JSON_ARRAY_FIELDS = ['categories'] as const;
 
@@ -19,17 +21,20 @@ function parseBrand(raw: Record<string, unknown>) {
   return parsed;
 }
 
-function stringifyBrand(data: Record<string, unknown>) {
-  const result = { ...data };
+function stringifyBrand(data: Record<string, unknown>): Record<string, string | number | null> {
+  const result: Record<string, string | number | null> = {};
 
-  for (const field of BRAND_JSON_ARRAY_FIELDS) {
-    const val = result[field];
-    if (Array.isArray(val)) {
-      result[field] = JSON.stringify(val);
-    } else if (typeof val === 'string') {
-      // already a string, keep it
+  for (const [key, val] of Object.entries(data)) {
+    if (BRAND_JSON_ARRAY_FIELDS.includes(key as typeof BRAND_JSON_ARRAY_FIELDS[number])) {
+      if (Array.isArray(val)) {
+        result[key] = JSON.stringify(val);
+      } else if (typeof val === 'string') {
+        result[key] = val;
+      } else {
+        result[key] = '[]';
+      }
     } else {
-      result[field] = '[]';
+      result[key] = (val as string | number | null) ?? null;
     }
   }
 
@@ -72,15 +77,15 @@ export async function POST(req: NextRequest) {
 
     const brand = await db.brandDB.create({
       data: {
-        slug: stringified.slug,
-        name: stringified.name,
-        logo: stringified.logo,
-        description: stringified.description,
-        founded: stringified.founded || null,
-        headquarters: stringified.headquarters || null,
-        website: stringified.website || null,
-        categories: (stringified.categories as string) || '[]',
-        productCount: body.productCount ?? 0,
+        slug: String(stringified.slug ?? ''),
+        name: String(stringified.name ?? ''),
+        logo: String(stringified.logo ?? ''),
+        description: String(stringified.description ?? ''),
+        founded: typeof stringified.founded === 'string' ? stringified.founded : null,
+        headquarters: typeof stringified.headquarters === 'string' ? stringified.headquarters : null,
+        website: typeof stringified.website === 'string' ? stringified.website : null,
+        categories: String(stringified.categories || '[]'),
+        productCount: Number(stringified.productCount) || 0,
       },
     });
 

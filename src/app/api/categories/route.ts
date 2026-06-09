@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+export const runtime = 'edge';
+
+function stringifyCategory(data: Record<string, unknown>) {
+  return { ...data };
+}
+
 // GET /api/categories — List all categories
 export async function GET() {
   try {
@@ -31,14 +37,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Category with this slug already exists' }, { status: 409 });
     }
 
+    const stringified = stringifyCategory(body);
+
     const category = await db.categoryDB.create({
       data: {
-        slug: body.slug,
-        name: body.name,
-        description: body.description,
-        image: body.image,
-        productCount: body.productCount ?? 0,
-        featured: body.featured ?? false,
+        slug: String(stringified.slug ?? ''),
+        name: String(stringified.name ?? ''),
+        description: String(stringified.description ?? ''),
+        image: String(stringified.image ?? ''),
+        productCount: Number(stringified.productCount) || 0,
+        featured: Boolean(stringified.featured),
       },
     });
 

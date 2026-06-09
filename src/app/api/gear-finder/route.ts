@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { products, getProductBySlug, getProductsByCategory } from '@/data/products';
 import { categories, getCategoryBySlug } from '@/data/categories';
 
+export const runtime = 'edge';
+
 interface GearFinderRequest {
   category: string;
   useCase: string;

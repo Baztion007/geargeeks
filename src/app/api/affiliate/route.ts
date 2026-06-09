@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import type { Merchant } from '@/lib/types';
 
+export const runtime = 'edge';
+
 // ── In-memory click tracking ───────────────────────────────────────────────
 
 interface ClickLog {
@@ -312,8 +314,21 @@ async function upsertMerchantConfig(merchantId: string, data: Record<string, any
         data,
       });
     } else {
+      // Create requires all non-optional fields — merge with defaults
+      const defaultConfig = DEFAULT_MERCHANTS.find((m) => m.id === merchantId);
+      const createData = {
+        merchantId,
+        name: data.name ?? defaultConfig?.name ?? merchantId,
+        affiliateTag: data.affiliateTag ?? defaultConfig?.affiliateTag ?? '',
+        baseUrl: data.baseUrl ?? defaultConfig?.baseUrl ?? '',
+        urlTemplate: data.urlTemplate ?? defaultConfig?.urlTemplate ?? '',
+        enabled: data.enabled ?? true,
+        priority: data.priority ?? defaultConfig?.priority ?? 99,
+        color: data.color ?? defaultConfig?.color ?? '#FF9900',
+        icon: data.icon ?? defaultConfig?.icon ?? 'shopping-bag',
+      };
       return await db.affiliateMerchantConfig.create({
-        data: { merchantId, ...data },
+        data: createData,
       });
     }
   } catch (error) {

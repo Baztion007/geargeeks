@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminSecurity } from '@/lib/admin-security';
 
+export const runtime = 'edge';
+
 function getClientIP(request: NextRequest): string {
   // Check common proxy headers first
   const forwarded = request.headers.get('x-forwarded-for');
@@ -27,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     const ip = getClientIP(request);
-    const result = adminSecurity.login(password, ip);
+    const result = await adminSecurity.login(password, ip);
 
     if (result.success) {
       const response = NextResponse.json({

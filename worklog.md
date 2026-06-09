@@ -133,6 +133,50 @@ Stage Summary:
 ### Unresolved / Next Phase Recommendations
 - Consider using Next.js `<Image>` component instead of raw `<img>` for additional optimization (auto WebP/AVIF, responsive srcset)
 - Add Open Graph meta tags via `useSeoMeta` hook to AuthorPage
-- Consider adding `sitemap.xml` and `robots.txt` for search engine crawling
 - More pages could benefit from LQIP (CategoryPage hero, ProductDetailPage gallery)
 - Enable `noImplicitAny: true` in tsconfig for stricter TypeScript safety
+- For production Cloudflare deployment, set up Turso database and configure DATABASE_URL/DATABASE_AUTH_TOKEN as secrets
+- Consider migrating in-memory state (rate limiting, audit log, click tracking) to Cloudflare KV or D1
+
+---
+
+Task ID: 7
+Agent: Main
+Task: Ensure Cloudflare Pages compatibility for deployment
+
+Work Log:
+- Conducted comprehensive audit of all Cloudflare incompatibilities (16 issues found)
+- **Fix #1 (Critical):** Rewrote `src/lib/admin-security.ts` from Node.js `crypto` to Web Crypto API
+  - Replaced `crypto.createCipheriv/createDecipheriv` with `crypto.subtle.encrypt/decrypt`
+  - Replaced `crypto.randomBytes` with `crypto.getRandomValues`
+  - Replaced `crypto.timingSafeEqual` with custom constant-time string comparison
+  - Replaced `Buffer.from/alloc` with `Uint8Array` and `TextEncoder/TextDecoder`
+  - Made `login()` and `validateSession()` async (returns Promises)
+  - Updated all 5 callers to use `await`
+- **Fix #2 (Critical):** Updated `src/lib/db.ts` to always use `@prisma/adapter-libsql`
+  - Removed dual path (SQLite native vs Turso) — now always uses the libsql adapter
+  - Adapter path works in both local dev (file:) and Cloudflare (libsql://)
+  - Fixed type error: `PrismaLibSql` constructor now takes `{ url, authToken }` config instead of Client
+- **Fix #3 (Critical):** Moved `sharp` from dependencies to devDependencies
+- **Fix #4 (Critical):** Removed unused `next-auth` dependency
+- **Fix #5 (High):** Added `export const runtime = 'edge'` to all 16 API route files
+- **Fix #6 (Build):** Fixed TypeScript strict errors exposed by `next build`
+  - Fixed `stringifyBrand` return type in brands route
+  - Fixed `stringifyProduct` return type in products route
+  - Fixed `stringifyCategory` in categories route
+  - Fixed duplicate `slug` spread in AdminSubPages.tsx (3 instances)
+  - Fixed `React.cloneElement` type in HomePage.tsx
+  - Fixed `PrismaClient` type cast in db.ts
+  - Fixed Prisma `create` call missing required fields in affiliate route
+- **Fix #7 (Build):** Excluded `examples/` and `skills/` directories from tsconfig.json
+- **Fix #8 (Config):** Updated `next.config.ts` to set `images.unoptimized: true` (CF doesn't support Next.js Image Optimization)
+- **Fix #9 (Config):** Updated `wrangler.toml` with documentation for required environment secrets
+- Successfully built with `@cloudflare/next-on-pages` — output in `.vercel/output/static/`
+
+Stage Summary:
+- All 16 API routes now run on Edge Runtime
+- Web Crypto API replaces all Node.js crypto usage
+- Prisma uses libsql adapter (no native bindings needed)
+- Build completes successfully for Cloudflare Pages
+- Dev server still works correctly (verified via browser: homepage, blog, admin login, API)
+- Zero console errors on all tested pages

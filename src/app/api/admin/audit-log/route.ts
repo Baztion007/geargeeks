@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminSecurity } from '@/lib/admin-security';
 
+export const runtime = 'edge';
+
 function getClientIP(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) return forwarded.split(',')[0].trim();
@@ -22,7 +24,7 @@ export async function GET(request: NextRequest) {
     }
 
     const ip = getClientIP(request);
-    const result = adminSecurity.validateSession(effectiveToken, ip);
+    const result = await adminSecurity.validateSession(effectiveToken, ip);
 
     if (!result.valid) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

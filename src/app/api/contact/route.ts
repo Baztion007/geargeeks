@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { adminSecurity } from '@/lib/admin-security';
 
+export const runtime = 'edge';
+
 // Rate limiting: max 3 messages per IP per hour (kept in-memory for perf)
 const contactRateLimit = new Map<string, { count: number; resetAt: number }>();
 const MAX_MESSAGES_PER_HOUR = 3;
@@ -113,7 +115,7 @@ export async function GET(request: NextRequest) {
     const forwarded = request.headers.get('x-forwarded-for');
     const realIP = request.headers.get('x-real-ip');
     const ip = (forwarded ? forwarded.split(',')[0].trim() : realIP?.trim()) || 'unknown';
-    const result = adminSecurity.validateSession(effectiveToken, ip);
+    const result = await adminSecurity.validateSession(effectiveToken, ip);
 
     if (!result.valid) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -152,7 +154,7 @@ export async function PATCH(request: NextRequest) {
     const forwarded = request.headers.get('x-forwarded-for');
     const realIP = request.headers.get('x-real-ip');
     const ip = (forwarded ? forwarded.split(',')[0].trim() : realIP?.trim()) || 'unknown';
-    const authResult = adminSecurity.validateSession(cookieToken, ip);
+    const authResult = await adminSecurity.validateSession(cookieToken, ip);
     if (!authResult.valid) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -186,7 +188,7 @@ export async function DELETE(request: NextRequest) {
     const forwarded = request.headers.get('x-forwarded-for');
     const realIP = request.headers.get('x-real-ip');
     const ip = (forwarded ? forwarded.split(',')[0].trim() : realIP?.trim()) || 'unknown';
-    const authResult = adminSecurity.validateSession(cookieToken, ip);
+    const authResult = await adminSecurity.validateSession(cookieToken, ip);
     if (!authResult.valid) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

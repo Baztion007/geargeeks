@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+export const runtime = 'edge';
+
 // GET /api/reviews?productSlug=xxx
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+export const runtime = 'edge';
+
 // JSON string fields that need parsing when reading from DB
 const JSON_ARRAY_FIELDS = ['gallery', 'pros', 'cons', 'tags', 'bestFor', 'relatedProducts'] as const;
 const JSON_OBJECT_FIELDS = ['features', 'ratingBreakdown', 'specifications'] as const;
@@ -131,34 +133,34 @@ export async function POST(req: NextRequest) {
 
     const product = await db.product.create({
       data: {
-        slug: stringified.slug,
-        title: stringified.title,
-        image: stringified.image,
-        gallery: stringified.gallery as string,
-        excerpt: stringified.excerpt,
-        category: stringified.category,
-        categorySlug: stringified.categorySlug,
-        subcategory: (stringified.subcategory as string) || '',
-        brand: stringified.brand,
-        brandSlug: stringified.brandSlug,
-        features: (stringified.features as string) || '{}',
-        pros: (stringified.pros as string) || '[]',
-        cons: (stringified.cons as string) || '[]',
-        rating: typeof body.rating === 'number' ? body.rating : 0,
-        ratingBreakdown: (stringified.ratingBreakdown as string) || '{}',
-        asin: (stringified.asin as string) || '',
-        merchant: (stringified.merchant as string) || 'amazon',
-        tags: (stringified.tags as string) || '[]',
-        authorSlug: (stringified.authorSlug as string) || 'alex-rivera',
-        reviewStatus: (stringified.reviewStatus as string) || 'new',
-        bestFor: (stringified.bestFor as string) || '[]',
-        summary: (stringified.summary as string) || '',
-        fullReview: (stringified.fullReview as string) || '',
-        whoIsItFor: (stringified.whoIsItFor as string) || '',
-        whoShouldSkip: (stringified.whoShouldSkip as string) || '',
-        specifications: (stringified.specifications as string) || '{}',
-        relatedProducts: (stringified.relatedProducts as string) || '[]',
-        publishedAt: body.publishedAt ? new Date(body.publishedAt) : undefined,
+        slug: String(stringified.slug ?? ''),
+        title: String(stringified.title ?? ''),
+        image: String(stringified.image ?? ''),
+        gallery: String(stringified.gallery || '[]'),
+        excerpt: String(stringified.excerpt ?? ''),
+        category: String(stringified.category ?? ''),
+        categorySlug: String(stringified.categorySlug ?? ''),
+        subcategory: String(stringified.subcategory ?? ''),
+        brand: String(stringified.brand ?? ''),
+        brandSlug: String(stringified.brandSlug ?? ''),
+        features: String(stringified.features || '{}'),
+        pros: String(stringified.pros || '[]'),
+        cons: String(stringified.cons || '[]'),
+        rating: Number(stringified.rating) || 0,
+        ratingBreakdown: String(stringified.ratingBreakdown || '{}'),
+        asin: String(stringified.asin ?? ''),
+        merchant: String(stringified.merchant ?? 'amazon'),
+        tags: String(stringified.tags || '[]'),
+        authorSlug: String(stringified.authorSlug ?? 'alex-rivera'),
+        reviewStatus: String(stringified.reviewStatus ?? 'new'),
+        bestFor: String(stringified.bestFor || '[]'),
+        summary: String(stringified.summary ?? ''),
+        fullReview: String(stringified.fullReview ?? ''),
+        whoIsItFor: String(stringified.whoIsItFor ?? ''),
+        whoShouldSkip: String(stringified.whoShouldSkip ?? ''),
+        specifications: String(stringified.specifications || '{}'),
+        relatedProducts: String(stringified.relatedProducts || '[]'),
+        publishedAt: typeof body.publishedAt === 'string' ? new Date(body.publishedAt) : undefined,
       },
     });
 

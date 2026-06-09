@@ -589,7 +589,7 @@ function ProductFormModal({ product, categories, brands, onClose, saving, setSav
         await fetch('/api/products', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ slug: product.slug, ...payload }),
+          body: JSON.stringify({ ...payload, slug: product.slug }),
         });
       } else {
         await fetch('/api/products', {
@@ -767,7 +767,7 @@ function CategoriesContent() {
     setSaving(true);
     try {
       if (editingCategory) {
-        await fetch('/api/categories', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: editingCategory.slug, ...form }) });
+        await fetch('/api/categories', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, slug: editingCategory.slug }) });
       } else {
         await fetch('/api/categories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
       }
@@ -920,7 +920,7 @@ function BrandsContent() {
 
     try {
       if (editingBrand) {
-        await fetch('/api/brands', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: editingBrand.slug, ...payload }) });
+        await fetch('/api/brands', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...payload, slug: editingBrand.slug }) });
       } else {
         await fetch('/api/brands', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       }

@@ -859,7 +859,7 @@ function TrustBlock() {
             >
               <CardContent className="p-4 sm:p-5 flex flex-col items-center">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 flex items-center justify-center mb-3">
-                  {React.cloneElement(item.icon as React.ReactElement, { className: 'w-6 h-6 text-emerald-600' })}
+                  {React.cloneElement(item.icon as React.ReactElement<Record<string, unknown>>, { className: 'w-6 h-6 text-emerald-600' })}
                 </div>
                 <h3 className="font-bold text-gray-900 dark:text-white text-sm mb-1">{item.title}</h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{item.description}</p>
