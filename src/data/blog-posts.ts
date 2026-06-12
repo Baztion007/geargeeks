@@ -1,4 +1,5 @@
 import { BlogPost } from '@/lib/types';
+import { assetUrl } from '@/lib/utils';
 
 export const blogPosts: BlogPost[] = [
   {
@@ -6,7 +7,7 @@ export const blogPosts: BlogPost[] = [
     slug: 'ultimate-travel-tech-packing-list-2026',
     title: 'The Ultimate Travel Tech Packing List for 2026',
     excerpt: 'From portable chargers to noise-cancelling earbuds, here\'s everything you need to stay powered, connected, and entertained on any trip.',
-    image: '/images/blog-ultimate-travel-tech-packing-list.jpg',
+    image: assetUrl('/images/blog-ultimate-travel-tech-packing-list.jpg'),
     category: 'Travel Gear',
     content: `Packing the right tech can make or break a trip. Too little and you're scrambling for outlets and adapters in foreign airports; too much and you're lugging unnecessary weight through cobblestone streets. After years of trial and error — and some painful lessons learned the hard way — we've distilled the ultimate travel tech packing list down to the essentials.
 
@@ -28,7 +29,7 @@ Finally, consider tracking and connectivity. Apple AirTags in your checked lugga
     slug: 'how-to-build-perfect-home-office',
     title: 'How to Build the Perfect Home Office Setup',
     excerpt: 'A step-by-step guide to creating an ergonomic, productive workspace that you\'ll actually want to spend time in — from desk to chair to accessories.',
-    image: '/images/blog-how-to-build-perfect-home-office.jpg',
+    image: assetUrl('/images/blog-how-to-build-perfect-home-office.jpg'),
     category: 'Home & Office',
     content: `Your home office is more than a desk and a chair — it's the environment where you'll spend a third of your waking hours. Getting it right has an outsized impact on your productivity, comfort, and long-term health. Here's how to build a workspace that works as hard as you do.
 
@@ -50,7 +51,7 @@ Don't forget the details that make a workspace livable: a good desk lamp with ad
     slug: 'wireless-earbuds-vs-headphones',
     title: 'Wireless Earbuds vs Headphones: What\'s Right for You?',
     excerpt: 'Confused between earbuds and headphones? We break down the real differences in sound quality, noise cancellation, comfort, and use cases.',
-    image: '/images/blog-earbuds-vs-headphones.jpg',
+    image: assetUrl('/images/blog-earbuds-vs-headphones.jpg'),
     category: 'Electronics',
     content: `The earbuds versus headphones debate isn't just about form factor — it's about fundamentally different approaches to personal audio. Each has distinct advantages that make it better suited for specific situations, and understanding these differences will help you choose the right one (or both) for your lifestyle.
 
@@ -72,7 +73,7 @@ Our recommendation: most people benefit from owning both. Use earbuds for commut
     slug: '5-recovery-tools-every-athlete-needs',
     title: '5 Recovery Tools Every Athlete Needs',
     excerpt: 'From percussive therapy to cold exposure, these five recovery tools will help you train harder, recover faster, and perform at your best.',
-    image: '/images/blog-5-recovery-tools-every-athlete.jpg',
+    image: assetUrl('/images/blog-5-recovery-tools-every-athlete.jpg'),
     category: 'Fitness',
     content: `Recovery is the hidden half of athletic performance. You can train as hard as you want, but if you're not recovering effectively, you're leaving gains on the table and risking injury. These five recovery tools have the science and real-world results to back them up — and they're accessible to athletes at every level.
 

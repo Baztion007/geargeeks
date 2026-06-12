@@ -1,4 +1,5 @@
 import { BuyingGuide } from '@/lib/types';
+import { assetUrl } from '@/lib/utils';
 
 export const buyingGuides: BuyingGuide[] = [
   {
@@ -6,7 +7,7 @@ export const buyingGuides: BuyingGuide[] = [
     slug: 'best-travel-gadgets-2026',
     title: 'Best Travel Gadgets of 2026',
     excerpt: 'Our comprehensive guide to the tech essentials every traveler needs, from portable chargers to smart trackers and international adapters.',
-    image: '/images/guide-travel-gadgets.png',
+    image: assetUrl('/images/guide-travel-gadgets.png'),
     category: 'Travel Gadgets',
     categorySlug: 'travel-gadgets',
     guideType: 'best-products',
@@ -72,7 +73,7 @@ The travel gadget landscape has evolved significantly. USB-C Power Delivery has 
     slug: 'best-carry-on-luggage',
     title: 'Best Carry-On Luggage for 2026',
     excerpt: 'Find the perfect carry-on for your travel style, from hardshell spinners to travel backpacks, with our tested and ranked recommendations.',
-    image: '/images/guide-best-carry-on-luggage.jpg',
+    image: assetUrl('/images/guide-best-carry-on-luggage.jpg'),
     category: 'Luggage',
     categorySlug: 'luggage',
     guideType: 'best-products',
@@ -129,7 +130,7 @@ The carry-on market has shifted significantly toward hardshell polycarbonate des
     slug: 'best-noise-cancelling-headphones',
     title: 'Best Noise Cancelling Headphones of 2026',
     excerpt: 'Our expert-tested guide to the best ANC headphones for travel, work, and everyday life, from Bose to Sony and beyond.',
-    image: '/images/guide-best-noise-cancelling-headphones.jpg',
+    image: assetUrl('/images/guide-best-noise-cancelling-headphones.jpg'),
     category: 'Electronics',
     categorySlug: 'electronics',
     guideType: 'best-products',
@@ -187,7 +188,7 @@ We've lived with the top noise-cancelling headphones for months, using them on f
     slug: 'sony-vs-bose-headphones',
     title: 'Sony vs Bose: Which Headphones Are Better?',
     excerpt: 'The ultimate showdown between the two giants of noise-cancelling audio. We compare the Sony WF-1000XM5 and Bose QC Ultra across every metric.',
-    image: '/images/guide-sony-vs-bose-headphones.jpg',
+    image: assetUrl('/images/guide-sony-vs-bose-headphones.jpg'),
     category: 'Electronics',
     categorySlug: 'electronics',
     guideType: 'comparison',
@@ -245,7 +246,7 @@ We've used both extensively — on flights, in offices, on commutes, and at home
     slug: 'how-to-choose-travel-backpack',
     title: 'How to Choose a Travel Backpack',
     excerpt: 'Everything you need to know about choosing the right travel backpack, from capacity and carry-on compliance to materials and organization.',
-    image: '/images/guide-travel-backpack.jpg',
+    image: assetUrl('/images/guide-travel-backpack.jpg'),
     category: 'Travel Gear',
     categorySlug: 'travel-gear',
     guideType: 'category-guide',
@@ -301,7 +302,7 @@ This guide walks you through each consideration with practical advice based on y
     slug: 'is-anker-worth-it',
     title: 'Is Anker Worth It? A Brand Deep Dive',
     excerpt: 'We examine whether Anker\'s premium charging products live up to the hype and the price, from power banks to GaN chargers.',
-    image: '/images/guide-anker-brand.jpg',
+    image: assetUrl('/images/guide-anker-brand.jpg'),
     category: 'Travel Gadgets',
     categorySlug: 'travel-gadgets',
     guideType: 'brand-review',

@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouterStore } from '@/lib/router';
 import { Twitter, Github, Youtube, Rss } from 'lucide-react';
+import { assetUrl } from '@/lib/utils';
 
 export function Footer() {
   const goHome = useRouterStore((s) => s.goHome);
@@ -175,7 +176,7 @@ export function Footer() {
               <Github size={16} />
             </a>
             <a
-              href="/rss.xml"
+              href={assetUrl("/rss.xml")}
               className="w-9 h-9 rounded-full bg-[#232f3e]/80 hover:bg-[#febd69]/15 flex items-center justify-center text-gray-400 hover:text-[#febd69] transition-all duration-200 hover:scale-110"
               aria-label="RSS Feed"
             >

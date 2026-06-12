@@ -1,5 +1,6 @@
 import type { Merchant } from '@/lib/types';
 import { generateAffiliateUrl as generateUrl, getLinkAttributes as getConfigLinkAttributes, getMerchantConfig } from './affiliate-config';
+import { assetUrl } from '@/lib/utils';
 
 // Legacy hardcoded tags for backward compatibility (used only when trackingId is provided)
 const AFFILIATE_TAGS: Record<Merchant, string> = {
@@ -69,7 +70,7 @@ export function getAffiliateLinkProps(url: string) {
 export const siteData = {
   name: 'GearGeekz',
   url: 'https://geargeekz.com',
-  logo: '/logo.svg',
+  logo: assetUrl('/logo.svg'),
   tagline: 'Gear Up Smart',
   description: 'Premium product reviews and buying guides to help you discover the right gear for your life.',
   contactEmail: 'hello@geargeekz.com',

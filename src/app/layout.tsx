@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { assetUrl } from "@/lib/utils";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,8 +52,8 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   icons: {
-    icon: "/logo.svg",
-    apple: "/apple-touch-icon.svg",
+    icon: assetUrl("/logo.svg"),
+    apple: assetUrl("/apple-touch-icon.svg"),
   },
   openGraph: {
     title: "GearGeekz — Gear Up Smart",
@@ -64,7 +65,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "/logo.svg",
+        url: assetUrl("/logo.svg"),
         width: 1200,
         height: 630,
         alt: "GearGeekz — Gear Up Smart",

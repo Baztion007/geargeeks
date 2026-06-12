@@ -1,11 +1,12 @@
 import { Author, Product } from '@/lib/types';
+import { assetUrl } from '@/lib/utils';
 import { products } from './products';
 
 export const authors: Author[] = [
   {
     slug: 'alex-rivera',
     name: 'Alex Rivera',
-    photo: '/images/author-alex.jpg',
+    photo: assetUrl('/images/author-alex.jpg'),
     bio: 'Alex is a travel tech journalist and product reviewer with over 10 years of experience testing gear across six continents. From carry-on luggage to noise-cancelling earbuds, he\'s reviewed hundreds of products with a focus on real-world performance for frequent travelers and digital nomads. His reviews are known for their thoroughness, honesty, and practical perspective.',
     expertise: ['Travel Gear', 'Electronics', 'Audio'],
     reviewCount: 62,
@@ -17,7 +18,7 @@ export const authors: Author[] = [
   {
     slug: 'maya-chen',
     name: 'Maya Chen',
-    photo: '/images/author-maya.jpg',
+    photo: assetUrl('/images/author-maya.jpg'),
     bio: 'Maya is a certified ergonomist and wellness tech specialist who has been reviewing fitness, home office, and outdoor gear since 2019. With a background in kinesiology and a passion for optimizing workspaces and recovery routines, she brings a unique health-first perspective to product reviews. When she\'s not testing standing desks or massage guns, you\'ll find her hiking trails with her rescue dog.',
     expertise: ['Fitness', 'Home Office', 'Outdoor'],
     reviewCount: 48,

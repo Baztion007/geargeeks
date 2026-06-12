@@ -91,6 +91,22 @@ fi
 echo ""
 echo "🔧 Applying GitHub Pages fixes..."
 
+# Fix hardcoded absolute paths in HTML output when using a base path.
+# Next.js basePath handles /_next/... paths, but hardcoded /images/... etc
+# in data files won't be rewritten. This step patches all HTML files.
+# Uses # as sed delimiter since BASE_PATH contains / characters.
+if [ -n "$BASE_PATH" ]; then
+  echo "  🔁 Rewriting hardcoded absolute paths in HTML (prefix: $BASE_PATH)..."
+  # Fix patterns like href="/images/..." and src="/images/..." etc.
+  # But DON'T double-rewrite paths that already have the base path.
+  find out/ -name "*.html" -exec sed -i \
+    -E "s#(href|src)=\"/(images|favicon|logo|og-image|icons)/#\1=\"$BASE_PATH/\2/#g" {} \;
+  # Also fix any url(/...) in inline styles
+  find out/ -name "*.html" -exec sed -i \
+    -E "s#url\\(/(images|favicon|logo|og-image|icons)/#url($BASE_PATH/\2/#g" {} \;
+  echo "  ✅ Rewrote absolute asset paths"
+fi
+
 # Create 404.html that mirrors index.html for SPA routing
 # When GitHub Pages can't find a file, it serves 404.html.
 # By making 404.html identical to index.html, the SPA's hash-based
@@ -118,6 +134,17 @@ echo "  index.html: $([ -f out/index.html ] && echo '✅' || echo '❌')"
 echo "  404.html:   $([ -f out/404.html ] && echo '✅' || echo '❌')"
 echo "  .nojekyll:  $([ -f out/.nojekyll ] && echo '✅' || echo '❌')"
 echo "  Total size: $(du -sh out/ | cut -f1)"
+if [ -n "$BASE_PATH" ]; then
+  echo ""
+  echo "  Checking asset path prefixes in index.html..."
+  BAD_PATHS=$(grep -oE '(href|src)="/[^"]*' out/index.html | grep -v "http" | grep -v "$BASE_PATH" | grep -v '/_next' | head -5 || true)
+  if [ -n "$BAD_PATHS" ]; then
+    echo "  ⚠️  Found paths missing base path prefix:"
+    echo "$BAD_PATHS"
+  else
+    echo "  ✅ All local asset paths include base path prefix"
+  fi
+fi
 
 echo ""
 echo "✅ Static build complete!"

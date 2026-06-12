@@ -1,10 +1,11 @@
 import { Brand } from '@/lib/types';
+import { assetUrl } from '@/lib/utils';
 
 export const brands: Brand[] = [
   {
     slug: 'anker',
     name: 'Anker',
-    logo: '/images/brand-anker.jpg',
+    logo: assetUrl('/images/brand-anker.jpg'),
     description: 'Leading consumer electronics brand known for charging solutions, audio products, and smart home devices.',
     categories: ['travel-gadgets', 'electronics'],
     productCount: 2,
@@ -12,7 +13,7 @@ export const brands: Brand[] = [
   {
     slug: 'samsonite',
     name: 'Samsonite',
-    logo: '/images/brand-samsonite.jpg',
+    logo: assetUrl('/images/brand-samsonite.jpg'),
     description: 'World-renowned luggage brand with over 100 years of innovation in travel gear.',
     founded: '1910',
     headquarters: 'Mansfield, Massachusetts, USA',
@@ -23,7 +24,7 @@ export const brands: Brand[] = [
   {
     slug: 'peak-design',
     name: 'Peak Design',
-    logo: '/images/brand-peak-design.jpg',
+    logo: assetUrl('/images/brand-peak-design.jpg'),
     description: 'Award-winning design company creating camera and everyday carry gear.',
     founded: '2011',
     headquarters: 'San Francisco, California, USA',
@@ -34,7 +35,7 @@ export const brands: Brand[] = [
   {
     slug: 'sony',
     name: 'Sony',
-    logo: '/images/brand-sony.jpg',
+    logo: assetUrl('/images/brand-sony.jpg'),
     description: 'Global electronics leader in audio, imaging, and entertainment technology.',
     founded: '1946',
     headquarters: 'Tokyo, Japan',
@@ -45,7 +46,7 @@ export const brands: Brand[] = [
   {
     slug: 'bose',
     name: 'Bose',
-    logo: '/images/brand-bose.jpg',
+    logo: assetUrl('/images/brand-bose.jpg'),
     description: 'Premium audio brand renowned for noise-cancelling headphones and sound systems.',
     founded: '1964',
     headquarters: 'Framingham, Massachusetts, USA',
@@ -56,7 +57,7 @@ export const brands: Brand[] = [
   {
     slug: 'apple',
     name: 'Apple',
-    logo: '/images/brand-apple.jpg',
+    logo: assetUrl('/images/brand-apple.jpg'),
     description: 'Technology giant known for iPhones, MacBooks, AirPods, and the broader Apple ecosystem.',
     founded: '1976',
     headquarters: 'Cupertino, California, USA',
@@ -67,7 +68,7 @@ export const brands: Brand[] = [
   {
     slug: 'garmin',
     name: 'Garmin',
-    logo: '/images/brand-garmin.jpg',
+    logo: assetUrl('/images/brand-garmin.jpg'),
     description: 'Specialist in GPS technology and fitness tracking wearables.',
     founded: '1989',
     headquarters: 'Olathe, Kansas, USA',
@@ -78,7 +79,7 @@ export const brands: Brand[] = [
   {
     slug: 'herman-miller',
     name: 'Herman Miller',
-    logo: '/images/brand-herman-miller.jpg',
+    logo: assetUrl('/images/brand-herman-miller.jpg'),
     description: 'Iconic furniture brand known for ergonomic office chairs and modern design.',
     founded: '1905',
     headquarters: 'Zeeland, Michigan, USA',
@@ -89,7 +90,7 @@ export const brands: Brand[] = [
   {
     slug: 'therabody',
     name: 'Therabody',
-    logo: '/images/brand-therabody.jpg',
+    logo: assetUrl('/images/brand-therabody.jpg'),
     description: 'Wellness brand behind Theragun, the world-leading percussive therapy device.',
     founded: '2009',
     headquarters: 'Los Angeles, California, USA',
@@ -100,7 +101,7 @@ export const brands: Brand[] = [
   {
     slug: 'jbl',
     name: 'JBL',
-    logo: '/images/brand-jbl.jpg',
+    logo: assetUrl('/images/brand-jbl.jpg'),
     description: 'Popular audio brand delivering powerful sound in portable speakers and headphones.',
     founded: '1946',
     headquarters: 'Stamford, Connecticut, USA',
@@ -111,7 +112,7 @@ export const brands: Brand[] = [
   {
     slug: 'samsung',
     name: 'Samsung',
-    logo: '/images/brand-samsung.jpg',
+    logo: assetUrl('/images/brand-samsung.jpg'),
     description: 'Global technology leader in displays, storage, mobile, and home electronics.',
     founded: '1938',
     headquarters: 'Suwon, South Korea',
@@ -122,7 +123,7 @@ export const brands: Brand[] = [
   {
     slug: 'bellroy',
     name: 'Bellroy',
-    logo: '/images/brand-bellroy.jpg',
+    logo: assetUrl('/images/brand-bellroy.jpg'),
     description: 'Australian accessories brand focused on slim, functional everyday carry.',
     founded: '2009',
     headquarters: 'Fitzroy, Victoria, Australia',
