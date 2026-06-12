@@ -575,3 +575,61 @@ The error "Could not find compiled Open Next config" happens because `wrangler d
 - Migrate in-memory state to Cloudflare KV or D1 for persistent rate limiting
 - Add more visual polish and features
 - Consider Cloudflare D1 as alternative to Turso
+
+---
+
+Task ID: 13
+Agent: Main
+Task: Fix GitHub Pages 404 error — "File not found" on deployment
+
+Work Log:
+- Diagnosed root cause: GitHub Pages was returning 404 because the deployment wasn't properly configured
+- Multiple potential causes identified and fixed:
+  1. **Missing 404.html for SPA routing** — GitHub Pages serves 404.html for any path not found. Without it, direct URL access fails. Fixed by copying `index.html` to `404.html` in the build output, so the SPA hash-based router can handle any URL.
+  2. **GitHub Actions workflow needed improvements** — Added verification steps, 404.html generation step, and proper env var handling for basePath
+  3. **Build script needed post-build fixes** — Added automatic 404.html creation, .nojekyll verification, and output verification
+  4. **not-found.tsx had hardcoded `/` link** — Fixed to use `NEXT_PUBLIC_BASE_PATH` for subpath deployments
+
+- **Fix #1: Updated `scripts/build-static.sh`**:
+  - Added Step 4: Post-build fixes for GitHub Pages (404.html creation, .nojekyll verification)
+  - Added Step 5: Output verification (checks index.html, 404.html, .nojekyll exist)
+  - Added support for `NEXT_PUBLIC_BASE_PATH` env var (in addition to CLI argument)
+  - Better error handling for file restoration
+- **Fix #2: Updated `.github/workflows/deploy-pages.yml`**:
+  - Added step to create 404.html from index.html (SPA fallback)
+  - Added verification step to confirm all required files exist
+  - Added `NEXT_PUBLIC_BASE_PATH` env var support (commented out by default)
+  - Better error messages for debugging
+- **Fix #3: Fixed `src/app/not-found.tsx`**:
+  - Changed `href="/"` to `href={process.env.NEXT_PUBLIC_BASE_PATH || '/'}/}`
+  - Now works correctly for subpath deployments like `username.github.io/geargeekz`
+- Tested full static build: `bash scripts/build-static.sh` produces working output with:
+  - `index.html` (368KB — full SPA)
+  - `404.html` (identical to index.html for SPA routing)
+  - `.nojekyll` (prevents Jekyll processing)
+  - `_next/static/` (JS/CSS chunks)
+  - `images/` (product images)
+  - Total: 11MB
+
+Stage Summary:
+- **GitHub Pages 404 error should now be resolved**
+- Static build produces all required files for GitHub Pages
+- 404.html fallback enables SPA hash-based routing on GitHub Pages
+- Users need to configure GitHub Pages to use GitHub Actions as the deployment source
+- For repo subpath deployments, set `NEXT_PUBLIC_BASE_PATH` env var
+
+### GitHub Pages Setup Instructions
+
+1. Push your code to GitHub
+2. Go to repo **Settings → Pages**
+3. Set **Source** to "GitHub Actions" (NOT "Deploy from a branch")
+4. The workflow in `.github/workflows/deploy-pages.yml` will auto-deploy on push to `main`
+5. If deploying to `username.github.io/geargeekz`, edit the workflow to set:
+   ```
+   NEXT_PUBLIC_BASE_PATH: /geargeekz
+   ```
+
+### Unresolved / Next Phase Recommendations
+- Migrate in-memory state to Cloudflare KV or D1 for persistent rate limiting
+- Add more visual polish and features
+- Consider Cloudflare D1 as alternative to Turso

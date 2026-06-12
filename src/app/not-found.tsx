@@ -42,7 +42,7 @@ export default function NotFound() {
           </p>
 
           <a
-            href="/"
+            href={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/`}
             className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-[#0f172a] font-bold px-8 py-3 rounded-lg transition-all hover:shadow-lg"
           >
             <svg
