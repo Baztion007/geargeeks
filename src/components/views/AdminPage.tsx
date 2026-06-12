@@ -23,6 +23,8 @@ import {
   Eye,
   AlertTriangle,
   MessageSquare,
+  KeyRound,
+  Check,
 } from 'lucide-react';
 import { useRouterStore, type SimplePage } from '@/lib/router';
 import { useAdminAuth } from '@/lib/admin-auth';
@@ -235,6 +237,141 @@ function AuditLogCard({ token }: { token: string | null }) {
             ))}
           </div>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Change Password Card ────────────────────────────────────────────────────
+function ChangePasswordCard() {
+  const { token, logout } = useAdminAuth();
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    if (newPassword !== confirmPassword) {
+      setResult({ success: false, message: 'New passwords do not match' });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setResult({ success: false, message: 'New password must be at least 8 characters' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setResult(null);
+
+    try {
+      const res = await fetch('/api/admin/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+          token,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setResult({ success: true, message: 'Password updated successfully! Use your new password next time you log in.' });
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        setResult({ success: false, message: data.error || 'Failed to change password' });
+      }
+    } catch {
+      setResult({ success: false, message: 'Network error — please try again' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Card className="bg-gray-900 border-gray-800">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base text-white flex items-center gap-2">
+          <KeyRound size={16} className="text-amber-500" />
+          Change Password
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="text-xs text-gray-400 mb-1 block">Current Password</label>
+            <Input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => { setCurrentPassword(e.target.value); setResult(null); }}
+              className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-amber-500 focus:ring-amber-500/20 h-9 text-sm"
+              placeholder="Enter current password"
+              disabled={isSubmitting}
+              required
+            />
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 mb-1 block">New Password</label>
+            <Input
+              type="password"
+              value={newPassword}
+              onChange={(e) => { setNewPassword(e.target.value); setResult(null); }}
+              className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-amber-500 focus:ring-amber-500/20 h-9 text-sm"
+              placeholder="Min. 8 characters"
+              disabled={isSubmitting}
+              required
+            />
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 mb-1 block">Confirm New Password</label>
+            <Input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => { setConfirmPassword(e.target.value); setResult(null); }}
+              className={`bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-amber-500 focus:ring-amber-500/20 h-9 text-sm ${
+                confirmPassword && newPassword && confirmPassword !== newPassword ? 'border-red-500 focus:border-red-500' : ''
+              }`}
+              placeholder="Repeat new password"
+              disabled={isSubmitting}
+              required
+            />
+            {confirmPassword && newPassword && confirmPassword !== newPassword && (
+              <p className="text-red-400 text-[11px] mt-1">Passwords do not match</p>
+            )}
+          </div>
+          <Button
+            type="submit"
+            disabled={isSubmitting || !currentPassword || !newPassword || !confirmPassword || newPassword !== confirmPassword}
+            className="w-full bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed text-sm h-9"
+          >
+            {isSubmitting ? (
+              <><Loader2 size={14} className="mr-1 animate-spin" /> Updating...</>
+            ) : (
+              <><KeyRound size={14} className="mr-1" /> Change Password</>
+            )}
+          </Button>
+          {result && (
+            <div className={`p-2.5 rounded-lg text-xs flex items-start gap-2 ${
+              result.success
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                : 'bg-red-500/10 text-red-400 border border-red-500/20'
+            }`}>
+              {result.success ? <Check size={14} className="mt-0.5 shrink-0" /> : <AlertTriangle size={14} className="mt-0.5 shrink-0" />}
+              {result.message}
+            </div>
+          )}
+          <p className="text-[10px] text-gray-500 leading-relaxed">
+            ⚡ Password changes take effect immediately. On Cloudflare Workers, the password resets to the ADMIN_PASSWORD env var on redeployment. Set ADMIN_PASSWORD in your Cloudflare dashboard for a persistent password.
+          </p>
+        </form>
       </CardContent>
     </Card>
   );
@@ -636,8 +773,8 @@ function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Security Status & Audit Log */}
-              <div className="grid sm:grid-cols-2 gap-4">
+              {/* Security, Password & Audit Log */}
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Card className="bg-gray-900 border-gray-800">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base text-white flex items-center gap-2">
@@ -687,6 +824,7 @@ function AdminDashboard() {
                   </CardContent>
                 </Card>
 
+                <ChangePasswordCard />
                 <AuditLogCard token={useAdminAuth.getState().token} />
               </div>
             </div>

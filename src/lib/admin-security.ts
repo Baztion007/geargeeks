@@ -10,6 +10,13 @@
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'geargeekz2026';
 const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || 'gs-default-secret-change-in-production';
 
+// Runtime password override (allows password changes without env var restart)
+let runtimePassword: string | null = null;
+
+function getActivePassword(): string {
+  return runtimePassword || ADMIN_PASSWORD;
+}
+
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_BASE_DURATION = 60 * 1000; // 1 minute base, grows exponentially
 const MAX_LOCKOUT_DURATION = 60 * 60 * 1000; // 1 hour max
@@ -219,7 +226,7 @@ function resetAttempts(ip: string) {
 
 function verifyPassword(password: string): boolean {
   // Constant-time comparison to prevent timing attacks
-  const expected = ADMIN_PASSWORD;
+  const expected = getActivePassword();
   if (password.length !== expected.length) {
     // Perform a dummy comparison to maintain constant time
     constantTimeCompare(password, password);
@@ -321,9 +328,14 @@ export const adminSecurity = {
       return { success: false, error: 'New password must be at least 8 characters' };
     }
 
-    // In production, this would update a database or env var
-    addAuditEntry(ip, 'PASSWORD_CHANGE_ATTEMPT', true, 'Password change requires updating ADMIN_PASSWORD env var and restarting server');
-    return { success: false, error: 'Password changes require updating the ADMIN_PASSWORD environment variable on the server. Contact your server administrator.' };
+    if (newPassword === currentPassword) {
+      return { success: false, error: 'New password must be different from current password' };
+    }
+
+    // Update the runtime password (persists until server restart)
+    runtimePassword = newPassword;
+    addAuditEntry(ip, 'PASSWORD_CHANGE_SUCCESS', true, 'Password changed successfully');
+    return { success: true };
   },
 
   // Get audit log

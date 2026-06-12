@@ -148,21 +148,20 @@ export function AffiliateSettingsPage() {
       }
       setLoading(false);
     };
+    const fetchClickAnalytics = async () => {
+      try {
+        const res = await fetch('/api/affiliate?action=clicks');
+        if (res.ok) {
+          const data = await res.json();
+          setClickData(data);
+        }
+      } catch {
+        // Analytics unavailable, show empty state
+      }
+    };
     init();
     fetchClickAnalytics();
   }, []);
-
-  const fetchClickAnalytics = async () => {
-    try {
-      const res = await fetch('/api/affiliate?action=clicks');
-      if (res.ok) {
-        const data = await res.json();
-        setClickData(data);
-      }
-    } catch {
-      // Analytics unavailable, show empty state
-    }
-  };
 
   // Sync from server — pull latest config from database
   const handleSyncFromServer = useCallback(async () => {
