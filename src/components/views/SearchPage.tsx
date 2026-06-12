@@ -1,11 +1,8 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { products, searchProducts } from '@/data/products';
-import { categories, getCategoryBySlug } from '@/data/categories';
-import { brands, getBrandBySlug } from '@/data/brands';
+import { useDataStore, useEnsureData, searchProducts } from '@/lib/data-store';
 import { buyingGuides } from '@/data/buying-guides';
-import { blogPosts } from '@/data/blog-posts';
 import { useRouterStore } from '@/lib/router';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
 import { ProductCard } from '@/components/affiliate/ProductCard';
@@ -100,14 +97,19 @@ function clearRecentSearches() {
 type SearchTab = 'all' | 'products' | 'categories' | 'brands' | 'guides' | 'blog';
 
 interface SearchResultGroup {
-  products: typeof products;
-  categories: typeof categories;
-  brands: typeof brands;
+  products: ReturnType<typeof useDataStore.getState>['products'];
+  categories: ReturnType<typeof useDataStore.getState>['categories'];
+  brands: ReturnType<typeof useDataStore.getState>['brands'];
   guides: typeof buyingGuides;
-  blogs: typeof blogPosts;
+  blogs: ReturnType<typeof useDataStore.getState>['blogPosts'];
 }
 
 export function SearchPage({ query }: SearchPageProps) {
+  useEnsureData();
+  const products = useDataStore((s) => s.products);
+  const categories = useDataStore((s) => s.categories);
+  const brands = useDataStore((s) => s.brands);
+  const blogPosts = useDataStore((s) => s.blogPosts);
   const [searchInput, setSearchInput] = useState(query);
   const [activeTab, setActiveTab] = useState<SearchTab>('all');
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
@@ -219,7 +221,7 @@ export function SearchPage({ query }: SearchPageProps) {
     if (!q) return { products: [], categories: [], brands: [], guides: [], blogs: [] };
 
     return {
-      products: searchProducts(query),
+      products: searchProducts(products, query),
       categories: categories.filter(
         (c) =>
           c.name.toLowerCase().includes(q) ||

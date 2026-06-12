@@ -6,7 +6,7 @@ import { ProductCard } from '@/components/affiliate/ProductCard';
 
 import { StarRating } from '@/components/affiliate/RatingBar';
 import { getBuyingGuideBySlug } from '@/data/buying-guides';
-import { getProductBySlug, products } from '@/data/products';
+import { useDataStore, useEnsureData } from '@/lib/data-store';
 import { getAuthorBySlug } from '@/data/authors';
 import { useRouterStore } from '@/lib/router';
 import { Card, CardContent } from '@/components/ui/card';
@@ -167,6 +167,8 @@ interface BuyingGuidePageProps {
 }
 
 export function BuyingGuidePage({ guideSlug }: BuyingGuidePageProps) {
+  useEnsureData();
+  const products = useDataStore((s) => s.products);
   const navigate = useRouterStore((s) => s.navigate);
   const goHome = useRouterStore((s) => s.goHome);
   const goToAuthor = useRouterStore((s) => s.goToAuthor);
@@ -193,8 +195,8 @@ export function BuyingGuidePage({ guideSlug }: BuyingGuidePageProps) {
 
   const author = getAuthorBySlug(guide.authorSlug);
   const recommendedProducts = guide.recommendedProducts
-    .map((slug) => getProductBySlug(slug))
-    .filter(Boolean) as typeof products;
+    .map((slug) => products.find((p) => p.slug === slug))
+    .filter(Boolean) as Product[];
 
   const typeConfig = guideTypeConfig[guide.guideType];
   const TypeIcon = typeConfig?.icon || BookOpen;

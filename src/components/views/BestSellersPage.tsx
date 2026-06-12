@@ -5,8 +5,7 @@ import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
 import { ProductCard } from '@/components/affiliate/ProductCard';
 import { CheckPriceButton } from '@/components/affiliate/AffiliateLink';
 import { StarRating } from '@/components/affiliate/RatingBar';
-import { products, getBestSellers } from '@/data/products';
-import { categories } from '@/data/categories';
+import { useDataStore, useEnsureData } from '@/lib/data-store';
 import { useRouterStore } from '@/lib/router';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +23,9 @@ import {
 } from 'lucide-react';
 
 export function BestSellersPage() {
+  useEnsureData();
+  const products = useDataStore((s) => s.products);
+  const categories = useDataStore((s) => s.categories);
   const goToProduct = useRouterStore((s) => s.goToProduct);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
@@ -161,7 +163,7 @@ export function BestSellersPage() {
                     </h3>
                     <StarRating rating={product.rating} size="sm" showValue />
                     <div className="mt-2">
-                      <CheckPriceButton merchant={product.merchant} productId={product.asin} size="sm" className="w-full" />
+                      <CheckPriceButton merchant={product.merchant} productId={product.asin} customUrl={product.priceUrl || product.affiliateUrl || undefined} size="sm" className="w-full" />
                     </div>
                   </CardContent>
                 </Card>
@@ -272,7 +274,7 @@ export function BestSellersPage() {
 
                   {/* CTA */}
                   <div className="shrink-0 text-right hidden sm:block">
-                    <CheckPriceButton merchant={product.merchant} productId={product.asin} size="sm" />
+                    <CheckPriceButton merchant={product.merchant} productId={product.asin} customUrl={product.priceUrl || product.affiliateUrl || undefined} size="sm" />
                   </div>
                 </div>
               );

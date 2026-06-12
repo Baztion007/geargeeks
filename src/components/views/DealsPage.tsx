@@ -3,8 +3,7 @@
 import React, { useMemo } from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
 import { ProductCard } from '@/components/affiliate/ProductCard';
-import { getTrending, getBestSellers } from '@/data/products';
-import { categories } from '@/data/categories';
+import { useDataStore, useEnsureData, getTrending, getBestSellers } from '@/lib/data-store';
 import { getAffiliateUrl, getAffiliateLinkProps, getMerchantName } from '@/lib/affiliate';
 import { useRouterStore } from '@/lib/router';
 import { Card, CardContent } from '@/components/ui/card';
@@ -154,13 +153,16 @@ const dealTips: {
 ];
 
 export function DealsPage() {
+  useEnsureData();
+  const products = useDataStore((s) => s.products);
+  const categories = useDataStore((s) => s.categories);
   const goHome = useRouterStore((s) => s.goHome);
   const goToCategory = useRouterStore((s) => s.goToCategory);
   const goToProduct = useRouterStore((s) => s.goToProduct);
 
   // Data
-  const bestSellers = useMemo(() => getBestSellers(), []);
-  const trendingProducts = useMemo(() => getTrending(), []);
+  const bestSellers = useMemo(() => getBestSellers(products), [products]);
+  const trendingProducts = useMemo(() => getTrending(products), [products]);
   const dealOfTheWeek = bestSellers[0]; // Top-rated product
 
   // Get some product ASINs per merchant for the "Shop Deals" CTA

@@ -5,26 +5,33 @@ import { db } from '@/lib/db';
 const JSON_ARRAY_FIELDS = ['gallery', 'pros', 'cons', 'tags', 'bestFor', 'relatedProducts'] as const;
 const JSON_OBJECT_FIELDS = ['features', 'ratingBreakdown', 'specifications'] as const;
 
-type JSONArrayField = (typeof JSON_ARRAY_FIELDS)[number];
-type JSONObjectField = (typeof JSON_OBJECT_FIELDS)[number];
-
 function parseProduct(raw: Record<string, unknown>) {
   const parsed = { ...raw };
 
   for (const field of JSON_ARRAY_FIELDS) {
-    const val = parsed[field] as string;
-    try {
-      parsed[field] = JSON.parse(val || '[]');
-    } catch {
+    const val = parsed[field];
+    if (Array.isArray(val)) continue;
+    if (typeof val === 'string') {
+      try {
+        parsed[field] = JSON.parse(val || '[]');
+      } catch {
+        parsed[field] = [];
+      }
+    } else {
       parsed[field] = [];
     }
   }
 
   for (const field of JSON_OBJECT_FIELDS) {
-    const val = parsed[field] as string;
-    try {
-      parsed[field] = JSON.parse(val || '{}');
-    } catch {
+    const val = parsed[field];
+    if (val && typeof val === 'object' && !Array.isArray(val)) continue;
+    if (typeof val === 'string') {
+      try {
+        parsed[field] = JSON.parse(val || '{}');
+      } catch {
+        parsed[field] = {};
+      }
+    } else {
       parsed[field] = {};
     }
   }
@@ -80,8 +87,6 @@ export async function GET(req: NextRequest) {
       where.brandSlug = brand;
     }
     if (search) {
-      // SQLite doesn't support full-text search natively via Prisma,
-      // so we use contains for basic search
       where.OR = [
         { title: { contains: search } },
         { excerpt: { contains: search } },
@@ -100,9 +105,11 @@ export async function GET(req: NextRequest) {
 
     const total = await db.product.count({ where });
 
-    const parsed = products.map((p) => parseProduct(p as unknown as Record<string, unknown>));
+    // Products are already parsed by db.ts parseProductRow, but do an extra pass
+    // for safety in case any fields weren't parsed
+    const parsed = products.map((p) => parseProduct(p as Record<string, unknown>));
 
-    return NextResponse.json({ products: parsed, total, limit, offset });
+    return NextResponse.json({ products: parsed, total, limit, offset }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
@@ -148,6 +155,8 @@ export async function POST(req: NextRequest) {
         ratingBreakdown: String(stringified.ratingBreakdown || '{}'),
         asin: String(stringified.asin ?? ''),
         merchant: String(stringified.merchant ?? 'amazon'),
+        affiliateUrl: String(stringified.affiliateUrl ?? ''),
+        priceUrl: String(stringified.priceUrl ?? ''),
         tags: String(stringified.tags || '[]'),
         authorSlug: String(stringified.authorSlug ?? 'alex-rivera'),
         reviewStatus: String(stringified.reviewStatus ?? 'new'),
@@ -158,11 +167,11 @@ export async function POST(req: NextRequest) {
         whoShouldSkip: String(stringified.whoShouldSkip ?? ''),
         specifications: String(stringified.specifications || '{}'),
         relatedProducts: String(stringified.relatedProducts || '[]'),
-        publishedAt: typeof body.publishedAt === 'string' ? new Date(body.publishedAt) : undefined,
+        publishedAt: typeof body.publishedAt === 'string' ? new Date(body.publishedAt).toISOString() : undefined,
       },
     });
 
-    return NextResponse.json(parseProduct(product as unknown as Record<string, unknown>), { status: 201 });
+    return NextResponse.json(parseProduct(product as Record<string, unknown>), { status: 201 });
   } catch (error) {
     console.error('Error creating product:', error);
     return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
@@ -192,8 +201,8 @@ export async function PATCH(req: NextRequest) {
     const allowedFields = [
       'title', 'image', 'gallery', 'excerpt', 'category', 'categorySlug',
       'subcategory', 'brand', 'brandSlug', 'features', 'pros', 'cons',
-      'rating', 'ratingBreakdown', 'asin', 'merchant', 'tags',
-      'authorSlug', 'reviewStatus', 'bestFor', 'summary', 'fullReview',
+      'rating', 'ratingBreakdown', 'asin', 'merchant', 'affiliateUrl', 'priceUrl',
+      'tags', 'authorSlug', 'reviewStatus', 'bestFor', 'summary', 'fullReview',
       'whoIsItFor', 'whoShouldSkip', 'specifications', 'relatedProducts',
     ];
 
@@ -208,7 +217,7 @@ export async function PATCH(req: NextRequest) {
       data: updateData,
     });
 
-    return NextResponse.json(parseProduct(product as unknown as Record<string, unknown>));
+    return NextResponse.json(parseProduct(product as Record<string, unknown>));
   } catch (error) {
     console.error('Error updating product:', error);
     return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });

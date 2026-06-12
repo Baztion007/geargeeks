@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { products } from '@/data/products';
+import { useDataStore, useEnsureData } from '@/lib/data-store';
 import { CheckPriceButton } from '@/components/affiliate/AffiliateLink';
 import { StarRating } from '@/components/affiliate/RatingBar';
 import { Disclosure } from '@/components/affiliate/Disclosure';
@@ -22,6 +22,8 @@ interface QuickViewModalProps {
 }
 
 export function QuickViewModal({ productSlug, isOpen, onClose }: QuickViewModalProps) {
+  useEnsureData();
+  const products = useDataStore((s) => s.products);
   const goToProduct = useRouterStore((s) => s.goToProduct);
   const [imgError, setImgError] = useState(false);
 
@@ -138,7 +140,7 @@ export function QuickViewModal({ productSlug, isOpen, onClose }: QuickViewModalP
 
             {/* CTA Buttons */}
             <div className="flex flex-col gap-2 mt-1">
-              <CheckPriceButton merchant={product.merchant} productId={product.asin} size="md" className="w-full" />
+              <CheckPriceButton merchant={product.merchant} productId={product.asin} customUrl={product.priceUrl || product.affiliateUrl || undefined} size="md" className="w-full" />
               <button
                 onClick={handleReadFullReview}
                 className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-[#007185] dark:text-[#5cc7d4] border border-[#007185]/30 dark:border-[#5cc7d4]/30 rounded-lg hover:bg-[#007185]/5 dark:hover:bg-[#5cc7d4]/10 transition-colors"

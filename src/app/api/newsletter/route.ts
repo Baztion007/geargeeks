@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       if (!existing.active) {
         await db.newsletterSubscriber.update({
           where: { email: trimmedEmail },
-          data: { active: true },
+          data: { active: 1 },
         });
         return NextResponse.json(
           { message: 'Welcome back! Your subscription has been reactivated.' },

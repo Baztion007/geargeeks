@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import type { Merchant } from '@/lib/types';
+import type { InValue } from '@libsql/client';
 
 // ── In-memory click tracking ───────────────────────────────────────────────
 
@@ -136,17 +137,17 @@ interface DbMerchantRow {
   updatedAt: string;
 }
 
-function dbRowToMerchantConfig(row: DbMerchantRow): MerchantConfig {
+function dbRowToMerchantConfig(row: Record<string, unknown>): MerchantConfig {
   return {
     id: row.merchantId as Merchant,
-    name: row.name,
-    affiliateTag: row.affiliateTag,
-    baseUrl: row.baseUrl,
-    urlTemplate: row.urlTemplate,
-    enabled: row.enabled === 1,
-    priority: row.priority,
-    color: row.color,
-    icon: row.icon,
+    name: row.name as string,
+    affiliateTag: row.affiliateTag as string,
+    baseUrl: row.baseUrl as string,
+    urlTemplate: row.urlTemplate as string,
+    enabled: Number(row.enabled) === 1,
+    priority: Number(row.priority),
+    color: row.color as string,
+    icon: row.icon as string,
   };
 }
 
@@ -163,16 +164,16 @@ interface DbSettingsRow {
   updatedAt: string;
 }
 
-function dbRowToSettings(row: DbSettingsRow) {
+function dbRowToSettings(row: Record<string, unknown>) {
   return {
     linkStrategy: row.linkStrategy as 'direct' | 'redirect' | 'cloaked',
-    redirectPrefix: row.redirectPrefix,
-    nofollowEnabled: row.nofollowEnabled === 1,
-    sponsoredEnabled: row.sponsoredEnabled === 1,
-    noopenerEnabled: row.noopenerEnabled === 1,
-    openInNewTab: row.openInNewTab === 1,
-    clickTracking: row.clickTracking === 1,
-    impressionTracking: row.impressionTracking === 1,
+    redirectPrefix: row.redirectPrefix as string,
+    nofollowEnabled: Number(row.nofollowEnabled) === 1,
+    sponsoredEnabled: Number(row.sponsoredEnabled) === 1,
+    noopenerEnabled: Number(row.noopenerEnabled) === 1,
+    openInNewTab: Number(row.openInNewTab) === 1,
+    clickTracking: Number(row.clickTracking) === 1,
+    impressionTracking: Number(row.impressionTracking) === 1,
   };
 }
 
@@ -207,36 +208,26 @@ function getEnvOverridesMap(): Record<string, boolean> {
   return envOverrides;
 }
 
-// ── Helper: Try Prisma model first, fall back to raw SQL ───────────────────
+// ── Helper: Try model first, fall back to raw SQL ───────────────────
 
 async function getMerchantConfigs(): Promise<MerchantConfig[]> {
-  // Try using the Prisma model
+  // Try using the model API
   try {
     const rows = await db.affiliateMerchantConfig.findMany({
       orderBy: { priority: 'asc' },
     });
     if (rows.length > 0) {
-      return rows.map((r) => ({
-        id: r.merchantId as Merchant,
-        name: r.name,
-        affiliateTag: r.affiliateTag,
-        baseUrl: r.baseUrl,
-        urlTemplate: r.urlTemplate,
-        enabled: r.enabled,
-        priority: r.priority,
-        color: r.color,
-        icon: r.icon,
-      }));
+      return rows.map((r) => dbRowToMerchantConfig(r));
     }
   } catch (error) {
-    console.error('Prisma model query failed, falling back to raw SQL:', error);
+    console.error('Model query failed, falling back to raw SQL:', error);
   }
 
-  // Fall back to raw SQL (works even when Prisma model is stale in dev)
+  // Fall back to raw SQL
   try {
-    const rows = await db.$queryRaw<DbMerchantRow[]>`
-      SELECT * FROM AffiliateMerchantConfig ORDER BY priority ASC
-    `;
+    const rows = await db.$queryRaw<Record<string, unknown>[]>(
+      'SELECT * FROM AffiliateMerchantConfig ORDER BY priority ASC'
+    );
     if (rows.length > 0) {
       return rows.map(dbRowToMerchantConfig);
     }
@@ -248,32 +239,23 @@ async function getMerchantConfigs(): Promise<MerchantConfig[]> {
 }
 
 async function getGlobalSettings() {
-  // Try Prisma model first
+  // Try model first
   try {
     const row = await db.affiliateGlobalSettings.findUnique({
       where: { id: 'default' },
     });
     if (row) {
-      return {
-        linkStrategy: row.linkStrategy as 'direct' | 'redirect' | 'cloaked',
-        redirectPrefix: row.redirectPrefix,
-        nofollowEnabled: row.nofollowEnabled,
-        sponsoredEnabled: row.sponsoredEnabled,
-        noopenerEnabled: row.noopenerEnabled,
-        openInNewTab: row.openInNewTab,
-        clickTracking: row.clickTracking,
-        impressionTracking: row.impressionTracking,
-      };
+      return dbRowToSettings(row);
     }
   } catch (error) {
-    console.error('Prisma settings query failed, falling back to raw SQL:', error);
+    console.error('Settings query failed, falling back to raw SQL:', error);
   }
 
   // Fall back to raw SQL
   try {
-    const rows = await db.$queryRaw<DbSettingsRow[]>`
-      SELECT * FROM AffiliateGlobalSettings WHERE id = 'default'
-    `;
+    const rows = await db.$queryRaw<Record<string, unknown>[]>(
+      "SELECT * FROM AffiliateGlobalSettings WHERE id = 'default'"
+    );
     if (rows.length > 0) {
       return dbRowToSettings(rows[0]);
     }
@@ -284,15 +266,15 @@ async function getGlobalSettings() {
   return DEFAULT_SETTINGS;
 }
 
-function toSqlBool(val: any): number {
+function toSqlBool(val: unknown): number {
   if (typeof val === 'boolean') return val ? 1 : 0;
   if (typeof val === 'number') return val;
   return val ? 1 : 0;
 }
 
-async function upsertMerchantConfig(merchantId: string, data: Record<string, any>) {
+async function upsertMerchantConfig(merchantId: string, data: Record<string, unknown>) {
   // Convert boolean fields for SQLite
-  const sqlData: Record<string, any> = {};
+  const sqlData: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data)) {
     if (key === 'enabled') {
       sqlData[key] = toSqlBool(value);
@@ -301,7 +283,7 @@ async function upsertMerchantConfig(merchantId: string, data: Record<string, any
     }
   }
 
-  // Try Prisma model first
+  // Try model API first
   try {
     const existing = await db.affiliateMerchantConfig.findUnique({
       where: { merchantId },
@@ -312,7 +294,6 @@ async function upsertMerchantConfig(merchantId: string, data: Record<string, any
         data,
       });
     } else {
-      // Create requires all non-optional fields — merge with defaults
       const defaultConfig = DEFAULT_MERCHANTS.find((m) => m.id === merchantId);
       const createData = {
         merchantId,
@@ -320,7 +301,7 @@ async function upsertMerchantConfig(merchantId: string, data: Record<string, any
         affiliateTag: data.affiliateTag ?? defaultConfig?.affiliateTag ?? '',
         baseUrl: data.baseUrl ?? defaultConfig?.baseUrl ?? '',
         urlTemplate: data.urlTemplate ?? defaultConfig?.urlTemplate ?? '',
-        enabled: data.enabled ?? true,
+        enabled: data.enabled ?? 1,
         priority: data.priority ?? defaultConfig?.priority ?? 99,
         color: data.color ?? defaultConfig?.color ?? '#FF9900',
         icon: data.icon ?? defaultConfig?.icon ?? 'shopping-bag',
@@ -330,38 +311,34 @@ async function upsertMerchantConfig(merchantId: string, data: Record<string, any
       });
     }
   } catch (error) {
-    console.error('Prisma merchant upsert failed, falling back to raw SQL:', error);
+    console.error('Model upsert failed, falling back to raw SQL:', error);
   }
 
   // Fall back to raw SQL
   try {
-    // Check if row exists
-    const existing = await db.$queryRaw<DbMerchantRow[]>`
-      SELECT * FROM AffiliateMerchantConfig WHERE merchantId = ${merchantId}
-    `;
+    const existing = await db.$queryRaw<Record<string, unknown>[]>(
+      'SELECT * FROM AffiliateMerchantConfig WHERE merchantId = ?',
+      merchantId
+    );
 
     if (existing.length > 0) {
-      // UPDATE
-      const setClauses: string[] = ['updatedAt = CURRENT_TIMESTAMP'];
-      const values: any[] = [];
+      const setClauses: string[] = ['updatedAt = ?'];
+      const values: InValue[] = [new Date().toISOString()];
       for (const [key, value] of Object.entries(sqlData)) {
         setClauses.push(`${key} = ?`);
-        values.push(value);
+        values.push(value as InValue);
       }
-      if (setClauses.length > 0) {
-        await db.$executeRawUnsafe(
-          `UPDATE AffiliateMerchantConfig SET ${setClauses.join(', ')} WHERE merchantId = ?`,
-          ...values,
-          merchantId
-        );
-      }
+      values.push(merchantId);
+      await db.$executeRawUnsafe(
+        `UPDATE AffiliateMerchantConfig SET ${setClauses.join(', ')} WHERE merchantId = ?`,
+        ...values
+      );
     } else {
-      // INSERT — need to generate an ID and set updatedAt since raw SQL doesn't use Prisma defaults
       const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
       const columns = ['id', 'merchantId', ...Object.keys(sqlData), 'updatedAt'];
       const placeholders = columns.map(() => '?').join(', ');
       const now = new Date().toISOString();
-      const values = [id, merchantId, ...Object.values(sqlData), now];
+      const values: InValue[] = [id, merchantId, ...Object.values(sqlData) as InValue[], now];
       await db.$executeRawUnsafe(
         `INSERT INTO AffiliateMerchantConfig (${columns.join(', ')}) VALUES (${placeholders})`,
         ...values
@@ -372,14 +349,16 @@ async function upsertMerchantConfig(merchantId: string, data: Record<string, any
     throw error;
   }
 
-  return (await db.$queryRaw<DbMerchantRow[]>`
-    SELECT * FROM AffiliateMerchantConfig WHERE merchantId = ${merchantId}
-  `)[0];
+  const result = await db.$queryRaw<Record<string, unknown>[]>(
+    'SELECT * FROM AffiliateMerchantConfig WHERE merchantId = ?',
+    merchantId
+  );
+  return result[0];
 }
 
-async function upsertGlobalSettings(data: Record<string, any>) {
+async function upsertGlobalSettings(data: Record<string, unknown>) {
   // Convert boolean fields for SQLite
-  const sqlData: Record<string, any> = {};
+  const sqlData: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data)) {
     if (['nofollowEnabled', 'sponsoredEnabled', 'noopenerEnabled', 'openInNewTab', 'clickTracking', 'impressionTracking'].includes(key)) {
       sqlData[key] = toSqlBool(value);
@@ -388,7 +367,7 @@ async function upsertGlobalSettings(data: Record<string, any>) {
     }
   }
 
-  // Try Prisma model first
+  // Try model API first
   try {
     return await db.affiliateGlobalSettings.upsert({
       where: { id: 'default' },
@@ -396,33 +375,31 @@ async function upsertGlobalSettings(data: Record<string, any>) {
       create: { id: 'default', ...data },
     });
   } catch (error) {
-    console.error('Prisma settings upsert failed, falling back to raw SQL:', error);
+    console.error('Settings upsert failed, falling back to raw SQL:', error);
   }
 
   // Fall back to raw SQL
   try {
-    const existing = await db.$queryRaw<DbSettingsRow[]>`
-      SELECT * FROM AffiliateGlobalSettings WHERE id = 'default'
-    `;
+    const existing = await db.$queryRaw<Record<string, unknown>[]>(
+      "SELECT * FROM AffiliateGlobalSettings WHERE id = 'default'"
+    );
 
     if (existing.length > 0) {
-      const setClauses: string[] = ['updatedAt = CURRENT_TIMESTAMP'];
-      const values: any[] = [];
+      const setClauses: string[] = ['updatedAt = ?'];
+      const values: InValue[] = [new Date().toISOString()];
       for (const [key, value] of Object.entries(sqlData)) {
         setClauses.push(`${key} = ?`);
-        values.push(value);
+        values.push(value as InValue);
       }
-      if (setClauses.length > 0) {
-        await db.$executeRawUnsafe(
-          `UPDATE AffiliateGlobalSettings SET ${setClauses.join(', ')} WHERE id = 'default'`,
-          ...values
-        );
-      }
+      await db.$executeRawUnsafe(
+        `UPDATE AffiliateGlobalSettings SET ${setClauses.join(', ')} WHERE id = 'default'`,
+        ...values
+      );
     } else {
       const columns = ['id', ...Object.keys(sqlData), 'updatedAt'];
       const placeholders = columns.map(() => '?').join(', ');
       const now = new Date().toISOString();
-      const values = ['default', ...Object.values(sqlData), now];
+      const values: InValue[] = ['default', ...Object.values(sqlData) as InValue[], now];
       await db.$executeRawUnsafe(
         `INSERT INTO AffiliateGlobalSettings (${columns.join(', ')}) VALUES (${placeholders})`,
         ...values
@@ -433,9 +410,10 @@ async function upsertGlobalSettings(data: Record<string, any>) {
     throw error;
   }
 
-  return (await db.$queryRaw<DbSettingsRow[]>`
-    SELECT * FROM AffiliateGlobalSettings WHERE id = 'default'
-  `)[0];
+  const result = await db.$queryRaw<Record<string, unknown>[]>(
+    "SELECT * FROM AffiliateGlobalSettings WHERE id = 'default'"
+  );
+  return result[0];
 }
 
 // ── GET /api/affiliate ─────────────────────────────────────────────────────
@@ -533,7 +511,7 @@ export async function PATCH(request: NextRequest) {
 
       try {
         const defaultConfig = DEFAULT_MERCHANTS.find((m) => m.id === merchantId);
-        const data: Record<string, any> = {};
+        const data: Record<string, unknown> = {};
         if (updates.name !== undefined) data.name = updates.name;
         if (updates.affiliateTag !== undefined) data.affiliateTag = updates.affiliateTag;
         if (updates.baseUrl !== undefined) data.baseUrl = updates.baseUrl;
@@ -548,7 +526,7 @@ export async function PATCH(request: NextRequest) {
           affiliateTag: defaultConfig?.affiliateTag || '',
           baseUrl: defaultConfig?.baseUrl || '',
           urlTemplate: defaultConfig?.urlTemplate || '',
-          enabled: true,
+          enabled: 1,
           priority: defaultConfig?.priority || 99,
           color: defaultConfig?.color || '#FF9900',
           icon: defaultConfig?.icon || 'shopping-bag',
@@ -557,14 +535,14 @@ export async function PATCH(request: NextRequest) {
 
         const merchant: MerchantConfig = {
           id: merchantId as Merchant,
-          name: result.name,
-          affiliateTag: result.affiliateTag,
-          baseUrl: result.baseUrl,
-          urlTemplate: result.urlTemplate,
-          enabled: typeof result.enabled === 'number' ? result.enabled === 1 : result.enabled,
-          priority: result.priority,
-          color: result.color,
-          icon: result.icon,
+          name: result.name as string,
+          affiliateTag: result.affiliateTag as string,
+          baseUrl: result.baseUrl as string,
+          urlTemplate: result.urlTemplate as string,
+          enabled: typeof result.enabled === 'number' ? Number(result.enabled) === 1 : !!result.enabled,
+          priority: Number(result.priority),
+          color: result.color as string,
+          icon: result.icon as string,
         };
 
         // Apply env override
@@ -583,7 +561,7 @@ export async function PATCH(request: NextRequest) {
 
     if (type === 'settings') {
       try {
-        const data: Record<string, any> = {};
+        const data: Record<string, unknown> = {};
         if (updates.linkStrategy !== undefined) data.linkStrategy = updates.linkStrategy;
         if (updates.redirectPrefix !== undefined) data.redirectPrefix = updates.redirectPrefix;
         if (updates.nofollowEnabled !== undefined) data.nofollowEnabled = updates.nofollowEnabled ? 1 : 0;
@@ -597,16 +575,7 @@ export async function PATCH(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          settings: {
-            linkStrategy: result.linkStrategy,
-            redirectPrefix: result.redirectPrefix,
-            nofollowEnabled: typeof result.nofollowEnabled === 'number' ? result.nofollowEnabled === 1 : result.nofollowEnabled,
-            sponsoredEnabled: typeof result.sponsoredEnabled === 'number' ? result.sponsoredEnabled === 1 : result.sponsoredEnabled,
-            noopenerEnabled: typeof result.noopenerEnabled === 'number' ? result.noopenerEnabled === 1 : result.noopenerEnabled,
-            openInNewTab: typeof result.openInNewTab === 'number' ? result.openInNewTab === 1 : result.openInNewTab,
-            clickTracking: typeof result.clickTracking === 'number' ? result.clickTracking === 1 : result.clickTracking,
-            impressionTracking: typeof result.impressionTracking === 'number' ? result.impressionTracking === 1 : result.impressionTracking,
-          },
+          settings: dbRowToSettings(result),
         });
       } catch (error) {
         console.error('Failed to update global settings in DB:', error);
@@ -639,14 +608,13 @@ export async function POST(request: NextRequest) {
     // POST /api/affiliate with { type: 'seed' } — Seed database with defaults
     if (body.type === 'seed') {
       try {
-        // Check if data already exists using raw SQL
+        // Check if data already exists
         let existingCount = 0;
         try {
-          const countResult = await db.$queryRaw<{ count: bigint }[]>`
-            SELECT COUNT(*) as count FROM AffiliateMerchantConfig
-          `;
-          // SQLite COUNT returns BigInt in Prisma, convert to Number
-          existingCount = Number(countResult[0]?.count ?? 0);
+          const countResult = await db.$queryRaw<Record<string, unknown>[]>(
+            'SELECT COUNT(*) as cnt FROM AffiliateMerchantConfig'
+          );
+          existingCount = Number(countResult[0]?.cnt ?? 0);
         } catch {
           // Table doesn't exist yet — need to create it
           try {

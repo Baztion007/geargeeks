@@ -25,6 +25,7 @@ import {
   MessageSquare,
   KeyRound,
   Check,
+  BookOpen,
 } from 'lucide-react';
 import { useRouterStore, type SimplePage } from '@/lib/router';
 import { useAdminAuth } from '@/lib/admin-auth';
@@ -33,13 +34,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-type AdminTab = 'dashboard' | 'products' | 'categories' | 'brands' | 'affiliate' | 'messages';
+type AdminTab = 'dashboard' | 'products' | 'categories' | 'brands' | 'blog' | 'affiliate' | 'messages';
 
 const sidebarItems: { id: AdminTab; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'products', label: 'Products', icon: Package },
   { id: 'categories', label: 'Categories', icon: FolderOpen },
   { id: 'brands', label: 'Brands', icon: Building2 },
+  { id: 'blog', label: 'Blog Posts', icon: BookOpen },
   { id: 'affiliate', label: 'Affiliate Settings', icon: Link2 },
   { id: 'messages', label: 'Messages', icon: MessageSquare },
 ];
@@ -58,6 +60,8 @@ interface ProductItem {
   updatedAt: string;
   asin: string;
   merchant: string;
+  affiliateUrl: string;
+  priceUrl: string;
 }
 
 // ─── Login Gate Component ──────────────────────────────────────────────────────
@@ -98,9 +102,6 @@ function AdminLoginGate() {
               <h1 className="text-xl font-bold text-white">Admin Access</h1>
               <p className="text-sm text-gray-400 mt-1">
                 {isLocked ? 'Account temporarily locked' : 'Enter the admin password to continue'}
-              </p>
-              <p className="text-xs text-gray-600 mt-2">
-                Default password: <code className="text-amber-500/80 bg-gray-800 px-1.5 py-0.5 rounded">geargeekz2026</code>
               </p>
             </div>
 
@@ -395,6 +396,9 @@ function AdminDashboard() {
     categories: 0,
     brands: 0,
     avgRating: 0,
+    blogs: 0,
+    customLinks: 0,
+    noAsin: 0,
   });
   const [verifiedCount, setVerifiedCount] = useState(0);
   const [updatedCount, setUpdatedCount] = useState(0);
@@ -402,29 +406,38 @@ function AdminDashboard() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const [productsRes, categoriesRes, brandsRes] = await Promise.all([
+      const [productsRes, categoriesRes, brandsRes, blogRes] = await Promise.all([
         fetch('/api/products'),
         fetch('/api/categories'),
         fetch('/api/brands'),
+        fetch('/api/blog'),
       ]);
 
       const productsData = productsRes.ok ? await productsRes.json() : { products: [] };
       const categoriesData = categoriesRes.ok ? await categoriesRes.json() : { categories: [] };
       const brandsData = brandsRes.ok ? await brandsRes.json() : { brands: [] };
+      const blogData = blogRes.ok ? await blogRes.json() : { posts: [] };
 
       const products: ProductItem[] = productsData.products || [];
       const categories = categoriesData.categories || [];
       const brands = brandsData.brands || [];
+      const blogs = blogData.posts || [];
 
       const avgRating = products.length > 0
         ? (products.reduce((sum: number, p: any) => sum + (p.rating || 0), 0) / products.length).toFixed(1)
         : '0';
+
+      const customLinks = products.filter((p: any) => p.affiliateUrl || p.priceUrl).length;
+      const noAsin = products.filter((p: any) => !p.asin).length;
 
       setStats({
         products: products.length,
         categories: categories.length,
         brands: brands.length,
         avgRating: parseFloat(avgRating),
+        blogs: blogs.length,
+        customLinks,
+        noAsin,
       });
 
       setVerifiedCount(products.filter((p: any) => p.reviewStatus === 'verified').length);
@@ -450,6 +463,7 @@ function AdminDashboard() {
       products: 'admin-products',
       categories: 'admin-categories',
       brands: 'admin-brands',
+      blog: 'admin-blog',
       affiliate: 'admin-affiliate',
       messages: 'admin-messages',
     };
@@ -585,6 +599,7 @@ function AdminDashboard() {
                     </div>
                     <p className="text-3xl font-bold text-white">{stats.products}</p>
                     <p className="text-sm text-gray-400 mt-1">Products</p>
+                    {stats.noAsin > 0 && <p className="text-[10px] text-amber-400 mt-0.5">{stats.noAsin} missing ASIN</p>}
                   </CardContent>
                 </Card>
                 <Card className="bg-gray-900 border-gray-800">
@@ -615,6 +630,43 @@ function AdminDashboard() {
                     </div>
                     <p className="text-3xl font-bold text-white">{stats.avgRating}</p>
                     <p className="text-sm text-gray-400 mt-1">Avg Rating</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Secondary stats */}
+              <div className="grid grid-cols-3 gap-4">
+                <Card className="bg-gray-900 border-gray-800">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-500/15 flex items-center justify-center shrink-0">
+                      <BookOpen size={18} className="text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-white">{stats.blogs}</p>
+                      <p className="text-xs text-gray-400">Blog Posts</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-gray-900 border-gray-800">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-amber-500/15 flex items-center justify-center shrink-0">
+                      <Link2 size={18} className="text-amber-400" />
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-white">{stats.customLinks}</p>
+                      <p className="text-xs text-gray-400">Custom Affiliate Links</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-gray-900 border-gray-800">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-green-500/15 flex items-center justify-center shrink-0">
+                      <TrendingUp size={18} className="text-green-400" />
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-white">{stats.products > 0 ? Math.round((verifiedCount / stats.products) * 100) : 0}%</p>
+                      <p className="text-xs text-gray-400">Verified Reviews</p>
+                    </div>
                   </CardContent>
                 </Card>
               </div>

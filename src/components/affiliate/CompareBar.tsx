@@ -4,10 +4,12 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCompareStore } from '@/lib/compare';
 import { useRouterStore } from '@/lib/router';
-import { getProductBySlug } from '@/data/products';
+import { useDataStore, useEnsureData } from '@/lib/data-store';
 import { X, GitCompare, Package } from 'lucide-react';
 
 export function CompareBar() {
+  useEnsureData();
+  const allProducts = useDataStore((s) => s.products);
   const items = useCompareStore((s) => s.items);
   const removeItem = useCompareStore((s) => s.removeItem);
   const goToPage = useRouterStore((s) => s.goToPage);
@@ -25,7 +27,7 @@ export function CompareBar() {
   if (!visible) return null;
 
   const products = items
-    .map((slug) => getProductBySlug(slug))
+    .map((slug) => allProducts.find((p) => p.slug === slug))
     .filter(Boolean);
 
   return (

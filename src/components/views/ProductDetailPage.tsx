@@ -1,10 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { getProductBySlug, getProductsByCategory } from '@/data/products';
-import { getBrandBySlug } from '@/data/brands';
+import { useDataStore, useEnsureData } from '@/lib/data-store';
 import { getAuthorBySlug } from '@/data/authors';
-import { getCategoryBySlug } from '@/data/categories';
 import { useRouterStore } from '@/lib/router';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
 import { EditorialIndependence } from '@/components/affiliate/Disclosure';
@@ -372,7 +370,11 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
   const addItemToCompare = useCompareStore((s) => s.addItem);
   const removeItemFromCompare = useCompareStore((s) => s.removeItem);
 
-  const product = getProductBySlug(productSlug);
+  useEnsureData();
+  const products = useDataStore((s) => s.products);
+  const brands = useDataStore((s) => s.brands);
+  const categories = useDataStore((s) => s.categories);
+  const product = products.find((p) => p.slug === productSlug);
 
   // Update SEO meta tags for this product
   useSeoMeta(product ? generateProductMeta(product) : undefined);
@@ -412,11 +414,11 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
   }
 
   const author = getAuthorBySlug(product.authorSlug);
-  const category = getCategoryBySlug(product.categorySlug);
-  const brand = getBrandBySlug(product.brandSlug);
+  const category = categories.find((c) => c.slug === product.categorySlug);
+  const brand = brands.find((b) => b.slug === product.brandSlug);
 
   // Related products: same category, excluding current
-  const relatedProducts = getProductsByCategory(product.categorySlug)
+  const relatedProducts = products.filter((p) => p.categorySlug === product.categorySlug)
     .filter((p) => p.slug !== productSlug)
     .slice(0, 3);
 
@@ -552,6 +554,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
             <ViewLatestDealButton
               merchant={product.merchant}
               productId={product.asin}
+              customUrl={product.affiliateUrl || undefined}
               size="lg"
               className="w-full sm:w-auto cta-shimmer bg-gradient-to-r from-[#febd69] via-[#f3a847] to-[#febd69] hover:shadow-lg hover:shadow-amber-500/20 rounded-lg font-bold text-lg h-14 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             />
@@ -866,6 +869,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
               <CheckPriceButton
                 merchant={product.merchant}
                 productId={product.asin}
+                customUrl={product.priceUrl || product.affiliateUrl || undefined}
                 size="lg"
                 className="w-full sm:w-auto cta-shimmer bg-gradient-to-r from-[#febd69] via-[#f3a847] to-[#febd69] hover:shadow-lg hover:shadow-amber-500/20 rounded-lg font-bold text-lg h-14 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               />
@@ -909,6 +913,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
           <CheckPriceButton
             merchant={product.merchant}
             productId={product.asin}
+            customUrl={product.priceUrl || product.affiliateUrl || undefined}
             size="sm"
             className="shrink-0"
           />
@@ -933,7 +938,7 @@ export default function ProductDetailPage({ productSlug }: ProductDetailPageProp
               {/* Compare item thumbnails */}
               <div className="flex items-center gap-1.5 overflow-x-auto">
                 {compareItems.map((slug) => {
-                  const compProduct = getProductBySlug(slug);
+                  const compProduct = products.find((p) => p.slug === slug);
                   if (!compProduct) return null;
                   return (
                     <div

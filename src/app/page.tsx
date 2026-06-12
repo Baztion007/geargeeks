@@ -35,7 +35,7 @@ import { BookmarksPage } from '@/components/views/BookmarksPage';
 import { GearFinderQuiz } from '@/components/affiliate/GearFinderQuiz';
 import { AffiliateSettingsPage } from '@/components/views/AffiliateSettingsPage';
 import { AdminPage } from '@/components/views/AdminPage';
-import { AdminProductsPage, AdminCategoriesPage, AdminBrandsPage, AdminAffiliatePage, AdminMessagesPage } from '@/components/views/AdminSubPages';
+import { AdminProductsPage, AdminCategoriesPage, AdminBrandsPage, AdminAffiliatePage, AdminMessagesPage, AdminBlogPage } from '@/components/views/AdminSubPages';
 import { BestSellersPage } from '@/components/views/BestSellersPage';
 import { DealsPage } from '@/components/views/DealsPage';
 import { CompareBar } from '@/components/affiliate/CompareBar';
@@ -137,6 +137,8 @@ export default function Home() {
         return <AdminAffiliatePage />;
       case 'admin-messages':
         return <AdminMessagesPage />;
+      case 'admin-blog':
+        return <AdminBlogPage />;
       case 'best-sellers':
         return <BestSellersPage />;
       case 'deals':
@@ -149,7 +151,7 @@ export default function Home() {
   };
 
   // Check if current page is an admin page
-  const isAdminPage = route.page === 'admin' || route.page === 'admin-products' || route.page === 'admin-categories' || route.page === 'admin-brands' || route.page === 'admin-affiliate' || route.page === 'admin-messages';
+  const isAdminPage = route.page === 'admin' || route.page === 'admin-products' || route.page === 'admin-categories' || route.page === 'admin-brands' || route.page === 'admin-affiliate' || route.page === 'admin-messages' || route.page === 'admin-blog';
 
   return (
     <div className={`min-h-screen flex flex-col ${isAdminPage ? 'bg-gray-950' : 'bg-gray-50 dark:bg-gray-950'}`}>

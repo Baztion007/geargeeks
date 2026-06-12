@@ -4,14 +4,27 @@ import { db } from '@/lib/db';
 // JSON array fields that need parsing for brands
 const BRAND_JSON_ARRAY_FIELDS = ['categories'] as const;
 
+/**
+ * Parse brand data for API responses.
+ * The db layer (parseBrandRow) already converts JSON strings to arrays,
+ * so this function only needs to handle the case where data hasn't been
+ * through parseBrandRow yet (e.g., raw query results).
+ */
 function parseBrand(raw: Record<string, unknown>) {
   const parsed = { ...raw };
 
   for (const field of BRAND_JSON_ARRAY_FIELDS) {
-    const val = parsed[field] as string;
-    try {
-      parsed[field] = JSON.parse(val || '[]');
-    } catch {
+    const val = parsed[field];
+    // Already an array from parseBrandRow — no conversion needed
+    if (Array.isArray(val)) continue;
+    // String that needs parsing
+    if (typeof val === 'string') {
+      try {
+        parsed[field] = JSON.parse(val || '[]');
+      } catch {
+        parsed[field] = [];
+      }
+    } else {
       parsed[field] = [];
     }
   }
@@ -46,9 +59,10 @@ export async function GET() {
       orderBy: { name: 'asc' },
     });
 
-    const parsed = brands.map((b) => parseBrand(b as unknown as Record<string, unknown>));
+    // db.brandDB already parses via parseBrandRow, but do an extra pass for safety
+    const parsed = brands.map((b) => parseBrand(b as Record<string, unknown>));
 
-    return NextResponse.json({ brands: parsed });
+    return NextResponse.json({ brands: parsed }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
   } catch (error) {
     console.error('Error fetching brands:', error);
     return NextResponse.json({ error: 'Failed to fetch brands' }, { status: 500 });
@@ -87,7 +101,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ brand: parseBrand(brand as unknown as Record<string, unknown>) }, { status: 201 });
+    return NextResponse.json({ brand: parseBrand(brand as Record<string, unknown>) }, { status: 201 });
   } catch (error) {
     console.error('Error creating brand:', error);
     return NextResponse.json({ error: 'Failed to create brand' }, { status: 500 });
@@ -125,7 +139,7 @@ export async function PATCH(req: NextRequest) {
       data: updateData,
     });
 
-    return NextResponse.json({ brand: parseBrand(brand as unknown as Record<string, unknown>) });
+    return NextResponse.json({ brand: parseBrand(brand as Record<string, unknown>) });
   } catch (error) {
     console.error('Error updating brand:', error);
     return NextResponse.json({ error: 'Failed to update brand' }, { status: 500 });

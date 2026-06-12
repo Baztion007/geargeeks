@@ -3,9 +3,8 @@
 import React from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
 import { ProductCard } from '@/components/affiliate/ProductCard';
-import { products, getProductsByCategory } from '@/data/products';
+import { useDataStore, useEnsureData } from '@/lib/data-store';
 import { buyingGuides, getBuyingGuidesByCategory } from '@/data/buying-guides';
-import { categories } from '@/data/categories';
 import { useRouterStore } from '@/lib/router';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -98,6 +97,9 @@ const roundups: RoundupCollection[] = [
 ];
 
 export function RoundupsPage() {
+  useEnsureData();
+  const products = useDataStore((s) => s.products);
+  const categories = useDataStore((s) => s.categories);
   const goToBuyingGuide = useRouterStore((s) => s.goToBuyingGuide);
   const goToProduct = useRouterStore((s) => s.goToProduct);
 

@@ -19,9 +19,16 @@ import {
   MailOpen,
   Trash2,
   RefreshCw,
+  AlertTriangle,
+  BookOpen,
+  Edit,
+  Search,
+  Plus,
+  Copy,
 } from 'lucide-react';
 import { useRouterStore, type SimplePage } from '@/lib/router';
 import { useAdminAuth } from '@/lib/admin-auth';
+import { useDataStore } from '@/lib/data-store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -48,6 +55,8 @@ interface ProductItem {
   ratingBreakdown: Record<string, number>;
   asin: string;
   merchant: string;
+  affiliateUrl: string;
+  priceUrl: string;
   tags: string[];
   updatedAt: string;
   publishedAt: string;
@@ -84,13 +93,14 @@ interface BrandItem {
   productCount: number;
 }
 
-type AdminTab = 'dashboard' | 'products' | 'categories' | 'brands' | 'affiliate' | 'messages';
+type AdminTab = 'dashboard' | 'products' | 'categories' | 'brands' | 'affiliate' | 'messages' | 'blog';
 
 const sidebarItems: { id: AdminTab; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: Lock },
   { id: 'products', label: 'Products', icon: Package },
   { id: 'categories', label: 'Categories', icon: FolderOpen },
   { id: 'brands', label: 'Brands', icon: Building2 },
+  { id: 'blog', label: 'Blog Posts', icon: BookOpen },
   { id: 'affiliate', label: 'Affiliate Settings', icon: Link2 },
   { id: 'messages', label: 'Messages', icon: MessageSquare },
 ];
@@ -138,6 +148,10 @@ export function AdminMessagesPage() {
   return <AdminAuthGuard><AdminShell activeTab="messages" /></AdminAuthGuard>;
 }
 
+export function AdminBlogPage() {
+  return <AdminAuthGuard><AdminShell activeTab="blog" /></AdminAuthGuard>;
+}
+
 function AdminShell({ activeTab }: { activeTab: AdminTab }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useRouterStore((s) => s.navigate);
@@ -151,6 +165,7 @@ function AdminShell({ activeTab }: { activeTab: AdminTab }) {
       brands: 'admin-brands',
       affiliate: 'admin-affiliate',
       messages: 'admin-messages',
+      blog: 'admin-blog',
     };
     goToPage(pageMap[tab]);
   };
@@ -225,6 +240,7 @@ function AdminShell({ activeTab }: { activeTab: AdminTab }) {
             </div>
           )}
           {activeTab === 'messages' && <MessagesContent />}
+          {activeTab === 'blog' && <BlogContent />}
         </div>
       </div>
     </div>
@@ -265,6 +281,16 @@ function ProductsContent() {
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ProductItem | null>(null);
   const [saving, setSaving] = useState(false);
+  const [duplicating, setDuplicating] = useState<string | null>(null);
+
+  // Bulk import state
+  const [showBulkImport, setShowBulkImport] = useState(false);
+  const [bulkInput, setBulkInput] = useState('');
+  const [bulkCategory, setBulkCategory] = useState('');
+  const [bulkBrand, setBulkBrand] = useState('');
+  const [bulkMerchant, setBulkMerchant] = useState('amazon');
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkResults, setBulkResults] = useState<{ message: string; summary: { total: number; succeeded: number; failed: number }; results: { success: boolean; asin: string; title?: string; slug?: string; error?: string }[] } | null>(null);
   const ITEMS_PER_PAGE = 20;
 
   const fetchData = useCallback(async () => {
@@ -322,8 +348,92 @@ function ProductsContent() {
     try {
       await fetch('/api/products', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: deleteTarget.slug }) });
       fetchData();
+      useDataStore.getState().invalidateProducts();
     } catch { /* */ }
     setDeleteTarget(null);
+  };
+
+  const handleDuplicate = async (product: ProductItem) => {
+    setDuplicating(product.id);
+    try {
+      const categoryObj = categories.find((c) => c.slug === product.categorySlug);
+      const brandObj = brands.find((b) => b.slug === product.brandSlug);
+      const newSlug = `${product.slug}-copy`;
+      // Check if slug already exists
+      const existing = products.find(p => p.slug === newSlug);
+      const finalSlug = existing ? `${product.slug}-copy-${Date.now().toString(36)}` : newSlug;
+
+      const payload = {
+        slug: finalSlug,
+        title: `${product.title} (Copy)`,
+        image: product.image,
+        gallery: product.gallery,
+        excerpt: product.excerpt,
+        category: categoryObj?.name || product.category,
+        categorySlug: product.categorySlug,
+        subcategory: product.subcategory,
+        brand: brandObj?.name || product.brand,
+        brandSlug: product.brandSlug,
+        features: product.features,
+        pros: product.pros,
+        cons: product.cons,
+        rating: product.rating,
+        ratingBreakdown: product.ratingBreakdown,
+        asin: product.asin,
+        merchant: product.merchant,
+        affiliateUrl: product.affiliateUrl,
+        priceUrl: product.priceUrl,
+        tags: product.tags,
+        authorSlug: product.authorSlug,
+        reviewStatus: 'new',
+        bestFor: product.bestFor,
+        summary: product.summary,
+        fullReview: product.fullReview,
+        whoIsItFor: product.whoIsItFor,
+        whoShouldSkip: product.whoShouldSkip,
+        specifications: product.specifications,
+        relatedProducts: product.relatedProducts,
+      };
+
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        fetchData();
+        useDataStore.getState().invalidateProducts();
+      }
+    } catch (err) {
+      console.error('Failed to duplicate product:', err);
+    }
+    setDuplicating(null);
+  };
+
+  const handleBulkImport = async () => {
+    if (!bulkInput.trim()) return;
+    setBulkLoading(true);
+    setBulkResults(null);
+    try {
+      const lines = bulkInput.trim().split('\n').filter(l => l.trim());
+      const products = lines.map(line => ({ input: line.trim() }));
+      const res = await fetch('/api/products/bulk-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          products,
+          defaultCategory: bulkCategory || undefined,
+          defaultBrand: bulkBrand || undefined,
+          defaultMerchant: bulkMerchant || 'amazon',
+        }),
+      });
+      const data = await res.json();
+      setBulkResults(data);
+      if (data.summary?.succeeded > 0) { fetchData(); useDataStore.getState().invalidateProducts(); }
+    } catch (err) {
+      setBulkResults({ message: 'Import failed', summary: { total: 0, succeeded: 0, failed: 1 }, results: [{ success: false, asin: '', error: err instanceof Error ? err.message : 'Network error' }] });
+    }
+    setBulkLoading(false);
   };
 
   if (loading) {
@@ -361,9 +471,14 @@ function ProductsContent() {
             <option value="new">New</option>
           </select>
         </div>
-        <Button onClick={() => { setEditingProduct(null); setShowForm(true); }} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">
-          <Package size={16} className="mr-1.5" /> Add Product
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => { setEditingProduct(null); setShowForm(true); }} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">
+            <Package size={16} className="mr-1.5" /> Add Product
+          </Button>
+          <Button onClick={() => { setShowBulkImport(true); setBulkResults(null); }} variant="outline" className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10 font-medium">
+            <Upload size={16} className="mr-1.5" /> Bulk Import
+          </Button>
+        </div>
       </div>
 
       {selectedIds.size > 0 && (
@@ -402,9 +517,9 @@ function ProductsContent() {
                     <td className="py-2.5 px-4 text-gray-400">{product.category}</td>
                     <td className="py-2.5 px-4 text-gray-400">{product.brand}</td>
                     <td className="py-2.5 px-4"><div className="flex items-center gap-1"><Star size={12} className="text-amber-500 fill-amber-500" /><span className="text-white">{product.rating}</span></div></td>
-                    <td className="py-2.5 px-4"><Badge variant="outline" className="text-[10px] border-gray-700 text-gray-400 capitalize">{product.merchant}</Badge></td>
+                    <td className="py-2.5 px-4"><Badge variant="outline" className="text-[10px] border-gray-700 text-gray-400 capitalize">{product.merchant}</Badge>{(product.affiliateUrl || product.priceUrl) && <div className="mt-0.5"><Badge variant="outline" className="text-[9px] border-amber-500/30 text-amber-400">Custom Link</Badge></div>}</td>
                     <td className="py-2.5 px-4"><Badge variant="outline" className={`text-[10px] ${product.reviewStatus === 'verified' ? 'border-green-500/30 text-green-400' : product.reviewStatus === 'updated' ? 'border-amber-500/30 text-amber-400' : 'border-blue-500/30 text-blue-400'}`}>{product.reviewStatus}</Badge></td>
-                    <td className="py-2.5 px-4"><div className="flex items-center gap-1"><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-amber-400" onClick={() => { setEditingProduct(product); setShowForm(true); }}>Edit</Button><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-red-400" onClick={() => setDeleteTarget(product)}>Delete</Button></div></td>
+                    <td className="py-2.5 px-4"><div className="flex items-center gap-1"><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-amber-400" onClick={() => { setEditingProduct(product); setShowForm(true); }}>Edit</Button><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-blue-400" onClick={() => handleDuplicate(product)} disabled={duplicating === product.id}>{duplicating === product.id ? <Loader2 size={12} className="animate-spin" /> : <Copy size={12} />}</Button><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-red-400" onClick={() => setDeleteTarget(product)}>Delete</Button></div></td>
                   </tr>
                 ))
               )}
@@ -447,6 +562,96 @@ function ProductsContent() {
           </div>
         </div>
       )}
+
+      {showBulkImport && (
+        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <Upload size={20} className="text-amber-500" /> Bulk Import Products
+              </h3>
+              <button onClick={() => { setShowBulkImport(false); setBulkInput(''); setBulkResults(null); }} className="text-gray-400 hover:text-white"><X size={20} /></button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1.5">Amazon URLs or ASINs</label>
+                <p className="text-xs text-gray-500 mb-2">Paste one URL or ASIN per line. Supports Amazon /dp/ and /gp/product/ URLs, or plain ASINs like B08V8HS2Z4</p>
+                <textarea
+                  value={bulkInput}
+                  onChange={e => setBulkInput(e.target.value)}
+                  placeholder={"https://www.amazon.com/dp/B08V8HS2Z4\nhttps://www.amazon.com/gp/product/B09V3KXJPB\nB08N5WRWNW"}
+                  rows={8}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-amber-500 font-mono"
+                  disabled={bulkLoading}
+                />
+                {bulkInput.trim() && (
+                  <p className="text-xs text-gray-500 mt-1">{bulkInput.trim().split('\n').filter(l => l.trim()).length} items detected</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Default Category</label>
+                  <select value={bulkCategory} onChange={e => setBulkCategory(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" disabled={bulkLoading}>
+                    <option value="">— None —</option>
+                    {categories.map(c => <option key={c.slug} value={c.name}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Default Brand</label>
+                  <input
+                    type="text"
+                    value={bulkBrand}
+                    onChange={e => setBulkBrand(e.target.value)}
+                    placeholder="Brand name"
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-amber-500"
+                    disabled={bulkLoading}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Merchant</label>
+                  <select value={bulkMerchant} onChange={e => setBulkMerchant(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" disabled={bulkLoading}>
+                    <option value="amazon">Amazon</option>
+                    <option value="walmart">Walmart</option>
+                    <option value="bestbuy">Best Buy</option>
+                    <option value="target">Target</option>
+                    <option value="rei">REI</option>
+                    <option value="bhphoto">B&amp;H Photo</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <Button onClick={handleBulkImport} disabled={bulkLoading || !bulkInput.trim()} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">
+                  {bulkLoading ? <><Loader2 size={16} className="mr-1.5 animate-spin" /> Importing...</> : <><Upload size={16} className="mr-1.5" /> Import Products</>}
+                </Button>
+                <Button variant="outline" onClick={() => { setShowBulkImport(false); setBulkInput(''); setBulkResults(null); }} className="border-gray-700 text-gray-400">Cancel</Button>
+              </div>
+
+              {bulkResults && (
+                <div className="mt-4 space-y-3">
+                  <div className={`p-3 rounded-lg ${bulkResults.summary.failed === 0 ? 'bg-green-500/10 border border-green-500/20' : 'bg-amber-500/10 border border-amber-500/20'}`}>
+                    <p className={`text-sm font-medium ${bulkResults.summary.failed === 0 ? 'text-green-400' : 'text-amber-400'}`}>{bulkResults.message}</p>
+                  </div>
+                  {bulkResults.results.length > 0 && (
+                    <div className="max-h-48 overflow-y-auto space-y-1">
+                      {bulkResults.results.map((r, i) => (
+                        <div key={i} className={`flex items-center gap-2 text-xs px-2 py-1.5 rounded ${r.success ? 'bg-green-500/5 text-green-400' : 'bg-red-500/5 text-red-400'}`}>
+                          <span className="font-mono">{r.asin}</span>
+                          {r.title && <span className="text-gray-400 truncate">{r.title}</span>}
+                          {!r.success && r.error && <span className="text-red-400 ml-auto">{r.error}</span>}
+                          {r.success && r.slug && <span className="text-green-500 ml-auto">✓ {r.slug}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -463,9 +668,11 @@ function ProductFormModal({ product, categories, brands, onClose, saving, setSav
   onSaved: () => void;
 }) {
   const isEdit = !!product;
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: product?.title ?? '', slug: product?.slug ?? '', categorySlug: product?.categorySlug ?? '',
     brandSlug: product?.brandSlug ?? '', merchant: product?.merchant ?? 'amazon', asin: product?.asin ?? '',
+    affiliateUrl: product?.affiliateUrl ?? '', priceUrl: product?.priceUrl ?? '',
     excerpt: product?.excerpt ?? '', summary: product?.summary ?? '', fullReview: product?.fullReview ?? '',
     whoIsItFor: product?.whoIsItFor ?? '', whoShouldSkip: product?.whoShouldSkip ?? '',
     rating: product?.rating ?? 4, bestFor: product?.bestFor?.join(', ') ?? '',
@@ -543,6 +750,7 @@ function ProductFormModal({ product, categories, brands, onClose, saving, setSav
 
   const handleSubmit = async () => {
     setSaving(true);
+    setSaveError(null);
 
     // Build the payload with proper field formatting for the API
     const bestForArray = form.bestFor.split(',').map((s) => s.trim()).filter(Boolean);
@@ -572,6 +780,8 @@ function ProductFormModal({ product, categories, brands, onClose, saving, setSav
       ratingBreakdown: product?.ratingBreakdown || {},
       asin: form.asin,
       merchant: form.merchant,
+      affiliateUrl: form.affiliateUrl,
+      priceUrl: form.priceUrl,
       tags: tagsArray,
       authorSlug: form.authorSlug,
       reviewStatus: form.reviewStatus,
@@ -585,25 +795,32 @@ function ProductFormModal({ product, categories, brands, onClose, saving, setSav
     };
 
     try {
+      let res: Response;
       if (isEdit && product) {
-        await fetch('/api/products', {
+        res = await fetch('/api/products', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...payload, slug: product.slug }),
         });
       } else {
-        await fetch('/api/products', {
+        res = await fetch('/api/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
       }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setSaveError(data.error || `Failed to save product (HTTP ${res.status})`);
+        setSaving(false);
+        return;
+      }
       onSaved();
+      onClose();
     } catch (err) {
-      console.error('Failed to save product:', err);
+      setSaveError('Network error — the server may still be starting up, please try again in a moment');
     }
     setSaving(false);
-    onClose();
   };
 
   return (
@@ -625,6 +842,20 @@ function ProductFormModal({ product, categories, brands, onClose, saving, setSav
               <div><label className="text-xs text-gray-400 mb-1 block">Merchant</label><select value={form.merchant} onChange={(e) => setForm((f) => ({ ...f, merchant: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500"><option value="amazon">Amazon</option><option value="walmart">Walmart</option><option value="bestbuy">Best Buy</option><option value="target">Target</option><option value="rei">REI</option><option value="bhphoto">B&H Photo</option></select></div>
               <div><label className="text-xs text-gray-400 mb-1 block">Rating (1-5)</label><input type="number" min={1} max={5} step={0.1} value={form.rating} onChange={(e) => setForm((f) => ({ ...f, rating: parseFloat(e.target.value) || 1 }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
             </div>
+          </section>
+          <section>
+            <h4 className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2"><Link2 size={14} /> Affiliate Links</h4>
+            <p className="text-xs text-gray-500 mb-3">Override the auto-generated affiliate URLs. If left empty, URLs are generated from ASIN + Merchant + Affiliate Settings.</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div className="sm:col-span-2"><label className="text-xs text-gray-400 mb-1 block">Custom Affiliate URL (overrides &quot;View Latest Deal&quot; button)</label><input type="url" value={form.affiliateUrl} onChange={(e) => setForm((f) => ({ ...f, affiliateUrl: e.target.value }))} placeholder="https://www.amazon.com/dp/B08V8HS2Z4?tag=yourtag-20" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" />{form.affiliateUrl && <p className="text-[10px] text-green-400 mt-1">✓ Custom affiliate URL active — will override auto-generated URL</p>}</div>
+              <div className="sm:col-span-2"><label className="text-xs text-gray-400 mb-1 block">Custom Price Check URL (overrides &quot;Check Price&quot; button)</label><input type="url" value={form.priceUrl} onChange={(e) => setForm((f) => ({ ...f, priceUrl: e.target.value }))} placeholder="https://www.amazon.com/dp/B08V8HS2Z4?tag=yourtag-20" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" />{form.priceUrl && <p className="text-[10px] text-green-400 mt-1">✓ Custom price check URL active — will override auto-generated URL</p>}</div>
+            </div>
+            {!form.affiliateUrl && !form.priceUrl && form.asin && (
+              <div className="mt-3 p-3 bg-gray-800/50 border border-gray-700 rounded-lg">
+                <p className="text-xs text-gray-400 mb-1.5 font-medium">Auto-generated preview (from ASIN + Merchant):</p>
+                <p className="text-xs text-gray-500 font-mono truncate">https://www.amazon.com/dp/{form.asin}?tag=productreview0b-20</p>
+              </div>
+            )}
           </section>
           <section>
             <h4 className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-3">Product Image</h4>
@@ -712,6 +943,12 @@ function ProductFormModal({ product, categories, brands, onClose, saving, setSav
           </section>
         </div>
         <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-800 sticky bottom-0 bg-gray-900">
+          {saveError && (
+            <div className="flex-1 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+              <AlertTriangle size={14} className="shrink-0" />
+              <span>{saveError}</span>
+            </div>
+          )}
           <Button variant="outline" onClick={onClose} className="border-gray-700 text-gray-400">Cancel</Button>
           <Button onClick={handleSubmit} disabled={saving || uploading} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">{saving ? 'Saving...' : isEdit ? 'Update Product' : 'Create Product'}</Button>
         </div>
@@ -729,6 +966,7 @@ function CategoriesContent() {
   const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CategoryItem | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', slug: '', description: '', image: '', featured: false, productCount: 0 });
 
   const fetchCategories = useCallback(async () => {
@@ -750,12 +988,14 @@ function CategoriesContent() {
   const openEdit = (cat: CategoryItem) => {
     setEditingCategory(cat);
     setForm({ name: cat.name, slug: cat.slug, description: cat.description, image: cat.image, featured: cat.featured ?? false, productCount: cat.productCount });
+    setSaveError(null);
     setShowForm(true);
   };
 
   const openCreate = () => {
     setEditingCategory(null);
     setForm({ name: '', slug: '', description: '', image: '', featured: false, productCount: 0 });
+    setSaveError(null);
     setShowForm(true);
   };
 
@@ -765,18 +1005,27 @@ function CategoriesContent() {
 
   const handleSubmit = async () => {
     setSaving(true);
+    setSaveError(null);
     try {
+      let res: Response;
       if (editingCategory) {
-        await fetch('/api/categories', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, slug: editingCategory.slug }) });
+        res = await fetch('/api/categories', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, slug: editingCategory.slug }) });
       } else {
-        await fetch('/api/categories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+        res = await fetch('/api/categories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setSaveError(data.error || `Failed to save category (HTTP ${res.status})`);
+        setSaving(false);
+        return;
       }
       fetchCategories();
+      useDataStore.getState().invalidateCategories();
+      setShowForm(false);
     } catch (err) {
-      console.error('Failed to save category:', err);
+      setSaveError('Network error — the server may still be starting up, please try again in a moment');
     }
     setSaving(false);
-    setShowForm(false);
   };
 
   const handleDelete = async () => {
@@ -784,6 +1033,7 @@ function CategoriesContent() {
     try {
       await fetch('/api/categories', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: deleteTarget.slug }) });
       fetchCategories();
+      useDataStore.getState().invalidateCategories();
     } catch (err) {
       console.error('Failed to delete category:', err);
     }
@@ -845,7 +1095,7 @@ function CategoriesContent() {
               <div><label className="text-xs text-gray-400 mb-1 block">Image URL</label><input type="text" value={form.image} onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))} placeholder="/images/category-slug.jpg" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
               <div className="flex items-center gap-3"><label className="text-sm text-gray-300">Featured</label><button onClick={() => setForm((f) => ({ ...f, featured: !f.featured }))} className={`w-10 h-5 rounded-full transition-colors ${form.featured ? 'bg-amber-500' : 'bg-gray-700'} relative`}><div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${form.featured ? 'left-5.5' : 'left-0.5'}`} /></button></div>
             </div>
-            <div className="flex justify-end gap-2 p-4 border-t border-gray-800"><Button variant="outline" onClick={() => setShowForm(false)} className="border-gray-700 text-gray-400">Cancel</Button><Button onClick={handleSubmit} disabled={saving} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">{saving ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}</Button></div>
+            <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-800">{saveError && (<div className="flex-1 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2"><AlertTriangle size={14} className="shrink-0" /><span>{saveError}</span></div>)}<Button variant="outline" onClick={() => setShowForm(false)} className="border-gray-700 text-gray-400">Cancel</Button><Button onClick={handleSubmit} disabled={saving} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">{saving ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}</Button></div>
           </div>
         </div>
       )}
@@ -875,6 +1125,7 @@ function BrandsContent() {
   const [editingBrand, setEditingBrand] = useState<BrandItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<BrandItem | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [form, setForm] = useState({ slug: '', name: '', logo: '', description: '', founded: '', headquarters: '', website: '', categories: '', productCount: 0 });
 
   const fetchBrands = useCallback(async () => {
@@ -900,12 +1151,14 @@ function BrandsContent() {
       founded: brand.founded || '', headquarters: brand.headquarters || '', website: brand.website || '',
       categories: Array.isArray(brand.categories) ? brand.categories.join(', ') : '', productCount: brand.productCount,
     });
+    setSaveError(null);
     setShowForm(true);
   };
 
   const openCreate = () => {
     setEditingBrand(null);
     setForm({ slug: '', name: '', logo: '', description: '', founded: '', headquarters: '', website: '', categories: '', productCount: 0 });
+    setSaveError(null);
     setShowForm(true);
   };
 
@@ -915,21 +1168,30 @@ function BrandsContent() {
 
   const handleSubmit = async () => {
     setSaving(true);
+    setSaveError(null);
     const categoriesArray = form.categories.split(',').map((s) => s.trim()).filter(Boolean);
     const payload = { ...form, categories: categoriesArray };
 
     try {
+      let res: Response;
       if (editingBrand) {
-        await fetch('/api/brands', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...payload, slug: editingBrand.slug }) });
+        res = await fetch('/api/brands', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...payload, slug: editingBrand.slug }) });
       } else {
-        await fetch('/api/brands', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        res = await fetch('/api/brands', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setSaveError(data.error || `Failed to save brand (HTTP ${res.status})`);
+        setSaving(false);
+        return;
       }
       fetchBrands();
+      useDataStore.getState().invalidateBrands();
+      setShowForm(false);
     } catch (err) {
-      console.error('Failed to save brand:', err);
+      setSaveError('Network error — the server may still be starting up, please try again in a moment');
     }
     setSaving(false);
-    setShowForm(false);
   };
 
   const handleDelete = async () => {
@@ -937,6 +1199,7 @@ function BrandsContent() {
     try {
       await fetch('/api/brands', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: deleteTarget.slug }) });
       fetchBrands();
+      useDataStore.getState().invalidateBrands();
     } catch (err) {
       console.error('Failed to delete brand:', err);
     }
@@ -1002,7 +1265,7 @@ function BrandsContent() {
               <div><label className="text-xs text-gray-400 mb-1 block">Website</label><input type="text" value={form.website} onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))} placeholder="https://example.com" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
               <div><label className="text-xs text-gray-400 mb-1 block">Categories (comma separated slugs)</label><input type="text" value={form.categories} onChange={(e) => setForm((f) => ({ ...f, categories: e.target.value }))} placeholder="e.g., electronics, audio" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
             </div>
-            <div className="flex justify-end gap-2 p-4 border-t border-gray-800"><Button variant="outline" onClick={() => setShowForm(false)} className="border-gray-700 text-gray-400">Cancel</Button><Button onClick={handleSubmit} disabled={saving} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">{saving ? 'Saving...' : editingBrand ? 'Update Brand' : 'Create Brand'}</Button></div>
+            <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-800">{saveError && (<div className="flex-1 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2"><AlertTriangle size={14} className="shrink-0" /><span>{saveError}</span></div>)}<Button variant="outline" onClick={() => setShowForm(false)} className="border-gray-700 text-gray-400">Cancel</Button><Button onClick={handleSubmit} disabled={saving} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">{saving ? 'Saving...' : editingBrand ? 'Update Brand' : 'Create Brand'}</Button></div>
           </div>
         </div>
       )}
@@ -1286,6 +1549,287 @@ function MessagesContent() {
                   </React.Fragment>
                 ))
               )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+// ── Blog Content ──────────────────────────────────────────────────────────────
+
+interface BlogPostItem {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  image: string;
+  category: string;
+  content: string;
+  publishedAt: string;
+  updatedAt: string;
+  authorSlug: string;
+  tags: string[];
+  readingTime: number;
+}
+
+function BlogContent() {
+  const [posts, setPosts] = useState<BlogPostItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingPost, setEditingPost] = useState<BlogPostItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<BlogPostItem | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Form state
+  const [formTitle, setFormTitle] = useState('');
+  const [formSlug, setFormSlug] = useState('');
+  const [formExcerpt, setFormExcerpt] = useState('');
+  const [formContent, setFormContent] = useState('');
+  const [formCategory, setFormCategory] = useState('');
+  const [formAuthorSlug, setFormAuthorSlug] = useState('alex-rivera');
+  const [formImage, setFormImage] = useState('');
+  const [formTags, setFormTags] = useState('');
+
+  const loadData = useCallback(async () => {
+    try {
+      const res = await fetch('/api/blog');
+      const data = await res.json();
+      setPosts(data.posts || []);
+    } catch (err) {
+      console.error('Error loading blog posts:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
+  // Auto-generate slug from title
+  useEffect(() => {
+    if (formTitle && !editingPost) {
+      setFormSlug(formTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+    }
+  }, [formTitle, editingPost]);
+
+  const resetForm = () => {
+    setFormTitle(''); setFormSlug(''); setFormExcerpt(''); setFormContent('');
+    setFormCategory(''); setFormAuthorSlug('alex-rivera'); setFormImage('');
+    setFormTags(''); setShowForm(false); setEditingPost(null);
+  };
+
+  const openEdit = (post: BlogPostItem) => {
+    setEditingPost(post);
+    setFormTitle(post.title); setFormSlug(post.slug); setFormExcerpt(post.excerpt);
+    setFormContent(post.content); setFormCategory(post.category); setFormAuthorSlug(post.authorSlug);
+    setFormImage(post.image); setFormTags(Array.isArray(post.tags) ? post.tags.join(', ') : '');
+    setShowForm(true);
+  };
+
+  const handleSave = async () => {
+    if (!formTitle || !formSlug || !formContent || !formCategory) return;
+    setSaving(true);
+    try {
+      const tags = formTags.split(',').map(t => t.trim()).filter(Boolean);
+      if (editingPost) {
+        const res = await fetch('/api/blog', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug: editingPost.slug, title: formTitle, excerpt: formExcerpt, content: formContent, category: formCategory, authorSlug: formAuthorSlug, image: formImage, tags }),
+        });
+        if (!res.ok) throw new Error('Failed to update post');
+      } else {
+        const res = await fetch('/api/blog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug: formSlug, title: formTitle, excerpt: formExcerpt, content: formContent, category: formCategory, authorSlug: formAuthorSlug, image: formImage, tags }),
+        });
+        if (!res.ok) throw new Error('Failed to create post');
+      }
+      resetForm();
+      await loadData();
+      useDataStore.getState().invalidateBlogPosts();
+    } catch (err) {
+      console.error('Error saving blog post:', err);
+      alert('Failed to save blog post');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      const res = await fetch('/api/blog', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: deleteTarget.slug }),
+      });
+      if (!res.ok) throw new Error('Failed to delete post');
+      setDeleteTarget(null);
+      await loadData();
+      useDataStore.getState().invalidateBlogPosts();
+    } catch (err) {
+      console.error('Error deleting blog post:', err);
+      alert('Failed to delete blog post');
+    }
+  };
+
+  const filteredPosts = posts.filter(p =>
+    p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.slug.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-white">Blog Posts</h2>
+          <p className="text-gray-400 text-sm mt-1">{posts.length} posts published</p>
+        </div>
+        <Button onClick={() => { resetForm(); setShowForm(true); }} className="bg-amber-500 hover:bg-amber-400 text-black font-semibold">
+          <Plus size={16} className="mr-2" /> New Post
+        </Button>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+        <input
+          type="text" placeholder="Search posts..." value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+        />
+      </div>
+
+      {/* Blog Form */}
+      {showForm && (
+        <Card className="bg-gray-900 border-gray-700">
+          <CardContent className="p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-white">{editingPost ? 'Edit Post' : 'New Blog Post'}</h3>
+              <button onClick={resetForm} className="text-gray-400 hover:text-white"><X size={20} /></button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Title *</label>
+                <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Slug *</label>
+                <input type="text" value={formSlug} onChange={(e) => setFormSlug(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Category *</label>
+                <select value={formCategory} onChange={(e) => setFormCategory(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                  <option value="">Select category</option>
+                  <option value="Travel Gear">Travel Gear</option>
+                  <option value="Home & Office">Home & Office</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Fitness">Fitness</option>
+                  <option value="Outdoor">Outdoor</option>
+                  <option value="Audio">Audio</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Author</label>
+                <select value={formAuthorSlug} onChange={(e) => setFormAuthorSlug(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                  <option value="alex-rivera">Alex Rivera</option>
+                  <option value="maya-chen">Maya Chen</option>
+                </select>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-300 mb-1">Image URL</label>
+                <input type="text" value={formImage} onChange={(e) => setFormImage(e.target.value)} placeholder="/images/blog-my-post.jpg" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-300 mb-1">Excerpt</label>
+                <textarea value={formExcerpt} onChange={(e) => setFormExcerpt(e.target.value)} rows={2} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-300 mb-1">Content * (plain text)</label>
+                <textarea value={formContent} onChange={(e) => setFormContent(e.target.value)} rows={8} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-300 mb-1">Tags (comma-separated)</label>
+                <input type="text" value={formTags} onChange={(e) => setFormTags(e.target.value)} placeholder="travel, tech, gadgets" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              </div>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button onClick={handleSave} disabled={saving || !formTitle || !formSlug || !formContent || !formCategory} className="bg-amber-500 hover:bg-amber-400 text-black font-semibold">
+                {saving ? <Loader2 size={16} className="mr-2 animate-spin" /> : <Star size={16} className="mr-2" />}
+                {editingPost ? 'Update Post' : 'Create Post'}
+              </Button>
+              <Button variant="ghost" onClick={resetForm} className="text-gray-400">Cancel</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Delete Confirmation */}
+      {deleteTarget && (
+        <Card className="bg-red-950/50 border-red-800">
+          <CardContent className="p-6">
+            <p className="text-white mb-4">Are you sure you want to delete &ldquo;{deleteTarget.title}&rdquo;?</p>
+            <div className="flex gap-3">
+              <Button onClick={handleDelete} className="bg-red-600 hover:bg-red-500 text-white">Delete</Button>
+              <Button variant="ghost" onClick={() => setDeleteTarget(null)} className="text-gray-400">Cancel</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Posts List */}
+      <Card className="bg-gray-900 border-gray-700">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-800">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Title</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Category</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Author</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Published</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Read Time</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredPosts.length === 0 ? (
+                <tr><td colSpan={6} className="text-center py-8 text-gray-500">No blog posts found</td></tr>
+              ) : filteredPosts.map((post) => (
+                <tr key={post.id} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-white line-clamp-1">{post.title}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{post.slug}</div>
+                  </td>
+                  <td className="px-4 py-3"><Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs">{post.category}</Badge></td>
+                  <td className="px-4 py-3 text-gray-300 text-sm">{post.authorSlug}</td>
+                  <td className="px-4 py-3 text-gray-400 text-sm">{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : '—'}</td>
+                  <td className="px-4 py-3 text-gray-400 text-sm">{post.readingTime}m</td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => openEdit(post)} className="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors" aria-label="Edit post">
+                        <Edit size={14} />
+                      </button>
+                      <button onClick={() => setDeleteTarget(post)} className="p-1.5 hover:bg-red-900/50 rounded text-gray-400 hover:text-red-400 transition-colors" aria-label="Delete post">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

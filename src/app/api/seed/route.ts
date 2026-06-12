@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, generateId } from '@/lib/db';
 
 // POST /api/seed — Seed database from TypeScript data files
 // Query param: ?force=true to force reseed even if data exists
@@ -12,16 +12,40 @@ export async function POST(req: NextRequest) {
     const { categories } = await import('@/data/categories');
     const { brands } = await import('@/data/brands');
     const { products } = await import('@/data/products');
+    const { blogPosts } = await import('@/data/blog-posts');
 
     const result = {
       products: { seeded: 0, skipped: 0, errors: 0 },
       categories: { seeded: 0, skipped: 0, errors: 0 },
       brands: { seeded: 0, skipped: 0, errors: 0 },
+      blogPosts: { seeded: 0, skipped: 0, errors: 0 },
     };
+
+    // Ensure BlogPost table exists
+    try {
+      await db.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS BlogPost (
+          id TEXT PRIMARY KEY,
+          slug TEXT UNIQUE NOT NULL,
+          title TEXT NOT NULL,
+          excerpt TEXT DEFAULT '',
+          image TEXT DEFAULT '',
+          category TEXT DEFAULT '',
+          content TEXT DEFAULT '',
+          publishedAt TEXT DEFAULT '',
+          updatedAt TEXT DEFAULT '',
+          authorSlug TEXT DEFAULT '',
+          tags TEXT DEFAULT '[]',
+          readingTime INTEGER DEFAULT 5
+        )
+      `);
+    } catch (e) {
+      console.error('Error creating BlogPost table:', e);
+    }
 
     // Seed categories
     const existingCategories = await db.categoryDB.findMany();
-    const existingCategorySlugs = new Set(existingCategories.map((c) => c.slug));
+    const existingCategorySlugs = new Set(existingCategories.map((c) => c.slug as string));
 
     for (const category of categories) {
       if (!force && existingCategorySlugs.has(category.slug)) {
@@ -38,7 +62,7 @@ export async function POST(req: NextRequest) {
               description: category.description,
               image: category.image,
               productCount: category.productCount,
-              featured: category.featured ?? false,
+              featured: category.featured ? 1 : 0,
             },
           });
         } else {
@@ -49,7 +73,7 @@ export async function POST(req: NextRequest) {
               description: category.description,
               image: category.image,
               productCount: category.productCount,
-              featured: category.featured ?? false,
+              featured: category.featured ? 1 : 0,
             },
           });
         }
@@ -62,7 +86,7 @@ export async function POST(req: NextRequest) {
 
     // Seed brands
     const existingBrands = await db.brandDB.findMany();
-    const existingBrandSlugs = new Set(existingBrands.map((b) => b.slug));
+    const existingBrandSlugs = new Set(existingBrands.map((b) => b.slug as string));
 
     for (const brand of brands) {
       if (!force && existingBrandSlugs.has(brand.slug)) {
@@ -71,33 +95,26 @@ export async function POST(req: NextRequest) {
       }
 
       try {
+        const brandData = {
+          slug: brand.slug,
+          name: brand.name,
+          logo: brand.logo,
+          description: brand.description,
+          founded: brand.founded || null,
+          headquarters: brand.headquarters || null,
+          website: brand.website || null,
+          categories: JSON.stringify(brand.categories || []),
+          productCount: brand.productCount,
+        };
+
         if (existingBrandSlugs.has(brand.slug)) {
           await db.brandDB.update({
             where: { slug: brand.slug },
-            data: {
-              name: brand.name,
-              logo: brand.logo,
-              description: brand.description,
-              founded: brand.founded || null,
-              headquarters: brand.headquarters || null,
-              website: brand.website || null,
-              categories: JSON.stringify(brand.categories || []),
-              productCount: brand.productCount,
-            },
+            data: brandData,
           });
         } else {
           await db.brandDB.create({
-            data: {
-              slug: brand.slug,
-              name: brand.name,
-              logo: brand.logo,
-              description: brand.description,
-              founded: brand.founded || null,
-              headquarters: brand.headquarters || null,
-              website: brand.website || null,
-              categories: JSON.stringify(brand.categories || []),
-              productCount: brand.productCount,
-            },
+            data: brandData,
           });
         }
         result.brands.seeded++;
@@ -109,7 +126,7 @@ export async function POST(req: NextRequest) {
 
     // Seed products
     const existingProducts = await db.product.findMany();
-    const existingProductSlugs = new Set(existingProducts.map((p) => p.slug));
+    const existingProductSlugs = new Set(existingProducts.map((p) => p.slug as string));
 
     for (const product of products) {
       if (!force && existingProductSlugs.has(product.slug)) {
@@ -146,7 +163,7 @@ export async function POST(req: NextRequest) {
           whoShouldSkip: product.whoShouldSkip || '',
           specifications: JSON.stringify(product.specifications || {}),
           relatedProducts: JSON.stringify(product.relatedProducts || []),
-          publishedAt: product.publishedAt ? new Date(product.publishedAt) : new Date(),
+          publishedAt: product.publishedAt || new Date().toISOString(),
         };
 
         if (existingProductSlugs.has(product.slug)) {
@@ -165,13 +182,63 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Seed blog posts
+    const existingBlogPosts = await db.blogPost.findMany();
+    const existingBlogSlugs = new Set(existingBlogPosts.map((p) => p.slug as string));
+
+    for (const post of blogPosts) {
+      if (!force && existingBlogSlugs.has(post.slug)) {
+        result.blogPosts.skipped++;
+        continue;
+      }
+
+      try {
+        const postData = {
+          id: post.id || generateId(),
+          slug: post.slug,
+          title: post.title,
+          excerpt: post.excerpt,
+          image: post.image || '',
+          category: post.category,
+          content: post.content,
+          publishedAt: post.publishedAt || new Date().toISOString(),
+          updatedAt: post.updatedAt || new Date().toISOString(),
+          authorSlug: post.authorSlug,
+          tags: JSON.stringify(post.tags || []),
+          readingTime: post.readingTime || 5,
+        };
+
+        if (existingBlogSlugs.has(post.slug)) {
+          const { slug, ...updateData } = postData;
+          await db.blogPost.update({
+            where: { slug },
+            data: updateData,
+          });
+        } else {
+          await db.blogPost.create({ data: postData });
+        }
+        result.blogPosts.seeded++;
+      } catch (error) {
+        console.error(`Error seeding blog post ${post.slug}:`, error);
+        result.blogPosts.errors++;
+      }
+    }
+
     return NextResponse.json({
       message: 'Seed completed',
       result,
-      totalSeeded: result.products.seeded + result.categories.seeded + result.brands.seeded,
+      totalSeeded: result.products.seeded + result.categories.seeded + result.brands.seeded + result.blogPosts.seeded,
     });
   } catch (error) {
     console.error('Error seeding database:', error);
-    return NextResponse.json({ error: 'Failed to seed database' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    return NextResponse.json({
+      error: 'Failed to seed database',
+      details: errorMessage,
+      stack: process.env.NODE_ENV === 'development' ? errorStack : undefined,
+      dbUrl: process.env.DATABASE_URL ? `${process.env.DATABASE_URL.substring(0, 20)}...` : 'NOT SET',
+      hasAuthToken: !!process.env.DATABASE_AUTH_TOKEN,
+    }, { status: 500 });
   }
 }

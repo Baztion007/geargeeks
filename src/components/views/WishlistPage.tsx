@@ -3,13 +3,15 @@
 import React, { useMemo } from 'react';
 import { useWishlistStore } from '@/lib/wishlist';
 import { useRouterStore } from '@/lib/router';
-import { getProductBySlug } from '@/data/products';
+import { useDataStore, useEnsureData } from '@/lib/data-store';
 import { ProductCard } from '@/components/affiliate/ProductCard';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Heart, Package, Trash2, ShoppingBag } from 'lucide-react';
 
 export function WishlistPage() {
+  useEnsureData();
+  const products = useDataStore((s) => s.products);
   const wishlistItems = useWishlistStore((s) => s.items);
   const clearWishlist = useWishlistStore((s) => s.clearWishlist);
   const goHome = useRouterStore((s) => s.goHome);
@@ -17,7 +19,7 @@ export function WishlistPage() {
 
   const wishlistedProducts = useMemo(() => {
     return wishlistItems
-      .map((slug) => getProductBySlug(slug))
+      .map((slug) => products.find((p) => p.slug === slug))
       .filter((p): p is NonNullable<typeof p> => p !== undefined);
   }, [wishlistItems]);
 

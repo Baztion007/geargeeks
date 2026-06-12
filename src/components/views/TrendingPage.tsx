@@ -3,8 +3,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
 import { ProductCard } from '@/components/affiliate/ProductCard';
-import { getTrending, getBestSellers } from '@/data/products';
-import { categories } from '@/data/categories';
+import { useDataStore, useEnsureData, getTrending, getBestSellers } from '@/lib/data-store';
 import { useRouterStore } from '@/lib/router';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,6 +25,9 @@ type SortOption = 'rating' | 'recent' | 'reviewed';
 const ITEMS_PER_PAGE = 12;
 
 export function TrendingPage() {
+  useEnsureData();
+  const products = useDataStore((s) => s.products);
+  const categories = useDataStore((s) => s.categories);
   const goToProduct = useRouterStore((s) => s.goToProduct);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<SortOption>('rating');
@@ -37,8 +39,8 @@ export function TrendingPage() {
 
   // Combine trending + best sellers, deduplicate
   const allProducts = useMemo(() => {
-    const trending = getTrending();
-    const bestSellers = getBestSellers();
+    const trending = getTrending(products);
+    const bestSellers = getBestSellers(products);
     const seen = new Set(trending.map((p) => p.id));
     const combined = [...trending];
     for (const p of bestSellers) {

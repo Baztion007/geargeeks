@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { getBrandBySlug, getBrandsByCategory, brands } from '@/data/brands';
-import { getProductsByBrand } from '@/data/products';
+import { useDataStore, useEnsureData } from '@/lib/data-store';
 import { buyingGuides } from '@/data/buying-guides';
 import { useRouterStore } from '@/lib/router';
 import { ProductCard } from '@/components/affiliate/ProductCard';
@@ -116,7 +115,10 @@ function BrandStory({ brand, avgRating, brandProducts }: { brand: NonNullable<Re
 }
 
 export function BrandPage({ brandSlug }: BrandPageProps) {
-  const brand = getBrandBySlug(brandSlug);
+  useEnsureData();
+  const brands = useDataStore((s) => s.brands);
+  const products = useDataStore((s) => s.products);
+  const brand = brands.find((b) => b.slug === brandSlug);
   const goToBrand = useRouterStore((s) => s.goToBrand);
   const goToCategory = useRouterStore((s) => s.goToCategory);
   const goHome = useRouterStore((s) => s.goHome);
@@ -125,7 +127,7 @@ export function BrandPage({ brandSlug }: BrandPageProps) {
   // Update SEO meta tags for this brand
   useSeoMeta(brand ? generateBrandMeta(brand) : undefined);
 
-  const brandProducts = useMemo(() => getProductsByBrand(brandSlug), [brandSlug]);
+  const brandProducts = useMemo(() => products.filter((p) => p.brandSlug === brandSlug), [products, brandSlug]);
 
   // Find buying guides that mention products from this brand
   const brandGuides = useMemo(() => {
@@ -144,7 +146,7 @@ export function BrandPage({ brandSlug }: BrandPageProps) {
     return brands
       .filter((b) => b.slug !== brand.slug && b.categories.some((c) => brandCategorySet.has(c)))
       .slice(0, 6);
-  }, [brand]);
+  }, [brand, brands]);
 
   // Sort state for products
   const [sortBy, setSortBy] = useState<'rating' | 'name' | 'updated'>('rating');

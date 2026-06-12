@@ -1,7 +1,7 @@
 #:schema node_modules/wrangler/config-schema.json
 name = "geargeekz"
-compatibility_date = "2025-06-01"
-compatibility_flags = ["nodejs_compat_v2"]
+compatibility_date = "2025-12-01"
+compatibility_flags = ["nodejs_compat"]
 
 # ─── REQUIRED for @opennextjs/cloudflare ──────────────────────────────────
 # These tell wrangler where to find the build output.
@@ -20,13 +20,18 @@ NEXT_PUBLIC_SITE_URL = "https://geargeekz.com"
 # DO NOT run `wrangler deploy` directly — it will fail because the build
 # output (.open-next/) must be generated first by opennextjs-cloudflare build.
 #
-# ─── Cloudflare Pages (GitHub-connected auto-deploy) ───────────────────────
-# If using Cloudflare Pages with GitHub integration, set in the dashboard:
-#   Framework preset:  Next.js (Static Export)
-#   Build command:     npx opennextjs-cloudflare build
-#   Build output dir:  .open-next/assets
-#   Root directory:    /
-#   Environment vars:  NODE_VERSION=20
+# ─── GitHub Actions Auto-Deploy ────────────────────────────────────────────
+# The workflow at .github/workflows/deploy-cloudflare.yml handles this.
+# You need to add these secrets to your GitHub repo:
+#   Settings → Secrets and variables → Actions → New repository secret
+#   - CLOUDFLARE_API_TOKEN  (Create at: https://dash.cloudflare.com/profile/api-tokens)
+#     Required permissions: Workers Scripts - Edit, Workers KV - Edit
+#   - CLOUDFLARE_ACCOUNT_ID (Found in Cloudflare dashboard URL or Workers overview)
+#
+# ─── IMPORTANT: Do NOT use Cloudflare Pages dashboard ──────────────────────
+# Cloudflare Pages dashboard cannot deploy Workers-based Next.js apps.
+# The deploy command in Pages will fail because it can't find the build output.
+# Use the GitHub Actions workflow or CLI deploy instead.
 #
 # ─── Prerequisites ─────────────────────────────────────────────────────────
 #

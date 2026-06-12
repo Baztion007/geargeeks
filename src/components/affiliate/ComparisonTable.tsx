@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { products, getProductBySlug } from '@/data/products';
+import { useDataStore, useEnsureData } from '@/lib/data-store';
 import { StarRating } from '@/components/affiliate/RatingBar';
 import { CheckPriceButton } from '@/components/affiliate/AffiliateLink';
 import { Badge } from '@/components/ui/badge';
@@ -41,8 +41,10 @@ function getFeatureWinner(prods: Product[], key: string): number | null {
 }
 
 export function ComparisonTable({ productSlugs, onRemoveProduct }: ComparisonTableProps) {
+  useEnsureData();
+  const allProducts = useDataStore((s) => s.products);
   const prods = productSlugs
-    .map((slug) => getProductBySlug(slug))
+    .map((slug) => allProducts.find((p) => p.slug === slug))
     .filter((p): p is Product => p !== undefined);
 
   if (prods.length === 0) {
@@ -362,6 +364,7 @@ export function ComparisonTable({ productSlugs, onRemoveProduct }: ComparisonTab
                   <CheckPriceButton
                     merchant={product.merchant}
                     productId={product.asin}
+                    customUrl={product.priceUrl || product.affiliateUrl || undefined}
                   />
                 </td>
               ))}

@@ -20,6 +20,8 @@ export interface Product {
   ratingBreakdown: RatingBreakdown;
   asin: string;
   merchant: Merchant;
+  affiliateUrl: string;
+  priceUrl: string;
   tags: string[];
   updatedAt: string;
   publishedAt: string;
@@ -163,6 +165,7 @@ export type RoutePath =
   | { page: 'admin-brands' }
   | { page: 'admin-affiliate' }
   | { page: 'admin-messages' }
+  | { page: 'admin-blog' }
   | { page: 'best-sellers' }
   | { page: 'deals' }
   | { page: 'not-found' };

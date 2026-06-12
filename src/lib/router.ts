@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { RoutePath } from '@/lib/types';
 
 // Type for pages that don't require slug or query parameters
-export type SimplePage = 'about' | 'contact' | 'privacy' | 'terms' | 'editorial-policy' | 'how-we-test' | 'trending' | 'roundups' | 'wishlist' | 'compare' | 'guides' | 'bookmarks' | 'gear-finder' | 'affiliate-settings' | 'admin' | 'admin-products' | 'admin-categories' | 'admin-brands' | 'admin-affiliate' | 'admin-messages' | 'best-sellers' | 'deals' | 'not-found' | 'home' | 'blog';
+export type SimplePage = 'about' | 'contact' | 'privacy' | 'terms' | 'editorial-policy' | 'how-we-test' | 'trending' | 'roundups' | 'wishlist' | 'compare' | 'guides' | 'bookmarks' | 'gear-finder' | 'affiliate-settings' | 'admin' | 'admin-products' | 'admin-categories' | 'admin-brands' | 'admin-affiliate' | 'admin-messages' | 'admin-blog' | 'best-sellers' | 'deals' | 'not-found' | 'home' | 'blog';
 
 interface RouterState {
   route: RoutePath;
@@ -28,6 +28,7 @@ interface RouterState {
   goToAdminBrands: () => void;
   goToAdminAffiliate: () => void;
   goToAdminMessages: () => void;
+  goToAdminBlog: () => void;
   goToBestSellers: () => void;
   goToDeals: () => void;
   goToPage: (page: SimplePage) => void;
@@ -245,6 +246,15 @@ export const useRouterStore = create<RouterState>((set) => ({
     return { route };
   }),
 
+  goToAdminBlog: () => set((state) => {
+    const route: RoutePath = { page: 'admin-blog' };
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ route }, '', '#admin-blog');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return { route };
+  }),
+
   goToBestSellers: () => set((state) => {
     const route: RoutePath = { page: 'best-sellers' };
     if (typeof window !== 'undefined') {
@@ -288,6 +298,7 @@ function routeToHash(route: RoutePath): string {
     case 'admin-brands': return 'admin-brands';
     case 'admin-affiliate': return 'admin-affiliate';
     case 'admin-messages': return 'admin-messages';
+    case 'admin-blog': return 'admin-blog';
     case 'best-sellers': return 'best-sellers';
     case 'deals': return 'deals';
     case 'roundups': return 'roundups';
@@ -321,7 +332,7 @@ export function hashToRoute(hash: string): RoutePath {
       }
       return { page: 'blog' };
     default:
-      if (['about', 'contact', 'privacy', 'terms', 'editorial-policy', 'how-we-test', 'trending', 'roundups', 'wishlist', 'compare', 'guides', 'bookmarks', 'gear-finder', 'affiliate-settings', 'admin', 'admin-products', 'admin-categories', 'admin-brands', 'admin-affiliate', 'admin-messages', 'best-sellers', 'deals', 'not-found'].includes(type)) {
+      if (['about', 'contact', 'privacy', 'terms', 'editorial-policy', 'how-we-test', 'trending', 'roundups', 'wishlist', 'compare', 'guides', 'bookmarks', 'gear-finder', 'affiliate-settings', 'admin', 'admin-products', 'admin-categories', 'admin-brands', 'admin-affiliate', 'admin-messages', 'admin-blog', 'best-sellers', 'deals', 'not-found'].includes(type)) {
         return { page: type as RoutePath['page'] } as RoutePath;
       }
       return { page: 'not-found' };

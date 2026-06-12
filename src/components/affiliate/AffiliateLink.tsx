@@ -43,12 +43,14 @@ export function AffiliateLink({ merchant, productId, children, className = '', v
 interface CheckPriceButtonProps {
   merchant: Merchant;
   productId: string;
+  customUrl?: string;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
 }
 
-export function CheckPriceButton({ merchant, productId, className = '', size = 'md' }: CheckPriceButtonProps) {
-  const url = getAffiliateUrl({ merchant, productId });
+export function CheckPriceButton({ merchant, productId, customUrl, className = '', size = 'md' }: CheckPriceButtonProps) {
+  const autoUrl = getAffiliateUrl({ merchant, productId });
+  const url = customUrl || autoUrl;
   const linkProps = getAffiliateLinkProps(url);
   const merchantName = getMerchantName(merchant);
 
@@ -72,12 +74,14 @@ export function CheckPriceButton({ merchant, productId, className = '', size = '
 interface ViewLatestDealButtonProps {
   merchant: Merchant;
   productId: string;
+  customUrl?: string;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
 }
 
-export function ViewLatestDealButton({ merchant, productId, className = '', size = 'md' }: ViewLatestDealButtonProps) {
-  const url = getAffiliateUrl({ merchant, productId });
+export function ViewLatestDealButton({ merchant, productId, customUrl, className = '', size = 'md' }: ViewLatestDealButtonProps) {
+  const autoUrl = getAffiliateUrl({ merchant, productId });
+  const url = customUrl || autoUrl;
   const linkProps = getAffiliateLinkProps(url);
   const merchantName = getMerchantName(merchant);
 

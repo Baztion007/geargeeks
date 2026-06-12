@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { useCompareStore } from '@/lib/compare';
 import { useRouterStore } from '@/lib/router';
-import { getProductBySlug, searchProducts, products as allProducts } from '@/data/products';
+import { useDataStore, useEnsureData, searchProducts } from '@/lib/data-store';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
 import { StarRating, RatingBreakdownDisplay } from '@/components/affiliate/RatingBar';
 import { CheckPriceButton } from '@/components/affiliate/AffiliateLink';
@@ -23,6 +23,8 @@ import { ComparisonTable } from '@/components/affiliate/ComparisonTable';
 import { ScoreBadge } from '@/components/affiliate/ScoreBadge';
 
 export function ComparePage() {
+  useEnsureData();
+  const allProducts = useDataStore((s) => s.products);
   const items = useCompareStore((s) => s.items);
   const removeItem = useCompareStore((s) => s.removeItem);
   const addItem = useCompareStore((s) => s.addItem);
@@ -31,7 +33,7 @@ export function ComparePage() {
   const goToPage = useRouterStore((s) => s.goToPage);
 
   const products = items
-    .map((slug) => getProductBySlug(slug))
+    .map((slug) => allProducts.find((p) => p.slug === slug))
     .filter(Boolean);
 
   // Scroll refs and state for mobile scroll indicators
@@ -46,7 +48,7 @@ export function ComparePage() {
 
   const addSearchResults = useMemo(() => {
     if (!addSearchQuery.trim()) return [];
-    return searchProducts(addSearchQuery).filter(
+    return searchProducts(allProducts, addSearchQuery).filter(
       (p) => !items.includes(p.slug)
     ).slice(0, 5);
   }, [addSearchQuery, items]);
@@ -143,7 +145,7 @@ export function ComparePage() {
               </div>
               <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{product.title}</h3>
               <div className="flex justify-center mb-2"><ScoreBadge rating={product.rating} size="sm" /></div>
-              <CheckPriceButton merchant={product.merchant} productId={product.asin} size="sm" className="w-full" />
+              <CheckPriceButton merchant={product.merchant} productId={product.asin} customUrl={product.priceUrl || product.affiliateUrl || undefined} size="sm" className="w-full" />
               <Button variant="ghost" size="sm" className="mt-2 text-gray-400 hover:text-red-500" onClick={() => removeItem(product.slug)}>Remove</Button>
             </CardContent>
           </Card>
@@ -488,7 +490,7 @@ export function ComparePage() {
                     </div>
 
                     {/* CTA */}
-                    <CheckPriceButton merchant={product!.merchant} productId={product!.asin} size="sm" className="w-full" />
+                    <CheckPriceButton merchant={product!.merchant} productId={product!.asin} customUrl={product!.priceUrl || product!.affiliateUrl || undefined} size="sm" className="w-full" />
                   </CardContent>
                 </Card>
               </div>

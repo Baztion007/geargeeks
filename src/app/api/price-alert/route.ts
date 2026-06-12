@@ -64,8 +64,8 @@ export async function POST(request: NextRequest) {
       // Update target price if alert already exists
       if (!existing.active) {
         await db.priceAlert.update({
-          where: { id: existing.id },
-          data: { active: true, targetPrice },
+          where: { id: existing.id as string },
+          data: { active: 1, targetPrice },
         });
         return NextResponse.json(
           { message: 'Your price alert has been reactivated with the new target price.' },
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       }
       // Update target price for existing active alert
       await db.priceAlert.update({
-        where: { id: existing.id },
+        where: { id: existing.id as string },
         data: { targetPrice },
       });
       return NextResponse.json(
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
     const alerts = await db.priceAlert.findMany({
       where: {
         email: trimmedEmail,
-        active: true,
+        active: 1,
       },
       orderBy: {
         createdAt: 'desc',

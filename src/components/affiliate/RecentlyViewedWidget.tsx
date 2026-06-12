@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRecentlyViewedStore } from '@/lib/recently-viewed';
-import { getProductBySlug } from '@/data/products';
+import { useDataStore, useEnsureData } from '@/lib/data-store';
 import { useRouterStore } from '@/lib/router';
 import { StarRating } from '@/components/affiliate/RatingBar';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,8 @@ import { Package, Clock, Trash2, Eye, X, ChevronRight } from 'lucide-react';
 import type { Product } from '@/lib/types';
 
 export function RecentlyViewedWidget() {
+  useEnsureData();
+  const products = useDataStore((s) => s.products);
   const recentlyViewed = useRecentlyViewedStore((s) => s.recentlyViewed);
   const goToProduct = useRouterStore((s) => s.goToProduct);
   const clearRecentlyViewed = useRecentlyViewedStore((s) => s.clearRecentlyViewed);
@@ -17,7 +19,7 @@ export function RecentlyViewedWidget() {
   const [isMobileHidden, setIsMobileHidden] = useState(false);
 
   const prods = recentlyViewed
-    .map((slug) => getProductBySlug(slug))
+    .map((slug) => products.find((p) => p.slug === slug))
     .filter((p): p is Product => p !== undefined)
     .slice(0, 8);
 

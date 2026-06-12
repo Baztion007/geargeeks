@@ -2,9 +2,7 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useRouterStore } from '@/lib/router';
-import { products, getProductsByCategory, searchProducts } from '@/data/products';
-import { categories } from '@/data/categories';
-import { brands, getBrandsByCategory } from '@/data/brands';
+import { useDataStore, useEnsureData, searchProducts } from '@/lib/data-store';
 import { getAffiliateUrl, getMerchantName, getAffiliateLinkProps } from '@/lib/affiliate';
 import { CheckPriceButton } from '@/components/affiliate/AffiliateLink';
 import { StarRating } from '@/components/affiliate/RatingBar';
@@ -120,9 +118,9 @@ function calculateMatch(product: Product, answers: QuizAnswers): number {
   return Math.round((score / maxScore) * 100);
 }
 
-function getLocalRecommendations(answers: QuizAnswers): Recommendation[] {
+function getLocalRecommendations(answers: QuizAnswers, products: Product[]): Recommendation[] {
   const categoryProducts = answers.category
-    ? getProductsByCategory(answers.category)
+    ? products.filter((p) => p.categorySlug === answers.category)
     : products;
 
   const scored = categoryProducts.map((product) => ({
@@ -281,6 +279,7 @@ function RecommendationCard({ rec, index }: { rec: Recommendation; index: number
                 <CheckPriceButton
                   merchant={rec.product.merchant}
                   productId={rec.product.asin}
+                  customUrl={rec.product.priceUrl || rec.product.affiliateUrl || undefined}
                   size="sm"
                 />
                 <Button
@@ -303,6 +302,10 @@ function RecommendationCard({ rec, index }: { rec: Recommendation; index: number
 
 // ─── Main Quiz Component ───────────────────────────────────────────────────
 export function GearFinderQuiz() {
+  useEnsureData();
+  const products = useDataStore((s) => s.products);
+  const categories = useDataStore((s) => s.categories);
+  const brands = useDataStore((s) => s.brands);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>({
     category: '',
@@ -320,7 +323,7 @@ export function GearFinderQuiz() {
   // Get use cases for selected category
   const useCases = useMemo(() => {
     if (!answers.category) return [];
-    const categoryProducts = getProductsByCategory(answers.category);
+    const categoryProducts = products.filter((p) => p.categorySlug === answers.category);
     const allBestFor = categoryProducts.flatMap((p) => p.bestFor);
     return [...new Set(allBestFor)];
   }, [answers.category]);
@@ -328,7 +331,7 @@ export function GearFinderQuiz() {
   // Get brands for selected category
   const categoryBrands = useMemo(() => {
     if (!answers.category) return [];
-    return getBrandsByCategory(answers.category);
+    return brands.filter((b) => b.categories.includes(answers.category));
   }, [answers.category]);
 
   const handleAnswer = useCallback(
@@ -343,7 +346,7 @@ export function GearFinderQuiz() {
       setStep((prev) => prev + 1);
     } else {
       // Calculate recommendations
-      const recs = getLocalRecommendations(answers);
+      const recs = getLocalRecommendations(answers, products);
       setRecommendations(recs);
       setStep(totalSteps); // Results step
 

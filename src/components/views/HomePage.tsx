@@ -2,11 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouterStore } from '@/lib/router';
-import { getEditorPicks, getTrending, getRecentlyUpdated } from '@/data/products';
-import { categories, getFeaturedCategories } from '@/data/categories';
-import { brands } from '@/data/brands';
+import { useDataStore, useEnsureData, getEditorPicks, getTrending, getRecentlyUpdated, getFeaturedCategories } from '@/lib/data-store';
 import { buyingGuides } from '@/data/buying-guides';
-import { blogPosts } from '@/data/blog-posts';
 import { getAffiliateUrl, getMerchantName, siteData } from '@/lib/affiliate';
 import { getAffiliateLinkProps } from '@/lib/affiliate';
 import { ProductCard } from '@/components/affiliate/ProductCard';
@@ -439,7 +436,8 @@ function HeroSection() {
 // ─── Popular Categories Section ─────────────────────────────────────────────
 function CategoriesSection() {
   const goToCategory = useRouterStore((s) => s.goToCategory);
-  const featuredCats = getFeaturedCategories();
+  const categories = useDataStore((s) => s.categories);
+  const featuredCats = getFeaturedCategories(categories);
 
   return (
     <section className="py-16 sm:py-20 bg-white dark:bg-gray-900 section-divider-wave">
@@ -517,7 +515,8 @@ function CategoriesSection() {
 
 // ─── Editor's Picks Section ──────────────────────────────────────────────
 function EditorsPicksSection() {
-  const editorPicks = getEditorPicks();
+  const products = useDataStore((s) => s.products);
+  const editorPicks = getEditorPicks(products);
 
   return (
     <section id="editors-picks" className="py-16 sm:py-20 bg-gray-50 dark:bg-gray-800/50 relative dot-pattern section-divider-wave-gray">
@@ -552,9 +551,10 @@ function EditorsPicksSection() {
 
 // ─── Trending Products Section ──────────────────────────────────────────────
 function TrendingSection() {
-  const editorPicks = getEditorPicks();
+  const products = useDataStore((s) => s.products);
+  const editorPicks = getEditorPicks(products);
   const editorPickIds = new Set(editorPicks.slice(0, 4).map((p) => p.id));
-  const trending = getTrending().filter((p) => !editorPickIds.has(p.id));
+  const trending = getTrending(products).filter((p) => !editorPickIds.has(p.id));
 
   return (
     <section className="py-16 sm:py-20 bg-white dark:bg-gray-900 section-divider-wave">
@@ -584,7 +584,8 @@ function TrendingSection() {
 
 // ─── Recently Updated Reviews Section ───────────────────────────────────────
 function RecentlyUpdatedSection() {
-  const recentlyUpdated = getRecentlyUpdated();
+  const products = useDataStore((s) => s.products);
+  const recentlyUpdated = getRecentlyUpdated(products);
   const goToProduct = useRouterStore((s) => s.goToProduct);
 
   return (
@@ -753,6 +754,7 @@ function BuyingGuidesSection() {
 // ─── Featured Brands Section ────────────────────────────────────────────────
 function FeaturedBrandsSection() {
   const goToBrand = useRouterStore((s) => s.goToBrand);
+  const brands = useDataStore((s) => s.brands);
 
   return (
     <section className="py-16 sm:py-20 bg-gray-50 dark:bg-gray-800/50 section-divider-wave-gray">
@@ -962,6 +964,7 @@ function TestimonialsSection() {
 // ─── Browse All Categories Section ─────────────────────────────────────────
 function BrowseAllCategoriesSection() {
   const goToCategory = useRouterStore((s) => s.goToCategory);
+  const categories = useDataStore((s) => s.categories);
 
   const allCategoryIcons: Record<string, React.ReactNode> = {
     'travel-gear': <Luggage className="w-6 h-6" />,
@@ -1027,6 +1030,8 @@ function BrowseAllCategoriesSection() {
 }
 
 export default function HomePage() {
+  useEnsureData();
+
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <HeroSection />

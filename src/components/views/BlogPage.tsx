@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
-import { blogPosts } from '@/data/blog-posts';
+import { useDataStore, useEnsureData } from '@/lib/data-store';
 import { authors, getAuthorBySlug } from '@/data/authors';
 import { useRouterStore } from '@/lib/router';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +36,8 @@ const categoryColors: Record<string, string> = {
 };
 
 export function BlogPage() {
+  useEnsureData();
+  const blogPosts = useDataStore((s) => s.blogPosts);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const goToBlogPost = useRouterStore((s) => s.goToBlogPost);

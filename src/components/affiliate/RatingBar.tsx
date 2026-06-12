@@ -57,7 +57,8 @@ interface RatingBreakdownBarProps {
 }
 
 export function RatingBreakdownBar({ label, value }: RatingBreakdownBarProps) {
-  const percentage = (value / 5) * 100;
+  const safeValue = value ?? 0;
+  const percentage = (safeValue / 5) * 100;
 
   return (
     <div className="flex items-center gap-3">
@@ -68,7 +69,7 @@ export function RatingBreakdownBar({ label, value }: RatingBreakdownBarProps) {
           style={{ width: `${percentage}%` }}
         />
       </div>
-      <span className="text-sm font-semibold text-gray-700 w-8 text-right">{value.toFixed(1)}</span>
+      <span className="text-sm font-semibold text-gray-700 w-8 text-right">{(value ?? 0).toFixed(1)}</span>
     </div>
   );
 }

@@ -4,9 +4,8 @@ import React, { useState, useMemo } from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
 import { ProductCard } from '@/components/affiliate/ProductCard';
 import { CheckPriceButton } from '@/components/affiliate/AffiliateLink';
-import { getBlogPostBySlug, getRelatedPosts, blogPosts } from '@/data/blog-posts';
+import { useDataStore, useEnsureData, getRelatedPosts } from '@/lib/data-store';
 import { getAuthorBySlug } from '@/data/authors';
-import { products } from '@/data/products';
 import { useRouterStore } from '@/lib/router';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -141,7 +140,10 @@ function TableOfContents({ content }: { content: string }) {
 }
 
 export function BlogPostPage({ postSlug }: { postSlug: string }) {
-  const post = getBlogPostBySlug(postSlug);
+  useEnsureData();
+  const blogPosts = useDataStore((s) => s.blogPosts);
+  const products = useDataStore((s) => s.products);
+  const post = blogPosts.find((p) => p.slug === postSlug);
   const goToBlog = useRouterStore((s) => s.goToPage);
   const goToAuthor = useRouterStore((s) => s.goToAuthor);
   const goToBlogPost = useRouterStore((s) => s.goToBlogPost);
@@ -181,7 +183,7 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
   }
 
   const author = getAuthorBySlug(post.authorSlug);
-  const relatedPosts = getRelatedPosts(postSlug, 3);
+  const relatedPosts = getRelatedPosts(blogPosts, postSlug, 3);
   const readTime = post.readingTime ? `${post.readingTime} min read` : getReadTime(post.content);
 
   // Split content into paragraphs
@@ -381,7 +383,7 @@ export function BlogPostPage({ postSlug }: { postSlug: string }) {
                               <span className="text-[10px] text-gray-500 dark:text-gray-400">{product.bestFor[0]}</span>
                             )}
                           </div>
-                          <CheckPriceButton merchant={product.merchant} productId={product.asin} size="sm" className="mt-1.5" />
+                          <CheckPriceButton merchant={product.merchant} productId={product.asin} customUrl={product.priceUrl || product.affiliateUrl || undefined} size="sm" className="mt-1.5" />
                         </div>
                       </div>
                     </button>

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
 import { ProductCard } from '@/components/affiliate/ProductCard';
 import { getAuthorBySlug } from '@/data/authors';
-import { products } from '@/data/products';
+import { useDataStore, useEnsureData } from '@/lib/data-store';
 import { useRouterStore } from '@/lib/router';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -191,6 +191,8 @@ interface AuthorPageProps {
 }
 
 export function AuthorPage({ authorSlug }: AuthorPageProps) {
+  useEnsureData();
+  const products = useDataStore((s) => s.products);
   const navigate = useRouterStore((s) => s.navigate);
   const goHome = useRouterStore((s) => s.goHome);
   const goToPage = useRouterStore((s) => s.goToPage);

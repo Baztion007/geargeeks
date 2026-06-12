@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-function stringifyCategory(data: Record<string, unknown>) {
-  return { ...data };
-}
-
 // GET /api/categories — List all categories
 export async function GET() {
   try {
@@ -12,7 +8,7 @@ export async function GET() {
       orderBy: { name: 'asc' },
     });
 
-    return NextResponse.json({ categories });
+    return NextResponse.json({ categories }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
   } catch (error) {
     console.error('Error fetching categories:', error);
     return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 });
@@ -35,16 +31,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Category with this slug already exists' }, { status: 409 });
     }
 
-    const stringified = stringifyCategory(body);
-
     const category = await db.categoryDB.create({
       data: {
-        slug: String(stringified.slug ?? ''),
-        name: String(stringified.name ?? ''),
-        description: String(stringified.description ?? ''),
-        image: String(stringified.image ?? ''),
-        productCount: Number(stringified.productCount) || 0,
-        featured: Boolean(stringified.featured),
+        slug: String(body.slug ?? ''),
+        name: String(body.name ?? ''),
+        description: String(body.description ?? ''),
+        image: String(body.image ?? ''),
+        productCount: Number(body.productCount) || 0,
+        featured: body.featured ? 1 : 0,
       },
     });
 
@@ -75,7 +69,11 @@ export async function PATCH(req: NextRequest) {
     const updateData: Record<string, unknown> = {};
     for (const field of allowedFields) {
       if (updates[field] !== undefined) {
-        updateData[field] = updates[field];
+        if (field === 'featured') {
+          updateData[field] = updates[field] ? 1 : 0;
+        } else {
+          updateData[field] = updates[field];
+        }
       }
     }
 

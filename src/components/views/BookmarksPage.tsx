@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useBookmarkStore } from '@/lib/bookmarks';
-import { getProductBySlug } from '@/data/products';
+import { useDataStore, useEnsureData } from '@/lib/data-store';
 import { ProductCard } from '@/components/affiliate/ProductCard';
 import { useRouterStore } from '@/lib/router';
 import { Bookmark, Trash2, Package, Share2, Copy, Clock, X, CheckCircle } from 'lucide-react';
@@ -50,6 +50,8 @@ function saveBookmarkTimestamps(timestamps: BookmarkWithTimestamp[]) {
 }
 
 export function BookmarksPage() {
+  useEnsureData();
+  const products = useDataStore((s) => s.products);
   const bookmarks = useBookmarkStore((s) => s.bookmarks);
   const removeBookmark = useBookmarkStore((s) => s.removeBookmark);
   const clearBookmarks = useBookmarkStore((s) => s.clearBookmarks);
@@ -88,7 +90,7 @@ export function BookmarksPage() {
   };
 
   const prods = bookmarks
-    .map((slug) => getProductBySlug(slug))
+    .map((slug) => products.find((p) => p.slug === slug))
     .filter((p): p is Product => p !== undefined);
 
   // Recently bookmarked: sort by timestamp descending, take top 5
@@ -96,7 +98,7 @@ export function BookmarksPage() {
     .sort((a, b) => b.addedAt - a.addedAt)
     .slice(0, 5)
     .map((t) => {
-      const product = getProductBySlug(t.slug);
+      const product = products.find((p) => p.slug === t.slug);
       return product ? { product, addedAt: t.addedAt } : null;
     })
     .filter((item): item is { product: Product; addedAt: number } => item !== null);

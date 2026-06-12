@@ -5,7 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -109,6 +110,8 @@ model Product {
   ratingBreakdown String   @default("{}")
   asin            String   @default("")
   merchant        String   @default("amazon")
+  affiliateUrl    String   @default("")
+  priceUrl        String   @default("")
   tags            String   @default("[]")
   updatedAt       DateTime @updatedAt
   publishedAt     DateTime @default(now())

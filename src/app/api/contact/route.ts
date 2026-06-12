@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
     const total = await db.contactMessage.count();
 
     // Don't expose IPs via API
-    const safeMessages = messages.map(({ ipAddress, ...rest }) => rest);
+    const safeMessages = messages.map(({ ipAddress, ...rest }: Record<string, unknown>) => rest);
 
     return NextResponse.json({
       messages: safeMessages,
@@ -166,7 +166,7 @@ export async function PATCH(request: NextRequest) {
 
     const updated = await db.contactMessage.update({
       where: { id },
-      data: { isRead: isRead === undefined ? true : isRead },
+      data: { isRead: isRead === undefined ? 1 : (isRead ? 1 : 0) },
     });
 
     return NextResponse.json({ success: true, message: updated });

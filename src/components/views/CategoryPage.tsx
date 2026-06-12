@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { products, getProductsByCategory } from '@/data/products';
-import { categories, getCategoryBySlug } from '@/data/categories';
-import { getBrandsByCategory } from '@/data/brands';
+import { useDataStore, useEnsureData } from '@/lib/data-store';
 import { getBuyingGuidesByCategory } from '@/data/buying-guides';
 import { useRouterStore } from '@/lib/router';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
@@ -86,7 +84,11 @@ function getGuideTypeBadge(type: GuideType) {
 }
 
 export function CategoryPage({ categorySlug }: CategoryPageProps) {
-  const category = getCategoryBySlug(categorySlug);
+  useEnsureData();
+  const products = useDataStore((s) => s.products);
+  const categories = useDataStore((s) => s.categories);
+  const brands = useDataStore((s) => s.brands);
+  const category = categories.find((c) => c.slug === categorySlug);
   const goToCategory = useRouterStore((s) => s.goToCategory);
   const goToBuyingGuide = useRouterStore((s) => s.goToBuyingGuide);
   const goToBrand = useRouterStore((s) => s.goToBrand);
@@ -117,14 +119,14 @@ export function CategoryPage({ categorySlug }: CategoryPageProps) {
   const accentClass = CATEGORY_ACCENT_MAP[categorySlug] || 'category-accent-audio';
 
   const categoryProducts = useMemo(
-    () => getProductsByCategory(categorySlug),
-    [categorySlug]
+    () => products.filter((p) => p.categorySlug === categorySlug),
+    [products, categorySlug]
   );
 
   // Get brands for this category
   const categoryBrands = useMemo(
-    () => getBrandsByCategory(categorySlug),
-    [categorySlug]
+    () => brands.filter((b) => b.categories.includes(categorySlug)),
+    [brands, categorySlug]
   );
 
   // Get unique bestFor values from products in this category

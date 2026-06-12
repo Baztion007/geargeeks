@@ -200,6 +200,7 @@ export function ProductCard({ product, showAffiliate = true, hideDisclosure = fa
             <CheckPriceButton
               merchant={product.merchant}
               productId={product.asin}
+              customUrl={product.priceUrl || product.affiliateUrl || undefined}
               size="sm"
               className="w-full mt-2 cta-primary cta-sweep rounded-lg text-sm py-2.5 hover:shadow-lg hover:shadow-amber-500/25"
             />
