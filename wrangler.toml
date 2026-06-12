@@ -1,7 +1,7 @@
 #:schema node_modules/wrangler/config-schema.json
 name = "geargeekz"
-compatibility_date = "2025-04-01"
-compatibility_flags = ["nodejs_compat"]
+compatibility_date = "2025-06-01"
+compatibility_flags = ["nodejs_compat_v2"]
 
 # ─── REQUIRED for @opennextjs/cloudflare ──────────────────────────────────
 # These tell wrangler where to find the build output.
@@ -22,10 +22,11 @@ NEXT_PUBLIC_SITE_URL = "https://geargeekz.com"
 #
 # ─── Cloudflare Pages (GitHub-connected auto-deploy) ───────────────────────
 # If using Cloudflare Pages with GitHub integration, set in the dashboard:
-#   Build command:    npx opennextjs-cloudflare build
-#   Build output dir: .open-next/assets
-#   Root directory:   /
-#   Node.js version:  20
+#   Framework preset:  Next.js (Static Export)
+#   Build command:     npx opennextjs-cloudflare build
+#   Build output dir:  .open-next/assets
+#   Root directory:    /
+#   Environment vars:  NODE_VERSION=20
 #
 # ─── Prerequisites ─────────────────────────────────────────────────────────
 #

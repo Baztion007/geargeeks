@@ -16,6 +16,17 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
 
+  // ─── Server External Packages ────────────────────────────────────────────
+  // These packages are NOT bundled into the edge worker — they're resolved at
+  // runtime. This keeps the worker bundle small enough for Cloudflare's limits.
+  serverExternalPackages: [
+    "@prisma/client",
+    "@prisma/adapter-libsql",
+    "@libsql/client",
+    "sharp",
+    "prisma",
+  ],
+
   // ─── GitHub Pages base path ───────────────────────────────────────────────
   // If your GitHub repo is at github.com/<user>/<repo>, set NEXT_PUBLIC_BASE_PATH=/<repo>
   // For example: NEXT_PUBLIC_BASE_PATH=/geargeekz
