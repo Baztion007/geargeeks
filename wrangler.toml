@@ -1,11 +1,22 @@
+#:schema node_modules/wrangler/config-schema.json
 name = "geargeekz"
-compatibility_date = "2024-12-01"
+compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
+main = ".open-next/worker.js"
+assets = { directory = ".open-next/assets", binding = "ASSETS" }
 
 [vars]
 NEXT_PUBLIC_SITE_URL = "https://geargeekz.com"
 
 # ─── Cloudflare Deployment Guide ───────────────────────────────────────────
+#
+# DEPLOY USING: bun run cf:deploy
+#   (This runs `opennextjs-cloudflare build && opennextjs-cloudflare deploy`)
+#
+# DO NOT run `wrangler deploy` directly — it will fail because the build
+# output (.open-next/) must be generated first by opennextjs-cloudflare build.
+#
+# ─── Prerequisites ─────────────────────────────────────────────────────────
 #
 # 1. Create a Turso database (required — Cloudflare Workers can't use file: SQLite):
 #    $ turso db create geargeekz
@@ -15,25 +26,18 @@ NEXT_PUBLIC_SITE_URL = "https://geargeekz.com"
 # 2. Push the Prisma schema to Turso:
 #    $ DATABASE_URL=libsql://... DATABASE_AUTH_TOKEN=... bun run db:push
 #
-# 3. Seed the database:
+# 3. Seed the database (after first deploy):
 #    $ curl -X POST https://geargeekz.com/api/seed
 #
-# 4. Set these as Secrets in Cloudflare Pages dashboard (Settings → Environment variables):
-#    - ADMIN_PASSWORD
-#    - ADMIN_SESSION_SECRET
-#    - DATABASE_URL (libsql://your-db.turso.io)
-#    - DATABASE_AUTH_TOKEN (Turso auth token)
+# ─── Set these as Secrets in Cloudflare dashboard ──────────────────────────
+# Workers → geargeekz → Settings → Variables and Secrets
+#   - ADMIN_PASSWORD (secure admin password)
+#   - ADMIN_SESSION_SECRET (random secret, at least 32 chars)
+#   - DATABASE_URL (libsql://your-db.turso.io)
+#   - DATABASE_AUTH_TOKEN (Turso auth token)
 #
-# 5. Build command (in Cloudflare Pages settings):
-#    bun run pages:build
-#    (This automatically adds runtime = 'edge' to API routes before building)
-#
-# 6. Output directory: .vercel/output/static
-#
-# Optional affiliate tag overrides:
-# NEXT_PUBLIC_AFFILIATE_TAG_AMAZON
-# NEXT_PUBLIC_AFFILIATE_TAG_WALMART
-# NEXT_PUBLIC_AFFILIATE_TAG_BESTBUY
-# NEXT_PUBLIC_AFFILIATE_TAG_TARGET
-# NEXT_PUBLIC_AFFILIATE_TAG_REI
-# NEXT_PUBLIC_AFFILIATE_TAG_BHPHOTO
+# ─── Cloudflare Pages (GitHub integration) ─────────────────────────────────
+# If using Cloudflare Pages auto-deploy from GitHub:
+#   Build command:    npx opennextjs-cloudflare build
+#   Build output dir: .open-next/assets
+#   Root directory:   /

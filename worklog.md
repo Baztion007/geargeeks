@@ -479,3 +479,99 @@ Stage Summary:
 - Add `.nojekyll` file to `public/` for GitHub Pages
 - Consider adding a 404.html redirect for SPA routing on GitHub Pages
 - Newsletter/contact form could use Formspree for GitHub Pages
+
+---
+
+Task ID: 12
+Agent: Main
+Task: Fix Cloudflare build error — "Could not find compiled Open Next config, did you run the build command?"
+
+Work Log:
+- Diagnosed root cause: User ran `wrangler deploy` directly, which auto-detects OpenNext and calls `opennextjs-cloudflare deploy` — but the build step hadn't been run first
+- Found two conflicting wrangler config files: `wrangler.toml` (old, missing `main` and `assets`) and `wrangler.jsonc` (new, correct format) — wrangler prefers `.toml` which had incomplete config
+- **Fix #1: Removed duplicate `wrangler.jsonc`** — single source of truth
+- **Fix #2: Rewrote `wrangler.toml`** with correct OpenNext Cloudflare configuration:
+  - Added `main = ".open-next/worker.js"` (entry point)
+  - Added `assets = { directory = ".open-next/assets", binding = "ASSETS" }` (static assets)
+  - Updated `compatibility_date` to `2025-04-01`
+  - Added comprehensive deployment documentation in comments
+  - Added `#:schema` directive for IDE autocompletion
+- **Fix #3: Updated `package.json` scripts**:
+  - Simplified `build` script from complex standalone copy to simple `next build`
+  - Fixed `start` script from standalone server to `next start`
+  - Added `pages:build`, `pages:deploy`, `pages:dev` aliases for Cloudflare
+  - Removed `cf:upload` (not needed)
+- **Fix #4: Verified `opennextjs-cloudflare build` completes successfully**:
+  - Build time: ~12 seconds
+  - Output: `.open-next/worker.js` (2,278 bytes) + `.open-next/assets/` directory
+  - All 21 routes generated (3 static, 18 dynamic)
+- **Fix #5: Verified dev server works correctly**:
+  - Homepage: renders hero, navigation, categories, trust badges, footer
+  - Trending page: 25 products, filters, pagination
+  - Blog page: 4 articles with categories and search
+  - Zero console errors on all pages
+
+Stage Summary:
+- **Cloudflare build now works correctly** with `bun run cf:build` or `bun run cf:deploy`
+- **Root cause was**: missing `main` and `assets` in `wrangler.toml` + build not being run before deploy
+- **Key insight for user**: NEVER run `wrangler deploy` directly — always use `bun run cf:deploy` which runs build first
+- Dev server verified working on all key pages
+- Files: `wrangler.toml` (rewritten), `wrangler.jsonc` (deleted), `package.json` (scripts updated)
+
+---
+
+## Project Status
+
+### Current State
+- **GearGeekz** is production-ready for Cloudflare Workers deployment
+- The OpenNext build completes successfully with zero errors
+- Dev server works correctly on all pages
+- All Cloudflare configuration is correct and consolidated in `wrangler.toml`
+
+### Deployment Guide
+
+| Target | Command | Output |
+|--------|---------|--------|
+| Local dev | `bun run dev` | http://localhost:3000 |
+| Cloudflare build | `bun run cf:build` | `.open-next/` |
+| Cloudflare deploy | `bun run cf:deploy` | Production |
+| Cloudflare preview | `bun run cf:preview` | Local Wrangler dev |
+| GitHub Pages | `bun run static:build` | `out/` |
+
+### How to Deploy to Cloudflare (Step by Step)
+
+**Option A: Using CLI (recommended)**
+```bash
+# 1. Set up Turso database
+turso db create geargeekz
+turso db show geargeekz --url     # → DATABASE_URL
+turso db tokens create geargeekz  # → DATABASE_AUTH_TOKEN
+
+# 2. Push schema to Turso
+DATABASE_URL=libsql://... DATABASE_AUTH_TOKEN=... bun run db:push
+
+# 3. Set secrets in Cloudflare
+wrangler secret put DATABASE_URL
+wrangler secret put DATABASE_AUTH_TOKEN
+wrangler secret put ADMIN_PASSWORD
+wrangler secret put ADMIN_SESSION_SECRET
+
+# 4. Deploy (build + deploy in one command)
+bun run cf:deploy
+```
+
+**Option B: Using Cloudflare Pages (GitHub integration)**
+1. Push repo to GitHub
+2. In Cloudflare dashboard: Create → Pages → Connect to Git
+3. Set build settings:
+   - **Build command**: `npx opennextjs-cloudflare build`
+   - **Build output directory**: `.open-next/assets`
+4. Set environment variables/secrets in Pages settings
+
+### ⚠️ IMPORTANT: Do NOT run `wrangler deploy` directly
+The error "Could not find compiled Open Next config" happens because `wrangler deploy` tries to deploy without building first. Always use `bun run cf:deploy` which runs build + deploy together.
+
+### Unresolved / Next Phase Recommendations
+- Migrate in-memory state to Cloudflare KV or D1 for persistent rate limiting
+- Add more visual polish and features
+- Consider Cloudflare D1 as alternative to Turso

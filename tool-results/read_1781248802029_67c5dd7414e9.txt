@@ -1,0 +1,778 @@
+     1→import { NextRequest, NextResponse } from 'next/server';
+     2→import { db } from '@/lib/db';
+     3→import type { Merchant } from '@/lib/types';
+     4→
+     5→// ── In-memory click tracking ───────────────────────────────────────────────
+     6→
+     7→interface ClickLog {
+     8→  merchant: Merchant;
+     9→  productId: string;
+    10→  timestamp: string;
+    11→  userAgent?: string;
+    12→  referer?: string;
+    13→}
+    14→
+    15→const clickLogs: ClickLog[] = [];
+    16→
+    17→// ── Default merchant configs (used for seeding) ────────────────────────────
+    18→
+    19→interface MerchantConfig {
+    20→  id: Merchant;
+    21→  name: string;
+    22→  affiliateTag: string;
+    23→  baseUrl: string;
+    24→  urlTemplate: string;
+    25→  enabled: boolean;
+    26→  priority: number;
+    27→  color: string;
+    28→  icon: string;
+    29→}
+    30→
+    31→const DEFAULT_MERCHANTS: MerchantConfig[] = [
+    32→  {
+    33→    id: 'amazon',
+    34→    name: 'Amazon',
+    35→    affiliateTag: 'productreview0b-20',
+    36→    baseUrl: 'https://www.amazon.com',
+    37→    urlTemplate: 'https://www.amazon.com/dp/{productId}?tag={tag}',
+    38→    enabled: true,
+    39→    priority: 1,
+    40→    color: '#FF9900',
+    41→    icon: 'shopping-bag',
+    42→  },
+    43→  {
+    44→    id: 'walmart',
+    45→    name: 'Walmart',
+    46→    affiliateTag: 'productreview0b',
+    47→    baseUrl: 'https://walmart.com',
+    48→    urlTemplate: 'https://walmart.com/ip/{productId}?affid={tag}',
+    49→    enabled: true,
+    50→    priority: 2,
+    51→    color: '#0071DC',
+    52→    icon: 'store',
+    53→  },
+    54→  {
+    55→    id: 'bestbuy',
+    56→    name: 'Best Buy',
+    57→    affiliateTag: 'productreview0b',
+    58→    baseUrl: 'https://bestbuy.com',
+    59→    urlTemplate: 'https://bestbuy.com/site/{productId}?ref={tag}',
+    60→    enabled: true,
+    61→    priority: 3,
+    62→    color: '#0046BE',
+    63→    icon: 'monitor',
+    64→  },
+    65→  {
+    66→    id: 'target',
+    67→    name: 'Target',
+    68→    affiliateTag: 'productreview0b',
+    69→    baseUrl: 'https://target.com',
+    70→    urlTemplate: 'https://target.com/s?searchTerm={productId}&ref={tag}',
+    71→    enabled: true,
+    72→    priority: 4,
+    73→    color: '#CC0000',
+    74→    icon: 'target',
+    75→  },
+    76→  {
+    77→    id: 'rei',
+    78→    name: 'REI',
+    79→    affiliateTag: 'productreview0b',
+    80→    baseUrl: 'https://rei.com',
+    81→    urlTemplate: 'https://rei.com/product/{productId}?ref={tag}',
+    82→    enabled: true,
+    83→    priority: 5,
+    84→    color: '#1A5632',
+    85→    icon: 'mountain',
+    86→  },
+    87→  {
+    88→    id: 'bhphoto',
+    89→    name: 'B&H Photo',
+    90→    affiliateTag: 'productreview0b',
+    91→    baseUrl: 'https://bhphotovideo.com',
+    92→    urlTemplate: 'https://bhpho.to/{productId}',
+    93→    enabled: true,
+    94→    priority: 6,
+    95→    color: '#C41230',
+    96→    icon: 'camera',
+    97→  },
+    98→];
+    99→
+   100→// ── Environment variable map ───────────────────────────────────────────────
+   101→
+   102→const ENV_TAG_MAP: Record<string, string> = {
+   103→  amazon: process.env.NEXT_PUBLIC_AFFILIATE_TAG_AMAZON || '',
+   104→  walmart: process.env.NEXT_PUBLIC_AFFILIATE_TAG_WALMART || '',
+   105→  bestbuy: process.env.NEXT_PUBLIC_AFFILIATE_TAG_BESTBUY || '',
+   106→  target: process.env.NEXT_PUBLIC_AFFILIATE_TAG_TARGET || '',
+   107→  rei: process.env.NEXT_PUBLIC_AFFILIATE_TAG_REI || '',
+   108→  bhphoto: process.env.NEXT_PUBLIC_AFFILIATE_TAG_BHPHOTO || '',
+   109→};
+   110→
+   111→// ── Helper: Apply env var overrides to merchant configs ────────────────────
+   112→
+   113→function applyEnvOverrides(merchants: MerchantConfig[]): MerchantConfig[] {
+   114→  return merchants.map((m) => {
+   115→    const envTag = ENV_TAG_MAP[m.id];
+   116→    if (envTag) {
+   117→      return { ...m, affiliateTag: envTag };
+   118→    }
+   119→    return m;
+   120→  });
+   121→}
+   122→
+   123→// ── Helper: Convert DB row to MerchantConfig ───────────────────────────────
+   124→
+   125→interface DbMerchantRow {
+   126→  id: number;
+   127→  merchantId: string;
+   128→  name: string;
+   129→  affiliateTag: string;
+   130→  baseUrl: string;
+   131→  urlTemplate: string;
+   132→  enabled: number;
+   133→  priority: number;
+   134→  color: string;
+   135→  icon: string;
+   136→  updatedAt: string;
+   137→}
+   138→
+   139→function dbRowToMerchantConfig(row: DbMerchantRow): MerchantConfig {
+   140→  return {
+   141→    id: row.merchantId as Merchant,
+   142→    name: row.name,
+   143→    affiliateTag: row.affiliateTag,
+   144→    baseUrl: row.baseUrl,
+   145→    urlTemplate: row.urlTemplate,
+   146→    enabled: row.enabled === 1,
+   147→    priority: row.priority,
+   148→    color: row.color,
+   149→    icon: row.icon,
+   150→  };
+   151→}
+   152→
+   153→interface DbSettingsRow {
+   154→  id: string;
+   155→  linkStrategy: string;
+   156→  redirectPrefix: string;
+   157→  nofollowEnabled: number;
+   158→  sponsoredEnabled: number;
+   159→  noopenerEnabled: number;
+   160→  openInNewTab: number;
+   161→  clickTracking: number;
+   162→  impressionTracking: number;
+   163→  updatedAt: string;
+   164→}
+   165→
+   166→function dbRowToSettings(row: DbSettingsRow) {
+   167→  return {
+   168→    linkStrategy: row.linkStrategy as 'direct' | 'redirect' | 'cloaked',
+   169→    redirectPrefix: row.redirectPrefix,
+   170→    nofollowEnabled: row.nofollowEnabled === 1,
+   171→    sponsoredEnabled: row.sponsoredEnabled === 1,
+   172→    noopenerEnabled: row.noopenerEnabled === 1,
+   173→    openInNewTab: row.openInNewTab === 1,
+   174→    clickTracking: row.clickTracking === 1,
+   175→    impressionTracking: row.impressionTracking === 1,
+   176→  };
+   177→}
+   178→
+   179→const DEFAULT_SETTINGS = {
+   180→  linkStrategy: 'direct' as const,
+   181→  redirectPrefix: '/go/',
+   182→  nofollowEnabled: true,
+   183→  sponsoredEnabled: true,
+   184→  noopenerEnabled: true,
+   185→  openInNewTab: true,
+   186→  clickTracking: true,
+   187→  impressionTracking: false,
+   188→};
+   189→
+   190→// ── Helper: Generate direct affiliate URL ──────────────────────────────────
+   191→
+   192→function generateDirectUrl(merchant: Merchant, productId: string, tag: string): string {
+   193→  const config = DEFAULT_MERCHANTS.find((m) => m.id === merchant);
+   194→  if (!config) {
+   195→    return `https://www.amazon.com/dp/${productId}?tag=${tag}`;
+   196→  }
+   197→  return config.urlTemplate.replace('{productId}', productId).replace('{tag}', tag);
+   198→}
+   199→
+   200→// ── Helper: Get env overrides map ──────────────────────────────────────────
+   201→
+   202→function getEnvOverridesMap(): Record<string, boolean> {
+   203→  const envOverrides: Record<string, boolean> = {};
+   204→  for (const key of Object.keys(ENV_TAG_MAP)) {
+   205→    envOverrides[key] = !!ENV_TAG_MAP[key];
+   206→  }
+   207→  return envOverrides;
+   208→}
+   209→
+   210→// ── Helper: Try Prisma model first, fall back to raw SQL ───────────────────
+   211→
+   212→async function getMerchantConfigs(): Promise<MerchantConfig[]> {
+   213→  // Try using the Prisma model
+   214→  try {
+   215→    const rows = await db.affiliateMerchantConfig.findMany({
+   216→      orderBy: { priority: 'asc' },
+   217→    });
+   218→    if (rows.length > 0) {
+   219→      return rows.map((r) => ({
+   220→        id: r.merchantId as Merchant,
+   221→        name: r.name,
+   222→        affiliateTag: r.affiliateTag,
+   223→        baseUrl: r.baseUrl,
+   224→        urlTemplate: r.urlTemplate,
+   225→        enabled: r.enabled,
+   226→        priority: r.priority,
+   227→        color: r.color,
+   228→        icon: r.icon,
+   229→      }));
+   230→    }
+   231→  } catch (error) {
+   232→    console.error('Prisma model query failed, falling back to raw SQL:', error);
+   233→  }
+   234→
+   235→  // Fall back to raw SQL (works even when Prisma model is stale in dev)
+   236→  try {
+   237→    const rows = await db.$queryRaw<DbMerchantRow[]>`
+   238→      SELECT * FROM AffiliateMerchantConfig ORDER BY priority ASC
+   239→    `;
+   240→    if (rows.length > 0) {
+   241→      return rows.map(dbRowToMerchantConfig);
+   242→    }
+   243→  } catch {
+   244→    // Table might not exist yet
+   245→  }
+   246→
+   247→  return [...DEFAULT_MERCHANTS];
+   248→}
+   249→
+   250→async function getGlobalSettings() {
+   251→  // Try Prisma model first
+   252→  try {
+   253→    const row = await db.affiliateGlobalSettings.findUnique({
+   254→      where: { id: 'default' },
+   255→    });
+   256→    if (row) {
+   257→      return {
+   258→        linkStrategy: row.linkStrategy as 'direct' | 'redirect' | 'cloaked',
+   259→        redirectPrefix: row.redirectPrefix,
+   260→        nofollowEnabled: row.nofollowEnabled,
+   261→        sponsoredEnabled: row.sponsoredEnabled,
+   262→        noopenerEnabled: row.noopenerEnabled,
+   263→        openInNewTab: row.openInNewTab,
+   264→        clickTracking: row.clickTracking,
+   265→        impressionTracking: row.impressionTracking,
+   266→      };
+   267→    }
+   268→  } catch (error) {
+   269→    console.error('Prisma settings query failed, falling back to raw SQL:', error);
+   270→  }
+   271→
+   272→  // Fall back to raw SQL
+   273→  try {
+   274→    const rows = await db.$queryRaw<DbSettingsRow[]>`
+   275→      SELECT * FROM AffiliateGlobalSettings WHERE id = 'default'
+   276→    `;
+   277→    if (rows.length > 0) {
+   278→      return dbRowToSettings(rows[0]);
+   279→    }
+   280→  } catch {
+   281→    // Table might not exist yet
+   282→  }
+   283→
+   284→  return DEFAULT_SETTINGS;
+   285→}
+   286→
+   287→function toSqlBool(val: any): number {
+   288→  if (typeof val === 'boolean') return val ? 1 : 0;
+   289→  if (typeof val === 'number') return val;
+   290→  return val ? 1 : 0;
+   291→}
+   292→
+   293→async function upsertMerchantConfig(merchantId: string, data: Record<string, any>) {
+   294→  // Convert boolean fields for SQLite
+   295→  const sqlData: Record<string, any> = {};
+   296→  for (const [key, value] of Object.entries(data)) {
+   297→    if (key === 'enabled') {
+   298→      sqlData[key] = toSqlBool(value);
+   299→    } else {
+   300→      sqlData[key] = value;
+   301→    }
+   302→  }
+   303→
+   304→  // Try Prisma model first
+   305→  try {
+   306→    const existing = await db.affiliateMerchantConfig.findUnique({
+   307→      where: { merchantId },
+   308→    });
+   309→    if (existing) {
+   310→      return await db.affiliateMerchantConfig.update({
+   311→        where: { merchantId },
+   312→        data,
+   313→      });
+   314→    } else {
+   315→      // Create requires all non-optional fields — merge with defaults
+   316→      const defaultConfig = DEFAULT_MERCHANTS.find((m) => m.id === merchantId);
+   317→      const createData = {
+   318→        merchantId,
+   319→        name: data.name ?? defaultConfig?.name ?? merchantId,
+   320→        affiliateTag: data.affiliateTag ?? defaultConfig?.affiliateTag ?? '',
+   321→        baseUrl: data.baseUrl ?? defaultConfig?.baseUrl ?? '',
+   322→        urlTemplate: data.urlTemplate ?? defaultConfig?.urlTemplate ?? '',
+   323→        enabled: data.enabled ?? true,
+   324→        priority: data.priority ?? defaultConfig?.priority ?? 99,
+   325→        color: data.color ?? defaultConfig?.color ?? '#FF9900',
+   326→        icon: data.icon ?? defaultConfig?.icon ?? 'shopping-bag',
+   327→      };
+   328→      return await db.affiliateMerchantConfig.create({
+   329→        data: createData,
+   330→      });
+   331→    }
+   332→  } catch (error) {
+   333→    console.error('Prisma merchant upsert failed, falling back to raw SQL:', error);
+   334→  }
+   335→
+   336→  // Fall back to raw SQL
+   337→  try {
+   338→    // Check if row exists
+   339→    const existing = await db.$queryRaw<DbMerchantRow[]>`
+   340→      SELECT * FROM AffiliateMerchantConfig WHERE merchantId = ${merchantId}
+   341→    `;
+   342→
+   343→    if (existing.length > 0) {
+   344→      // UPDATE
+   345→      const setClauses: string[] = ['updatedAt = CURRENT_TIMESTAMP'];
+   346→      const values: any[] = [];
+   347→      for (const [key, value] of Object.entries(sqlData)) {
+   348→        setClauses.push(`${key} = ?`);
+   349→        values.push(value);
+   350→      }
+   351→      if (setClauses.length > 0) {
+   352→        await db.$executeRawUnsafe(
+   353→          `UPDATE AffiliateMerchantConfig SET ${setClauses.join(', ')} WHERE merchantId = ?`,
+   354→          ...values,
+   355→          merchantId
+   356→        );
+   357→      }
+   358→    } else {
+   359→      // INSERT — need to generate an ID and set updatedAt since raw SQL doesn't use Prisma defaults
+   360→      const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+   361→      const columns = ['id', 'merchantId', ...Object.keys(sqlData), 'updatedAt'];
+   362→      const placeholders = columns.map(() => '?').join(', ');
+   363→      const now = new Date().toISOString();
+   364→      const values = [id, merchantId, ...Object.values(sqlData), now];
+   365→      await db.$executeRawUnsafe(
+   366→        `INSERT INTO AffiliateMerchantConfig (${columns.join(', ')}) VALUES (${placeholders})`,
+   367→        ...values
+   368→      );
+   369→    }
+   370→  } catch (error) {
+   371→    console.error('Raw SQL upsert failed:', error);
+   372→    throw error;
+   373→  }
+   374→
+   375→  return (await db.$queryRaw<DbMerchantRow[]>`
+   376→    SELECT * FROM AffiliateMerchantConfig WHERE merchantId = ${merchantId}
+   377→  `)[0];
+   378→}
+   379→
+   380→async function upsertGlobalSettings(data: Record<string, any>) {
+   381→  // Convert boolean fields for SQLite
+   382→  const sqlData: Record<string, any> = {};
+   383→  for (const [key, value] of Object.entries(data)) {
+   384→    if (['nofollowEnabled', 'sponsoredEnabled', 'noopenerEnabled', 'openInNewTab', 'clickTracking', 'impressionTracking'].includes(key)) {
+   385→      sqlData[key] = toSqlBool(value);
+   386→    } else {
+   387→      sqlData[key] = value;
+   388→    }
+   389→  }
+   390→
+   391→  // Try Prisma model first
+   392→  try {
+   393→    return await db.affiliateGlobalSettings.upsert({
+   394→      where: { id: 'default' },
+   395→      update: data,
+   396→      create: { id: 'default', ...data },
+   397→    });
+   398→  } catch (error) {
+   399→    console.error('Prisma settings upsert failed, falling back to raw SQL:', error);
+   400→  }
+   401→
+   402→  // Fall back to raw SQL
+   403→  try {
+   404→    const existing = await db.$queryRaw<DbSettingsRow[]>`
+   405→      SELECT * FROM AffiliateGlobalSettings WHERE id = 'default'
+   406→    `;
+   407→
+   408→    if (existing.length > 0) {
+   409→      const setClauses: string[] = ['updatedAt = CURRENT_TIMESTAMP'];
+   410→      const values: any[] = [];
+   411→      for (const [key, value] of Object.entries(sqlData)) {
+   412→        setClauses.push(`${key} = ?`);
+   413→        values.push(value);
+   414→      }
+   415→      if (setClauses.length > 0) {
+   416→        await db.$executeRawUnsafe(
+   417→          `UPDATE AffiliateGlobalSettings SET ${setClauses.join(', ')} WHERE id = 'default'`,
+   418→          ...values
+   419→        );
+   420→      }
+   421→    } else {
+   422→      const columns = ['id', ...Object.keys(sqlData), 'updatedAt'];
+   423→      const placeholders = columns.map(() => '?').join(', ');
+   424→      const now = new Date().toISOString();
+   425→      const values = ['default', ...Object.values(sqlData), now];
+   426→      await db.$executeRawUnsafe(
+   427→        `INSERT INTO AffiliateGlobalSettings (${columns.join(', ')}) VALUES (${placeholders})`,
+   428→        ...values
+   429→      );
+   430→    }
+   431→  } catch (error) {
+   432→    console.error('Raw SQL settings upsert failed:', error);
+   433→    throw error;
+   434→  }
+   435→
+   436→  return (await db.$queryRaw<DbSettingsRow[]>`
+   437→    SELECT * FROM AffiliateGlobalSettings WHERE id = 'default'
+   438→  `)[0];
+   439→}
+   440→
+   441→// ── GET /api/affiliate ─────────────────────────────────────────────────────
+   442→
+   443→export async function GET(request: NextRequest) {
+   444→  const { searchParams } = new URL(request.url);
+   445→  const action = searchParams.get('action');
+   446→
+   447→  // GET /api/affiliate?action=clicks — Get click analytics
+   448→  if (action === 'clicks') {
+   449→    const now = new Date();
+   450→    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+   451→
+   452→    const recentClicks = clickLogs.filter(
+   453→      (log) => new Date(log.timestamp) >= thirtyDaysAgo
+   454→    );
+   455→
+   456→    const clicksByMerchant: Record<string, number> = {};
+   457→    const clicksByProduct: Record<string, { merchant: string; productId: string; count: number }> = {};
+   458→
+   459→    for (const click of recentClicks) {
+   460→      clicksByMerchant[click.merchant] = (clicksByMerchant[click.merchant] || 0) + 1;
+   461→      const key = `${click.merchant}:${click.productId}`;
+   462→      if (!clicksByProduct[key]) {
+   463→        clicksByProduct[key] = { merchant: click.merchant, productId: click.productId, count: 0 };
+   464→      }
+   465→      clicksByProduct[key].count++;
+   466→    }
+   467→
+   468→    const topProducts = Object.values(clicksByProduct)
+   469→      .sort((a, b) => b.count - a.count)
+   470→      .slice(0, 10);
+   471→
+   472→    return NextResponse.json({
+   473→      totalClicks: recentClicks.length,
+   474→      clicksByMerchant,
+   475→      topProducts,
+   476→      recentClicks: recentClicks.slice(-50).reverse(),
+   477→    });
+   478→  }
+   479→
+   480→  // GET /api/affiliate?action=config — Get merchant configs from database
+   481→  if (action === 'config') {
+   482→    try {
+   483→      const merchants = applyEnvOverrides(await getMerchantConfigs());
+   484→      return NextResponse.json({ merchants, envOverrides: getEnvOverridesMap() });
+   485→    } catch (error) {
+   486→      console.error('Failed to fetch merchant configs:', error);
+   487→      return NextResponse.json({
+   488→        merchants: applyEnvOverrides([...DEFAULT_MERCHANTS]),
+   489→        envOverrides: getEnvOverridesMap(),
+   490→      });
+   491→    }
+   492→  }
+   493→
+   494→  // GET /api/affiliate?action=settings — Get global settings from database
+   495→  if (action === 'settings') {
+   496→    try {
+   497→      const settings = await getGlobalSettings();
+   498→      return NextResponse.json({ settings });
+   499→    } catch (error) {
+   500→      console.error('Failed to fetch global settings:', error);
+   501→      return NextResponse.json({ settings: DEFAULT_SETTINGS });
+   502→    }
+   503→  }
+   504→
+   505→  // Default: return merchant configs + settings (backward compat)
+   506→  try {
+   507→    const merchants = applyEnvOverrides(await getMerchantConfigs());
+   508→    const settings = await getGlobalSettings();
+   509→    return NextResponse.json({ merchants, settings });
+   510→  } catch {
+   511→    return NextResponse.json({
+   512→      merchants: applyEnvOverrides([...DEFAULT_MERCHANTS]),
+   513→      settings: DEFAULT_SETTINGS,
+   514→    });
+   515→  }
+   516→}
+   517→
+   518→// ── PATCH /api/affiliate ───────────────────────────────────────────────────
+   519→
+   520→export async function PATCH(request: NextRequest) {
+   521→  try {
+   522→    const body = await request.json();
+   523→    const { type, merchantId, updates } = body;
+   524→
+   525→    if (type === 'merchant' && merchantId) {
+   526→      // Check for env var override — don't allow updating tag if set via env
+   527→      if (updates.affiliateTag && ENV_TAG_MAP[merchantId]) {
+   528→        return NextResponse.json(
+   529→          { error: `Affiliate tag for ${merchantId} is set via environment variable and cannot be changed in the UI. Update the NEXT_PUBLIC_AFFILIATE_TAG_${merchantId.toUpperCase()} env var instead.` },
+   530→          { status: 403 }
+   531→        );
+   532→      }
+   533→
+   534→      try {
+   535→        const defaultConfig = DEFAULT_MERCHANTS.find((m) => m.id === merchantId);
+   536→        const data: Record<string, any> = {};
+   537→        if (updates.name !== undefined) data.name = updates.name;
+   538→        if (updates.affiliateTag !== undefined) data.affiliateTag = updates.affiliateTag;
+   539→        if (updates.baseUrl !== undefined) data.baseUrl = updates.baseUrl;
+   540→        if (updates.urlTemplate !== undefined) data.urlTemplate = updates.urlTemplate;
+   541→        if (updates.enabled !== undefined) data.enabled = updates.enabled ? 1 : 0;
+   542→        if (updates.priority !== undefined) data.priority = updates.priority;
+   543→        if (updates.color !== undefined) data.color = updates.color;
+   544→        if (updates.icon !== undefined) data.icon = updates.icon;
+   545→
+   546→        const result = await upsertMerchantConfig(merchantId, {
+   547→          name: defaultConfig?.name || merchantId,
+   548→          affiliateTag: defaultConfig?.affiliateTag || '',
+   549→          baseUrl: defaultConfig?.baseUrl || '',
+   550→          urlTemplate: defaultConfig?.urlTemplate || '',
+   551→          enabled: true,
+   552→          priority: defaultConfig?.priority || 99,
+   553→          color: defaultConfig?.color || '#FF9900',
+   554→          icon: defaultConfig?.icon || 'shopping-bag',
+   555→          ...data,
+   556→        });
+   557→
+   558→        const merchant: MerchantConfig = {
+   559→          id: merchantId as Merchant,
+   560→          name: result.name,
+   561→          affiliateTag: result.affiliateTag,
+   562→          baseUrl: result.baseUrl,
+   563→          urlTemplate: result.urlTemplate,
+   564→          enabled: typeof result.enabled === 'number' ? result.enabled === 1 : result.enabled,
+   565→          priority: result.priority,
+   566→          color: result.color,
+   567→          icon: result.icon,
+   568→        };
+   569→
+   570→        // Apply env override
+   571→        const envTag = ENV_TAG_MAP[merchantId];
+   572→        if (envTag) merchant.affiliateTag = envTag;
+   573→
+   574→        return NextResponse.json({ success: true, merchant });
+   575→      } catch (error) {
+   576→        console.error('Failed to update merchant config in DB:', error);
+   577→        return NextResponse.json(
+   578→          { error: 'Failed to update merchant configuration in database' },
+   579→          { status: 500 }
+   580→        );
+   581→      }
+   582→    }
+   583→
+   584→    if (type === 'settings') {
+   585→      try {
+   586→        const data: Record<string, any> = {};
+   587→        if (updates.linkStrategy !== undefined) data.linkStrategy = updates.linkStrategy;
+   588→        if (updates.redirectPrefix !== undefined) data.redirectPrefix = updates.redirectPrefix;
+   589→        if (updates.nofollowEnabled !== undefined) data.nofollowEnabled = updates.nofollowEnabled ? 1 : 0;
+   590→        if (updates.sponsoredEnabled !== undefined) data.sponsoredEnabled = updates.sponsoredEnabled ? 1 : 0;
+   591→        if (updates.noopenerEnabled !== undefined) data.noopenerEnabled = updates.noopenerEnabled ? 1 : 0;
+   592→        if (updates.openInNewTab !== undefined) data.openInNewTab = updates.openInNewTab ? 1 : 0;
+   593→        if (updates.clickTracking !== undefined) data.clickTracking = updates.clickTracking ? 1 : 0;
+   594→        if (updates.impressionTracking !== undefined) data.impressionTracking = updates.impressionTracking ? 1 : 0;
+   595→
+   596→        const result = await upsertGlobalSettings(data);
+   597→
+   598→        return NextResponse.json({
+   599→          success: true,
+   600→          settings: {
+   601→            linkStrategy: result.linkStrategy,
+   602→            redirectPrefix: result.redirectPrefix,
+   603→            nofollowEnabled: typeof result.nofollowEnabled === 'number' ? result.nofollowEnabled === 1 : result.nofollowEnabled,
+   604→            sponsoredEnabled: typeof result.sponsoredEnabled === 'number' ? result.sponsoredEnabled === 1 : result.sponsoredEnabled,
+   605→            noopenerEnabled: typeof result.noopenerEnabled === 'number' ? result.noopenerEnabled === 1 : result.noopenerEnabled,
+   606→            openInNewTab: typeof result.openInNewTab === 'number' ? result.openInNewTab === 1 : result.openInNewTab,
+   607→            clickTracking: typeof result.clickTracking === 'number' ? result.clickTracking === 1 : result.clickTracking,
+   608→            impressionTracking: typeof result.impressionTracking === 'number' ? result.impressionTracking === 1 : result.impressionTracking,
+   609→          },
+   610→        });
+   611→      } catch (error) {
+   612→        console.error('Failed to update global settings in DB:', error);
+   613→        return NextResponse.json(
+   614→          { error: 'Failed to update global settings in database' },
+   615→          { status: 500 }
+   616→        );
+   617→      }
+   618→    }
+   619→
+   620→    return NextResponse.json(
+   621→      { error: 'Invalid update type. Use "merchant" or "settings"' },
+   622→      { status: 400 }
+   623→    );
+   624→  } catch {
+   625→    return NextResponse.json(
+   626→      { error: 'Invalid request body' },
+   627→      { status: 400 }
+   628→    );
+   629→  }
+   630→}
+   631→
+   632→// ── POST /api/affiliate ────────────────────────────────────────────────────
+   633→
+   634→export async function POST(request: NextRequest) {
+   635→  try {
+   636→    const body = await request.json();
+   637→    const { merchant, productId, action: clickAction } = body;
+   638→
+   639→    // POST /api/affiliate with { type: 'seed' } — Seed database with defaults
+   640→    if (body.type === 'seed') {
+   641→      try {
+   642→        // Check if data already exists using raw SQL
+   643→        let existingCount = 0;
+   644→        try {
+   645→          const countResult = await db.$queryRaw<{ count: bigint }[]>`
+   646→            SELECT COUNT(*) as count FROM AffiliateMerchantConfig
+   647→          `;
+   648→          // SQLite COUNT returns BigInt in Prisma, convert to Number
+   649→          existingCount = Number(countResult[0]?.count ?? 0);
+   650→        } catch {
+   651→          // Table doesn't exist yet — need to create it
+   652→          try {
+   653→            await db.$executeRawUnsafe(`
+   654→              CREATE TABLE IF NOT EXISTS AffiliateMerchantConfig (
+   655→                id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)) || '-' || hex(randomblob(4)) || '-4' || substr(hex(randomblob(4)),2) || '-' || substr('89ab',abs(random()) % 4 + 1,1) || substr(hex(randomblob(2)),2) || '-' || hex(randomblob(6))) NOT NULL,
+   656→                merchantId TEXT NOT NULL UNIQUE,
+   657→                name TEXT NOT NULL,
+   658→                affiliateTag TEXT NOT NULL,
+   659→                baseUrl TEXT NOT NULL,
+   660→                urlTemplate TEXT NOT NULL,
+   661→                enabled BOOLEAN NOT NULL DEFAULT 1,
+   662→                priority INTEGER NOT NULL DEFAULT 1,
+   663→                color TEXT NOT NULL DEFAULT '#FF9900',
+   664→                icon TEXT NOT NULL DEFAULT 'shopping-bag',
+   665→                updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+   666→              )
+   667→            `);
+   668→          } catch {
+   669→            // Table might already exist from Prisma push
+   670→          }
+   671→
+   672→          try {
+   673→            await db.$executeRawUnsafe(`
+   674→              CREATE TABLE IF NOT EXISTS AffiliateGlobalSettings (
+   675→                id TEXT PRIMARY KEY DEFAULT 'default',
+   676→                linkStrategy TEXT NOT NULL DEFAULT 'direct',
+   677→                redirectPrefix TEXT NOT NULL DEFAULT '/go/',
+   678→                nofollowEnabled BOOLEAN NOT NULL DEFAULT 1,
+   679→                sponsoredEnabled BOOLEAN NOT NULL DEFAULT 1,
+   680→                noopenerEnabled BOOLEAN NOT NULL DEFAULT 1,
+   681→                openInNewTab BOOLEAN NOT NULL DEFAULT 1,
+   682→                clickTracking BOOLEAN NOT NULL DEFAULT 1,
+   683→                impressionTracking BOOLEAN NOT NULL DEFAULT 0,
+   684→                updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+   685→              )
+   686→            `);
+   687→          } catch {
+   688→            // Table might already exist
+   689→          }
+   690→        }
+   691→
+   692→        if (existingCount === 0) {
+   693→          const now = new Date().toISOString();
+   694→          for (const def of DEFAULT_MERCHANTS) {
+   695→            const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+   696→            await db.$executeRawUnsafe(
+   697→              `INSERT OR IGNORE INTO AffiliateMerchantConfig (id, merchantId, name, affiliateTag, baseUrl, urlTemplate, enabled, priority, color, icon, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+   698→              id, def.id, def.name, def.affiliateTag, def.baseUrl, def.urlTemplate, def.enabled ? 1 : 0, def.priority, def.color, def.icon, now
+   699→            );
+   700→          }
+   701→        }
+   702→
+   703→        // Upsert default settings
+   704→        const settingsNow = new Date().toISOString();
+   705→        await db.$executeRawUnsafe(
+   706→          `INSERT OR IGNORE INTO AffiliateGlobalSettings (id, updatedAt) VALUES ('default', ?)`,
+   707→          settingsNow
+   708→        );
+   709→
+   710→        const merchants = applyEnvOverrides(await getMerchantConfigs());
+   711→
+   712→        return NextResponse.json({
+   713→          success: true,
+   714→          seeded: existingCount === 0,
+   715→          merchantCount: merchants.length,
+   716→          merchants,
+   717→        });
+   718→      } catch (error) {
+   719→        console.error('Failed to seed affiliate config:', error);
+   720→        return NextResponse.json(
+   721→          { error: 'Failed to seed affiliate configuration' },
+   722→          { status: 500 }
+   723→        );
+   724→      }
+   725→    }
+   726→
+   727→    if (clickAction === 'track') {
+   728→      const log: ClickLog = {
+   729→        merchant: merchant as Merchant,
+   730→        productId: productId || 'unknown',
+   731→        timestamp: new Date().toISOString(),
+   732→        userAgent: request.headers.get('user-agent') || undefined,
+   733→        referer: request.headers.get('referer') || undefined,
+   734→      };
+   735→      clickLogs.push(log);
+   736→
+   737→      return NextResponse.json({ success: true, logged: true });
+   738→    }
+   739→
+   740→    if (clickAction === 'redirect') {
+   741→      const log: ClickLog = {
+   742→        merchant: merchant as Merchant,
+   743→        productId: productId || 'unknown',
+   744→        timestamp: new Date().toISOString(),
+   745→        userAgent: request.headers.get('user-agent') || undefined,
+   746→        referer: request.headers.get('referer') || undefined,
+   747→      };
+   748→      clickLogs.push(log);
+   749→
+   750→      let tag = 'productreview0b-20';
+   751→      try {
+   752→        const configs = await getMerchantConfigs();
+   753→        const config = configs.find((c) => c.id === merchant);
+   754→        if (config) {
+   755→          tag = ENV_TAG_MAP[merchant as string] || config.affiliateTag;
+   756→          const redirectUrl = config.urlTemplate.replace('{productId}', productId).replace('{tag}', tag);
+   757→          return NextResponse.json({ redirectUrl });
+   758→        }
+   759→      } catch {
+   760→        // Fall through to default
+   761→      }
+   762→
+   763→      const redirectUrl = generateDirectUrl(merchant as Merchant, productId, tag);
+   764→      return NextResponse.json({ redirectUrl });
+   765→    }
+   766→
+   767→    return NextResponse.json(
+   768→      { error: 'Invalid action. Use "track", "redirect", or type "seed"' },
+   769→      { status: 400 }
+   770→    );
+   771→  } catch {
+   772→    return NextResponse.json(
+   773→      { error: 'Invalid request body' },
+   774→      { status: 400 }
+   775→    );
+   776→  }
+   777→}
+   778→
