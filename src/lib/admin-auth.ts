@@ -129,8 +129,8 @@ export const useAdminAuth = create<AdminAuthState>((set, get) => ({
         lockoutRemainingMs: data.lockoutRemainingMs,
       };
     } catch {
-      set({ loginError: 'Network error — please try again' });
-      return { success: false, error: 'Network error — please try again' };
+      set({ loginError: 'Network error — the server may still be starting up, please try again in a moment' });
+      return { success: false, error: 'Network error — the server may still be starting up, please try again in a moment' };
     }
   },
 

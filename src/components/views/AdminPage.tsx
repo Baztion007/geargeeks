@@ -99,6 +99,9 @@ function AdminLoginGate() {
               <p className="text-sm text-gray-400 mt-1">
                 {isLocked ? 'Account temporarily locked' : 'Enter the admin password to continue'}
               </p>
+              <p className="text-xs text-gray-600 mt-2">
+                Default password: <code className="text-amber-500/80 bg-gray-800 px-1.5 py-0.5 rounded">geargeekz2026</code>
+              </p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
@@ -290,7 +293,7 @@ function ChangePasswordCard() {
         setResult({ success: false, message: data.error || 'Failed to change password' });
       }
     } catch {
-      setResult({ success: false, message: 'Network error — please try again' });
+      setResult({ success: false, message: 'Network error — the server may still be starting up, please try again in a moment' });
     } finally {
       setIsSubmitting(false);
     }

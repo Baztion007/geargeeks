@@ -668,3 +668,29 @@ Unresolved Issues:
   - Change build command from `bash scripts/build-static.sh` to `bash scripts/build-static.sh /geargeekz`
   - OR get a PAT with `workflow` scope to push the file
 - User should verify GitHub Pages Source is set to "GitHub Actions" (not "Deploy from a branch")
+
+---
+
+Task ID: 3
+Agent: Main
+Task: Fix admin login Network error and add password hint
+
+Work Log:
+- Investigated admin authentication system - default password is `geargeekz2026`
+- Found that "Network error — please try again" was caused by the dev server dying between page navigation and API calls
+- The dev server (`next dev`) was unstable and kept getting killed by the sandbox environment
+- Added default password hint to admin login page (`src/components/views/AdminPage.tsx`)
+- Improved network error message to "Network error — the server may still be starting up, please try again in a moment" (`src/lib/admin-auth.ts` and `AdminPage.tsx`)
+- Changed `package.json` dev script from `next dev -p 3000 2>&1 | tee dev.log` to `next dev -p 3000` (removed pipe that may cause server instability)
+- Verified the Change Password card exists in admin dashboard (under Dashboard tab, scroll down)
+- Verified the change-password API endpoint works correctly (`/api/admin/auth/change-password`)
+- Built the app with `next build` and started with `next start` for stability testing
+- Verified full admin login flow works with agent-browser: navigate → type password → login → dashboard appears
+
+Stage Summary:
+- Default admin password: `geargeekz2026` (shown on login page)
+- Admin login works correctly when server is running
+- Password change feature exists in admin dashboard (scroll down on Dashboard tab)
+- Network error was caused by unstable dev server, not a code bug
+- Server more stable with `next start` than `next dev` in sandbox environment
+- Changed files: `src/components/views/AdminPage.tsx`, `src/lib/admin-auth.ts`, `package.json`

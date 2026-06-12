@@ -5,7 +5,7 @@
   "scripts": {
     "build": "opennextjs-cloudflare build",
     "build:next": "next build",
-    "dev": "next dev -p 3000 2>&1 | tee dev.log",
+    "dev": "next dev -p 3000",
     "start": "next start",
     "lint": "eslint .",
     "postinstall": "prisma generate",
