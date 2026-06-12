@@ -3,9 +3,9 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000 2>&1 | tee dev.log",
     "build": "opennextjs-cloudflare build",
     "build:next": "next build",
+    "dev": "next dev -p 3000 2>&1 | tee dev.log",
     "start": "next start",
     "lint": "eslint .",
     "db:push": "prisma db push",
