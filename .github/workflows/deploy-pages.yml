@@ -33,12 +33,32 @@ jobs:
         run: bun run db:generate
 
       - name: Build static site
-        run: bash scripts/build-static.sh
+        run: bash scripts/build-static.sh /geargeekz
         env:
-          NEXT_PUBLIC_BASE_PATH: ""
+          NEXT_PUBLIC_BASE_PATH: /geargeekz
 
-      - name: Add 404.html redirect for SPA routing
-        run: cp out/index.html out/404.html
+      - name: Verify 404.html exists for SPA routing
+        run: |
+          if [ -f out/404.html ]; then
+            echo "✅ 404.html exists"
+          else
+            echo "⚠️ 404.html missing, creating from index.html"
+            cp out/index.html out/404.html
+          fi
+
+      - name: Verify .nojekyll exists
+        run: |
+          if [ ! -f out/.nojekyll ]; then
+            touch out/.nojekyll
+          fi
+          echo "✅ .nojekyll exists"
+
+      - name: Verify build output
+        run: |
+          echo "📋 Build verification:"
+          echo "  index.html: $([ -f out/index.html ] && echo '✅' || echo '❌')"
+          echo "  404.html:   $([ -f out/404.html ] && echo '✅' || echo '❌')"
+          echo "  .nojekyll:  $([ -f out/.nojekyll ] && echo '✅' || echo '❌')"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
