@@ -633,3 +633,38 @@ Stage Summary:
 - Migrate in-memory state to Cloudflare KV or D1 for persistent rate limiting
 - Add more visual polish and features
 - Consider Cloudflare D1 as alternative to Turso
+
+---
+
+Task ID: 5
+Agent: Main
+Task: Fix Cloudflare build error and GitHub Pages broken layout
+
+Work Log:
+- Diagnosed Cloudflare build error: "Could not find compiled Open Next config" — caused by `npm run build` running `next build` instead of `opennextjs-cloudflare build`
+- Fixed package.json: changed `"build": "next build"` to `"build": "opennextjs-cloudflare build"`, added `"build:next": "next build"` as fallback
+- Pushed fix to GitHub (commit 288da71)
+- Diagnosed GitHub Pages broken layout at bazzion007.github.io/geargeekz/ — caused by missing base path
+- Root cause: `NEXT_PUBLIC_BASE_PATH` was set to `""` in GitHub Actions workflow, but site is at `/geargeekz/` subpath
+- Without base path, all CSS/JS assets loaded from `/_next/static/...` instead of `/geargeekz/_next/static/...`
+- Created `assetUrl()` utility function in `src/lib/utils.ts` to prefix local paths with base path
+- Updated 9 source files to use `assetUrl()` — 87 total references converted:
+  - Data files: categories.ts (8), products.ts (50), blog-posts.ts (4), authors.ts (2), buying-guides.ts (6), brands.ts (12)
+  - Component files: layout.tsx (3), Footer.tsx (1), affiliate.ts (1)
+- Fixed build-static.sh sed command to use `#` delimiter (avoiding conflict with `/` in base path)
+- Added post-build path rewriting as safety net in build script
+- Added build verification steps to GitHub Actions workflow
+- Pushed code changes (commit 6d50830) — workflow file couldn't be pushed due to PAT lacking `workflow` scope
+
+Stage Summary:
+- Cloudflare build fix: committed and pushed ✅
+- GitHub Pages base path fix: code pushed, but workflow file needs manual update on GitHub ✅
+- Build verified locally: `bash scripts/build-static.sh /geargeekz` produces correct output with all paths prefixed
+- Dev server running and lint passing ✅
+
+Unresolved Issues:
+- GitHub Actions workflow `.github/workflows/deploy-pages.yml` MUST be manually updated:
+  - Change `NEXT_PUBLIC_BASE_PATH: ""` to `NEXT_PUBLIC_BASE_PATH: /geargeekz`
+  - Change build command from `bash scripts/build-static.sh` to `bash scripts/build-static.sh /geargeekz`
+  - OR get a PAT with `workflow` scope to push the file
+- User should verify GitHub Pages Source is set to "GitHub Actions" (not "Deploy from a branch")
