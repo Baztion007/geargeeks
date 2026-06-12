@@ -61,3 +61,17 @@ server.log
 .wrangler
 .dev.vars*
 !.dev.vars.example
+
+# Screenshots & downloads
+screenshot-*.png
+download/
+upload/
+tool-results/
+agent-ctx/
+category-*.jpg
+keep-alive.sh
+mini-services/
+examples/
+generate-images.mjs
+.zscripts
+.api-routes-backup
