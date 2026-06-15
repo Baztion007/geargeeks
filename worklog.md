@@ -242,6 +242,64 @@
 
 ---
 
+## Session: 2026-06-15 (Continued #2)
+
+### Task: Fix "Loading gear reviews..." Infinite Loop & DATABASE_AUTH_TOKEN Change
+
+**Problem**: On the deployed Cloudflare site:
+1. Hero images section shows "Loading gear reviews..." in an infinite loop that never resolves
+2. The Turso DATABASE_AUTH_TOKEN has been changed on Cloudflare
+
+**Root Cause of Infinite Loop**:
+The `fetchProducts` function in data-store.ts had a guard condition:
+```
+if (!force && isCacheValid(state.productsFetchedAt) && state.products.length > 0) return;
+```
+When the API returns empty products (e.g., due to auth failure or empty database), this condition **never** becomes true because `products.length === 0`. This causes the store to repeatedly re-fetch, creating an infinite loading loop where:
+1. Fetch starts → loading = true → shows spinner
+2. API returns empty → products = [], loading = false, fetchedAt = now
+3. Next re-render → cache is valid but products.length === 0 → fetch again
+4. Repeat forever
+
+**Fixes Applied**:
+
+1. **Fixed data-store.ts — Replaced cache+length guard with `fetchedOnce` flag**
+   - Added `productsFetchedOnce`, `categoriesFetchedOnce`, `brandsFetchedOnce`, `blogPostsFetchedOnce` booleans
+   - Changed guard from `isCacheValid && products.length > 0` to `fetchedOnce`
+   - Once any fetch completes (success OR error), `fetchedOnce` is set to `true`
+   - This prevents re-fetching on every re-render while still allowing `force` parameter for manual refresh
+   - Invalidators reset `fetchedOnce` to `false` along with clearing data
+
+2. **Updated useEnsureData hook**
+   - Now uses `allFetched` flag (all fetchedOnce flags are true)
+   - `isLoading` returns true only during initial fetch, NOT after fetch completes with empty data
+   - Added `allFetched` and `isInitialLoading` return values
+
+3. **Improved HomePage error/empty states**
+   - Loading spinner only shows during `isLoading` (initial fetch in progress)
+   - Error state shows when `allFetched && productsError && products.length === 0`
+   - New empty state shows when `allFetched && !productsError && products.length === 0`
+   - Both error and empty states have "Try Again" / "Retry" buttons that call `fetchAll(true)`
+
+4. **Pushed to GitHub** — Commit 8931be8 pushed to origin/main
+   - This triggers the CI/CD pipeline for Cloudflare Workers deployment
+
+### Files Modified
+- `src/lib/data-store.ts` — Added fetchedOnce flags, updated guard logic, updated useEnsureData
+- `src/components/views/HomePage.tsx` — Improved loading/error/empty states
+
+### DATABASE_AUTH_TOKEN Note
+The user mentioned the Turso DATABASE_AUTH_TOKEN has been changed on Cloudflare. This is a Cloudflare Workers environment variable (secret), so it needs to be updated in the Cloudflare Dashboard under Workers → Settings → Variables. The code correctly reads it via `process.env.DATABASE_AUTH_TOKEN`.
+
+### Verification Results (Local)
+- ✅ Products API returns 26 products
+- ✅ Homepage renders correctly with hero, categories, editor's picks, trending sections
+- ✅ Stats counter animates (25+ Products Reviewed, 8 Categories, 6 Buying Guides)
+- ✅ No infinite loading loop
+- ✅ Lint passes cleanly
+
+---
+
 ## Session: 2026-06-15 (Continued)
 
 ### Task: Fix "No Products on Cloudflare" — Root Cause Analysis & Comprehensive Fix
