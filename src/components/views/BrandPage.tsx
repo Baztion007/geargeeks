@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useDataStore, useEnsureData } from '@/lib/data-store';
+import type { Brand } from '@/lib/types';
 import { buyingGuides } from '@/data/buying-guides';
 import { useRouterStore } from '@/lib/router';
 import { ProductCard } from '@/components/affiliate/ProductCard';
@@ -62,7 +63,7 @@ function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: strin
 }
 
 // ─── Brand Story Timeline ──────────────────────────────────────────────
-function BrandStory({ brand, avgRating, brandProducts }: { brand: NonNullable<ReturnType<typeof getBrandBySlug>>; avgRating: number; brandProducts: ReturnType<typeof getProductsByBrand> }) {
+function BrandStory({ brand, avgRating, brandProducts }: { brand: Brand; avgRating: number; brandProducts: ReturnType<typeof useDataStore.getState>['products'] }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const facts = [
     ...(brand.founded ? [{ icon: Calendar, label: 'Founded', value: brand.founded }] : []),

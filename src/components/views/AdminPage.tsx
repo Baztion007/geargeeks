@@ -477,7 +477,7 @@ function AdminDashboard() {
       const res = await fetch('/api/seed?force=true', { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
-        const parts = [];
+        const parts: string[] = [];
         if (data.result?.products?.seeded) parts.push(`${data.result.products.seeded} products`);
         if (data.result?.categories?.seeded) parts.push(`${data.result.categories.seeded} categories`);
         if (data.result?.brands?.seeded) parts.push(`${data.result.brands.seeded} brands`);

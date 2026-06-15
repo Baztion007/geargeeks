@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Breadcrumbs } from '@/components/affiliate/Breadcrumbs';
 import { useDataStore, useEnsureData } from '@/lib/data-store';
 import { authors, getAuthorBySlug } from '@/data/authors';
+import type { BlogPost } from '@/lib/types';
 import { useRouterStore } from '@/lib/router';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -185,7 +186,7 @@ export function BlogPage() {
 
 // ─── Featured Article Hero ──────────────────────────────────────────────────
 interface FeaturedArticleHeroProps {
-  post: typeof blogPosts[number];
+  post: BlogPost;
   author: ReturnType<typeof getAuthorBySlug>;
   onReadMore: () => void;
 }
@@ -283,7 +284,7 @@ function FeaturedArticleHero({ post, author, onReadMore }: FeaturedArticleHeroPr
 }
 
 interface BlogCardProps {
-  post: typeof blogPosts[number];
+  post: BlogPost;
   author: ReturnType<typeof getAuthorBySlug>;
   onReadMore: () => void;
 }

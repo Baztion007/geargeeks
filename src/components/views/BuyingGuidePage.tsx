@@ -52,7 +52,7 @@ import { generateGuidePageJsonLd, generateGuideMeta } from '@/lib/seo';
 import { JsonLdScript } from '@/components/affiliate/JsonLdScript';
 import { useSeoMeta } from '@/lib/use-seo-meta';
 import { getAffiliateUrl, getAffiliateLinkProps, getMerchantName } from '@/lib/affiliate';
-import type { Merchant } from '@/lib/types';
+import type { Merchant, Product } from '@/lib/types';
 
 // Guide type badge configuration
 const guideTypeConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
