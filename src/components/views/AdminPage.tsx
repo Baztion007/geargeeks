@@ -474,17 +474,28 @@ function AdminDashboard() {
     setSeeding(true);
     setSeedResult(null);
     try {
-      const res = await fetch('/api/seed', { method: 'POST' });
+      const res = await fetch('/api/seed?force=true', { method: 'POST' });
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
-        setSeedResult(`Seeded ${data.totalSeeded} items (${data.result?.products?.seeded || 0} products, ${data.result?.categories?.seeded || 0} categories, ${data.result?.brands?.seeded || 0} brands)`);
+        const parts = [];
+        if (data.result?.products?.seeded) parts.push(`${data.result.products.seeded} products`);
+        if (data.result?.categories?.seeded) parts.push(`${data.result.categories.seeded} categories`);
+        if (data.result?.brands?.seeded) parts.push(`${data.result.brands.seeded} brands`);
+        if (data.result?.blogPosts?.seeded) parts.push(`${data.result.blogPosts.seeded} blog posts`);
+        const skipped = (data.result?.products?.skipped || 0) + (data.result?.categories?.skipped || 0) + (data.result?.brands?.skipped || 0) + (data.result?.blogPosts?.skipped || 0);
+        let msg = parts.length > 0 ? `Seeded: ${parts.join(', ')}` : 'All data already exists';
+        if (skipped > 0) msg += ` (${skipped} skipped - already in DB)`;
+        if (data.warnings?.length) msg += ` | Warnings: ${data.warnings.length}`;
+        setSeedResult(msg);
         fetchStats();
       } else {
-        const data = await res.json();
-        setSeedResult(`Error: ${data.error || 'Failed to seed'}`);
+        let errMsg = data.error || 'Failed to seed';
+        if (data.details) errMsg += ` — ${data.details}`;
+        if (data.dbUrl) errMsg += ` | DB: ${data.dbUrl}`;
+        setSeedResult(`Error: ${errMsg}`);
       }
-    } catch {
-      setSeedResult('Error: Failed to connect to seed API');
+    } catch (err) {
+      setSeedResult(`Error: Failed to connect to seed API — ${err instanceof Error ? err.message : 'Network error'}`);
     } finally {
       setSeeding(false);
     }
