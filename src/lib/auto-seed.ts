@@ -10,7 +10,10 @@
  * - Users might not know they need to seed
  * - The seed API endpoint requires admin authentication
  *
- * The auto-seed runs once and sets a flag to avoid re-running on every request.
+ * The auto-seed checks each entity type INDIVIDUALLY and only seeds what's missing.
+ * This means if products seeded but blog posts failed, the next request will
+ * retry seeding blog posts without re-seeding products.
+ *
  * If the database connection fails (wrong auth token, etc.), the seed is NOT marked
  * as attempted so it will retry on the next request.
  */
@@ -21,9 +24,9 @@ import { brands } from '@/data/brands';
 import { products } from '@/data/products';
 import { blogPosts } from '@/data/blog-posts';
 
-// Track whether auto-seed has been attempted (in-memory for Worker lifetime)
-let _autoSeedAttempted = false;
-let _autoSeedPromise: Promise<{ success: boolean; error?: string }> | null = null;
+// Track whether auto-seed has been fully completed (all entity types present)
+let _autoSeedCompleted = false;
+let _autoSeedPromise: Promise<void> | null = null;
 
 // Table creation SQL
 const CREATE_TABLES_SQL = [
@@ -161,56 +164,231 @@ const CREATE_TABLES_SQL = [
 ];
 
 /**
- * Check if the database needs seeding (no products table or empty products).
- * Returns { needsSeeding: boolean, connectionOk: boolean, error?: string }
+ * Check counts for each entity type individually.
+ * Returns an object with counts and whether any entity needs seeding.
  */
-async function checkSeedingNeeded(): Promise<{ needsSeeding: boolean; connectionOk: boolean; error?: string }> {
+async function checkEntityCounts(): Promise<{
+  productCount: number;
+  categoryCount: number;
+  brandCount: number;
+  blogPostCount: number;
+  needsAnySeeding: boolean;
+  connectionOk: boolean;
+  error?: string;
+}> {
   try {
-    const count = await db.product.count();
-    return { needsSeeding: count === 0, connectionOk: true };
+    const [productCount, categoryCount, brandCount, blogPostCount] = await Promise.all([
+      db.product.count().catch(() => 0),
+      db.categoryDB.count().catch(() => 0),
+      db.brandDB.count().catch(() => 0),
+      db.blogPost.count().catch(() => 0),
+    ]);
+
+    return {
+      productCount,
+      categoryCount,
+      brandCount,
+      blogPostCount,
+      needsAnySeeding: productCount === 0 || categoryCount === 0 || brandCount === 0 || blogPostCount === 0,
+      connectionOk: true,
+    };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    // Check if this is a connection error (auth, network, etc.) vs table not existing
     const isConnectionError = msg.includes('401') || msg.includes('403') || msg.includes('Unauthorized') ||
       msg.includes('authentication') || msg.includes('handshake') || msg.includes('ECONNREFUSED') ||
       msg.includes('fetch failed') || msg.includes('Invalid URL');
 
     if (isConnectionError) {
-      // Connection itself failed — not just missing table
       const connTest = await testConnection();
       return {
-        needsSeeding: false, // Don't try seeding if we can't connect
+        productCount: 0, categoryCount: 0, brandCount: 0, blogPostCount: 0,
+        needsAnySeeding: false,
         connectionOk: connTest.ok,
         error: connTest.error || msg,
       };
     }
+
     // Table probably doesn't exist — needs seeding
-    return { needsSeeding: true, connectionOk: true, error: msg };
+    return {
+      productCount: 0, categoryCount: 0, brandCount: 0, blogPostCount: 0,
+      needsAnySeeding: true,
+      connectionOk: true,
+      error: msg,
+    };
   }
 }
 
 /**
- * Run the auto-seed process.
- * Creates tables and seeds all data.
- * Returns result with success status and optional error message.
+ * Seed categories if the table is empty.
  */
-async function runAutoSeed(): Promise<{ success: boolean; error?: string }> {
+async function seedCategories(): Promise<number> {
+  const count = await db.categoryDB.count().catch(() => 0);
+  if (count > 0) return count;
+
+  let seeded = 0;
+  for (const category of categories) {
+    try {
+      await db.categoryDB.create({
+        data: {
+          slug: category.slug,
+          name: category.name,
+          description: category.description,
+          image: category.image,
+          productCount: category.productCount,
+          featured: category.featured ? 1 : 0,
+        },
+      });
+      seeded++;
+    } catch (e) {
+      console.warn(`[auto-seed] Category ${category.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
+    }
+  }
+  console.log(`[auto-seed] Seeded ${seeded}/${categories.length} categories`);
+  return seeded;
+}
+
+/**
+ * Seed brands if the table is empty.
+ */
+async function seedBrands(): Promise<number> {
+  const count = await db.brandDB.count().catch(() => 0);
+  if (count > 0) return count;
+
+  let seeded = 0;
+  for (const brand of brands) {
+    try {
+      await db.brandDB.create({
+        data: {
+          slug: brand.slug,
+          name: brand.name,
+          logo: brand.logo,
+          description: brand.description,
+          founded: brand.founded || null,
+          headquarters: brand.headquarters || null,
+          website: brand.website || null,
+          categories: JSON.stringify(brand.categories || []),
+          productCount: brand.productCount,
+        },
+      });
+      seeded++;
+    } catch (e) {
+      console.warn(`[auto-seed] Brand ${brand.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
+    }
+  }
+  console.log(`[auto-seed] Seeded ${seeded}/${brands.length} brands`);
+  return seeded;
+}
+
+/**
+ * Seed products if the table is empty.
+ */
+async function seedProducts(): Promise<number> {
+  const count = await db.product.count().catch(() => 0);
+  if (count > 0) return count;
+
+  let seeded = 0;
+  for (const product of products) {
+    try {
+      const productData: Record<string, unknown> = {
+        slug: product.slug,
+        title: product.title,
+        image: product.image,
+        gallery: JSON.stringify(product.gallery || []),
+        excerpt: product.excerpt,
+        category: product.category,
+        categorySlug: product.categorySlug,
+        subcategory: product.subcategory || '',
+        brand: product.brand,
+        brandSlug: product.brandSlug,
+        features: JSON.stringify(product.features || {}),
+        pros: JSON.stringify(product.pros || []),
+        cons: JSON.stringify(product.cons || []),
+        rating: product.rating || 0,
+        ratingBreakdown: JSON.stringify(product.ratingBreakdown || {}),
+        asin: product.asin || '',
+        merchant: product.merchant || 'amazon',
+        affiliateUrl: product.affiliateUrl || '',
+        priceUrl: product.priceUrl || '',
+        tags: JSON.stringify(product.tags || []),
+        authorSlug: product.authorSlug || 'alex-rivera',
+        reviewStatus: product.reviewStatus || 'new',
+        bestFor: JSON.stringify(product.bestFor || []),
+        summary: product.summary || '',
+        fullReview: product.fullReview || '',
+        whoIsItFor: product.whoIsItFor || '',
+        whoShouldSkip: product.whoShouldSkip || '',
+        specifications: JSON.stringify(product.specifications || {}),
+        relatedProducts: JSON.stringify(product.relatedProducts || []),
+        publishedAt: product.publishedAt || new Date().toISOString(),
+      };
+
+      await db.product.create({ data: productData });
+      seeded++;
+    } catch (e) {
+      console.warn(`[auto-seed] Product ${product.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
+    }
+  }
+  console.log(`[auto-seed] Seeded ${seeded}/${products.length} products`);
+  return seeded;
+}
+
+/**
+ * Seed blog posts if the table is empty.
+ */
+async function seedBlogPosts(): Promise<number> {
+  const count = await db.blogPost.count().catch(() => 0);
+  if (count > 0) return count;
+
+  let seeded = 0;
+  for (const post of blogPosts) {
+    try {
+      await db.blogPost.create({
+        data: {
+          id: post.id || generateId(),
+          slug: post.slug,
+          title: post.title,
+          excerpt: post.excerpt,
+          image: post.image || '',
+          category: post.category,
+          content: post.content,
+          publishedAt: post.publishedAt || new Date().toISOString(),
+          updatedAt: post.updatedAt || new Date().toISOString(),
+          authorSlug: post.authorSlug,
+          tags: JSON.stringify(post.tags || []),
+          readingTime: post.readingTime || 5,
+        },
+      });
+      seeded++;
+    } catch (e) {
+      console.warn(`[auto-seed] BlogPost ${post.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
+    }
+  }
+  console.log(`[auto-seed] Seeded ${seeded}/${blogPosts.length} blog posts`);
+  return seeded;
+}
+
+/**
+ * Run the auto-seed process.
+ * Creates tables and seeds any entity type that has 0 rows.
+ * Each entity type is checked independently, so partial seeding is supported.
+ */
+async function runAutoSeed(): Promise<void> {
   console.log('[auto-seed] Starting automatic database seeding...');
 
   // First, verify database connection is working
   const connTest = await testConnection();
   if (!connTest.ok) {
-    const dbUrl = process.env.DATABASE_URL || 'NOT SET';
     const hasToken = !!process.env.DATABASE_AUTH_TOKEN;
     const errorMsg = !hasToken
       ? `DATABASE_AUTH_TOKEN is not set. Set it in Cloudflare Workers → Settings → Variables and Secrets.`
       : `Database connection failed: ${connTest.error}. Check DATABASE_URL and DATABASE_AUTH_TOKEN in Cloudflare Workers secrets.`;
     console.error('[auto-seed] ❌ Connection test failed:', errorMsg);
-    return { success: false, error: errorMsg };
+    _lastAutoSeedError = errorMsg;
+    return;
   }
 
   try {
-    // Step 1: Create all tables
+    // Step 1: Create all tables (idempotent — skips if exists)
     let tableErrors = 0;
     for (const sql of CREATE_TABLES_SQL) {
       try {
@@ -225,141 +403,31 @@ async function runAutoSeed(): Promise<{ success: boolean; error?: string }> {
     }
     console.log('[auto-seed] Tables created successfully');
 
-    // Step 2: Check if data already exists (another concurrent request may have seeded)
-    const productCount = await db.product.count();
-    if (productCount > 0) {
-      console.log('[auto-seed] Database already has data, skipping seed');
-      return { success: true };
+    // Step 2: Seed each entity type individually (only if empty)
+    // This is the key fix: each type is checked separately, so if products
+    // were seeded but blog posts failed, we'll still seed blog posts.
+    await seedCategories();
+    await seedBrands();
+    await seedProducts();
+    await seedBlogPosts();
+
+    // Step 3: Verify all entity types have data
+    const counts = await checkEntityCounts();
+    if (counts.needsAnySeeding) {
+      console.warn('[auto-seed] ⚠️ Some entity types are still empty after seeding:', {
+        products: counts.productCount,
+        categories: counts.categoryCount,
+        brands: counts.brandCount,
+        blogPosts: counts.blogPostCount,
+      });
+    } else {
+      console.log('[auto-seed] ✅ All entity types have data — seeding complete');
+      _autoSeedCompleted = true;
     }
-
-    // Step 3: Seed categories
-    let categoriesSeeded = 0;
-    for (const category of categories) {
-      try {
-        await db.categoryDB.create({
-          data: {
-            slug: category.slug,
-            name: category.name,
-            description: category.description,
-            image: category.image,
-            productCount: category.productCount,
-            featured: category.featured ? 1 : 0,
-          },
-        });
-        categoriesSeeded++;
-      } catch (e) {
-        console.warn(`[auto-seed] Category ${category.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
-      }
-    }
-    console.log(`[auto-seed] Seeded ${categoriesSeeded}/${categories.length} categories`);
-
-    // Step 4: Seed brands
-    let brandsSeeded = 0;
-    for (const brand of brands) {
-      try {
-        await db.brandDB.create({
-          data: {
-            slug: brand.slug,
-            name: brand.name,
-            logo: brand.logo,
-            description: brand.description,
-            founded: brand.founded || null,
-            headquarters: brand.headquarters || null,
-            website: brand.website || null,
-            categories: JSON.stringify(brand.categories || []),
-            productCount: brand.productCount,
-          },
-        });
-        brandsSeeded++;
-      } catch (e) {
-        console.warn(`[auto-seed] Brand ${brand.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
-      }
-    }
-    console.log(`[auto-seed] Seeded ${brandsSeeded}/${brands.length} brands`);
-
-    // Step 5: Seed products
-    let productsSeeded = 0;
-    for (const product of products) {
-      try {
-        const productData: Record<string, unknown> = {
-          slug: product.slug,
-          title: product.title,
-          image: product.image,
-          gallery: JSON.stringify(product.gallery || []),
-          excerpt: product.excerpt,
-          category: product.category,
-          categorySlug: product.categorySlug,
-          subcategory: product.subcategory || '',
-          brand: product.brand,
-          brandSlug: product.brandSlug,
-          features: JSON.stringify(product.features || {}),
-          pros: JSON.stringify(product.pros || []),
-          cons: JSON.stringify(product.cons || []),
-          rating: product.rating || 0,
-          ratingBreakdown: JSON.stringify(product.ratingBreakdown || {}),
-          asin: product.asin || '',
-          merchant: product.merchant || 'amazon',
-          affiliateUrl: product.affiliateUrl || '',
-          priceUrl: product.priceUrl || '',
-          tags: JSON.stringify(product.tags || []),
-          authorSlug: product.authorSlug || 'alex-rivera',
-          reviewStatus: product.reviewStatus || 'new',
-          bestFor: JSON.stringify(product.bestFor || []),
-          summary: product.summary || '',
-          fullReview: product.fullReview || '',
-          whoIsItFor: product.whoIsItFor || '',
-          whoShouldSkip: product.whoShouldSkip || '',
-          specifications: JSON.stringify(product.specifications || {}),
-          relatedProducts: JSON.stringify(product.relatedProducts || []),
-          publishedAt: product.publishedAt || new Date().toISOString(),
-        };
-
-        await db.product.create({ data: productData });
-        productsSeeded++;
-      } catch (e) {
-        console.warn(`[auto-seed] Product ${product.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
-      }
-    }
-    console.log(`[auto-seed] Seeded ${productsSeeded}/${products.length} products`);
-
-    // Step 6: Seed blog posts
-    let blogPostsSeeded = 0;
-    for (const post of blogPosts) {
-      try {
-        await db.blogPost.create({
-          data: {
-            id: post.id || generateId(),
-            slug: post.slug,
-            title: post.title,
-            excerpt: post.excerpt,
-            image: post.image || '',
-            category: post.category,
-            content: post.content,
-            publishedAt: post.publishedAt || new Date().toISOString(),
-            updatedAt: post.updatedAt || new Date().toISOString(),
-            authorSlug: post.authorSlug,
-            tags: JSON.stringify(post.tags || []),
-            readingTime: post.readingTime || 5,
-          },
-        });
-        blogPostsSeeded++;
-      } catch (e) {
-        console.warn(`[auto-seed] BlogPost ${post.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
-      }
-    }
-    console.log(`[auto-seed] Seeded ${blogPostsSeeded}/${blogPosts.length} blog posts`);
-
-    if (productsSeeded === 0 && categoriesSeeded === 0) {
-      console.error('[auto-seed] ❌ No data was seeded — all operations failed');
-      return { success: false, error: 'Auto-seed completed but no data was inserted. Check database permissions.' };
-    }
-
-    console.log('[auto-seed] ✅ Auto-seed completed successfully');
-    return { success: true };
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error('[auto-seed] ❌ Auto-seed failed:', msg);
-    return { success: false, error: msg };
+    _lastAutoSeedError = msg;
   }
 }
 
@@ -368,7 +436,7 @@ async function runAutoSeed(): Promise<{ success: boolean; error?: string }> {
  * so that the next request knows data is available.
  */
 export function resetAutoSeedFlag(): void {
-  _autoSeedAttempted = false;
+  _autoSeedCompleted = false;
 }
 
 /** Get the last auto-seed error (for diagnostics) */
@@ -379,53 +447,55 @@ export function getLastAutoSeedError(): string | null {
 
 /**
  * Ensure the database is seeded. Call this from API routes.
- * This function is idempotent — it only seeds if the database is empty.
+ * This function is idempotent — it only seeds entity types that have 0 rows.
  * It also prevents concurrent seeding from multiple requests.
  *
- * If the database connection fails, this does NOT set _autoSeedAttempted = true,
+ * If the database connection fails, this does NOT set _autoSeedCompleted = true,
  * so the next request will try again.
  */
 export async function ensureSeeded(): Promise<void> {
-  // If we've already attempted auto-seed successfully, skip
-  if (_autoSeedAttempted) return;
+  // If all entity types are already populated, skip
+  if (_autoSeedCompleted) return;
 
-  // Check if seeding is needed and if connection works
-  const check = await checkSeedingNeeded();
+  // Prevent concurrent seeding
+  if (_autoSeedPromise) {
+    await _autoSeedPromise;
+    return;
+  }
 
-  if (!check.connectionOk) {
-    // Connection failed — don't mark as attempted so we retry next time
-    _lastAutoSeedError = check.error || 'Database connection failed';
+  // Quick check: are all entity types populated?
+  const counts = await checkEntityCounts();
+
+  if (!counts.connectionOk) {
+    // Connection failed — don't mark as completed so we retry next time
+    _lastAutoSeedError = counts.error || 'Database connection failed';
     console.error('[auto-seed] Database connection failed, will retry on next request:', _lastAutoSeedError);
     return;
   }
 
-  if (!check.needsSeeding) {
-    // Database already has data
-    _autoSeedAttempted = true;
+  if (!counts.needsAnySeeding) {
+    // All entity types have data
+    _autoSeedCompleted = true;
     _lastAutoSeedError = null;
     return;
   }
 
-  // Prevent concurrent seeding
-  if (_autoSeedPromise) {
-    const result = await _autoSeedPromise;
-    if (result.success) {
-      _autoSeedAttempted = true;
-    }
-    return;
-  }
+  // Some entity types need seeding — run the full seed process
+  console.log('[auto-seed] Some entity types are empty, running seed:', {
+    products: counts.productCount,
+    categories: counts.categoryCount,
+    brands: counts.brandCount,
+    blogPosts: counts.blogPostCount,
+  });
 
   _autoSeedPromise = runAutoSeed();
-  const result = await _autoSeedPromise;
+  await _autoSeedPromise;
   _autoSeedPromise = null;
 
-  if (result.success) {
-    _autoSeedAttempted = true;
+  // After seeding, check again
+  const postCounts = await checkEntityCounts();
+  if (!postCounts.needsAnySeeding && postCounts.connectionOk) {
+    _autoSeedCompleted = true;
     _lastAutoSeedError = null;
-  } else {
-    // Seed failed but connection might work (e.g., tables exist but inserts fail)
-    // Mark as attempted to avoid infinite retry loops, but store the error
-    _autoSeedAttempted = true;
-    _lastAutoSeedError = result.error || 'Auto-seed failed';
   }
 }

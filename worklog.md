@@ -541,3 +541,45 @@ The 401 error means the `DATABASE_AUTH_TOKEN` stored in Cloudflare doesn't match
 ### Unresolved Issues
 - **Cloudflare deployment still shows 401** — User needs to update DATABASE_AUTH_TOKEN in Cloudflare secrets
 - Once token is fixed, auto-seed should populate the Turso database automatically
+
+---
+
+## Session: 2026-06-15 (Continued #5)
+
+### Task: Fix Empty Blog Posts on Cloudflare
+
+**Problem**: Products are now showing on admin after fixing the auth token, but blog posts are empty.
+
+**Root Cause**: The auto-seed logic had a critical flaw — it checked only `productCount > 0` to decide whether to skip seeding. If products were seeded successfully but blog post inserts failed (e.g., due to long content or Turso-specific issues), the auto-seed would mark itself as "completed" and never retry blog posts.
+
+Specific issues in the old auto-seed:
+1. **Line 229-233**: `if (productCount > 0) { return { success: true }; }` — Skips ALL seeding if products exist, even if blog posts are empty
+2. **`_autoSeedAttempted` flag**: Set to `true` after first seed attempt, preventing retries even for missing entity types
+3. **`checkSeedingNeeded()`**: Only checked products, not other entity types
+
+**Fix Applied**: Rewrote `auto-seed.ts` with per-entity-type checking:
+
+1. **`checkEntityCounts()`** — Checks all 4 entity types (products, categories, brands, blog posts) individually
+2. **`seedCategories()`, `seedBrands()`, `seedProducts()`, `seedBlogPosts()`** — Each function independently checks if its table is empty before seeding
+3. **`_autoSeedCompleted`** (renamed from `_autoSeedAttempted`) — Only set to `true` when ALL entity types have data
+4. **Partial seeding supported** — If products exist but blog posts don't, only blog posts get seeded
+5. **Better logging** — Shows which entity types are empty when seeding starts
+
+### Files Modified
+- `/src/lib/auto-seed.ts` — Complete rewrite with per-entity-type seeding
+
+### Verification Results (Local)
+- ✅ Blog API returns 4 posts
+- ✅ Blog page shows 4 articles with categories
+- ✅ All other APIs still work correctly
+- ✅ Lint passes cleanly
+
+### Key Architecture Change
+Old behavior: `productCount > 0 → skip everything → mark as done`
+New behavior: Check each entity type → seed only what's empty → only mark complete when ALL types have data
+
+This means on Cloudflare, when the next request comes in after deployment:
+1. `ensureSeeded()` checks counts for all entity types
+2. Finds products=26, categories=8, brands=12, blogPosts=0
+3. Only runs `seedBlogPosts()` (skips the others since they have data)
+4. Blog posts get populated
