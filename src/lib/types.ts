@@ -20,8 +20,8 @@ export interface Product {
   ratingBreakdown: RatingBreakdown;
   asin: string;
   merchant: Merchant;
-  affiliateUrl: string;
-  priceUrl: string;
+  affiliateUrl?: string;
+  priceUrl?: string;
   tags: string[];
   updatedAt: string;
   publishedAt: string;
