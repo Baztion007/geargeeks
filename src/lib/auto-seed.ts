@@ -11,9 +11,11 @@
  * - The seed API endpoint requires admin authentication
  *
  * The auto-seed runs once and sets a flag to avoid re-running on every request.
+ * If the database connection fails (wrong auth token, etc.), the seed is NOT marked
+ * as attempted so it will retry on the next request.
  */
 
-import { db, generateId } from '@/lib/db';
+import { db, generateId, testConnection } from '@/lib/db';
 import { categories } from '@/data/categories';
 import { brands } from '@/data/brands';
 import { products } from '@/data/products';
@@ -21,7 +23,7 @@ import { blogPosts } from '@/data/blog-posts';
 
 // Track whether auto-seed has been attempted (in-memory for Worker lifetime)
 let _autoSeedAttempted = false;
-let _autoSeedPromise: Promise<boolean> | null = null;
+let _autoSeedPromise: Promise<{ success: boolean; error?: string }> | null = null;
 
 // Table creation SQL
 const CREATE_TABLES_SQL = [
@@ -160,36 +162,64 @@ const CREATE_TABLES_SQL = [
 
 /**
  * Check if the database needs seeding (no products table or empty products).
- * Returns true if auto-seed should run.
+ * Returns { needsSeeding: boolean, connectionOk: boolean, error?: string }
  */
-async function needsSeeding(): Promise<boolean> {
+async function checkSeedingNeeded(): Promise<{ needsSeeding: boolean; connectionOk: boolean; error?: string }> {
   try {
     const count = await db.product.count();
-    return count === 0;
-  } catch {
+    return { needsSeeding: count === 0, connectionOk: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    // Check if this is a connection error (auth, network, etc.) vs table not existing
+    const isConnectionError = msg.includes('401') || msg.includes('403') || msg.includes('Unauthorized') ||
+      msg.includes('authentication') || msg.includes('handshake') || msg.includes('ECONNREFUSED') ||
+      msg.includes('fetch failed') || msg.includes('Invalid URL');
+
+    if (isConnectionError) {
+      // Connection itself failed — not just missing table
+      const connTest = await testConnection();
+      return {
+        needsSeeding: false, // Don't try seeding if we can't connect
+        connectionOk: connTest.ok,
+        error: connTest.error || msg,
+      };
+    }
     // Table probably doesn't exist — needs seeding
-    return true;
+    return { needsSeeding: true, connectionOk: true, error: msg };
   }
 }
 
 /**
  * Run the auto-seed process.
  * Creates tables and seeds all data.
- * Returns true if seeding succeeded, false otherwise.
+ * Returns result with success status and optional error message.
  */
-async function runAutoSeed(): Promise<boolean> {
+async function runAutoSeed(): Promise<{ success: boolean; error?: string }> {
   console.log('[auto-seed] Starting automatic database seeding...');
+
+  // First, verify database connection is working
+  const connTest = await testConnection();
+  if (!connTest.ok) {
+    const dbUrl = process.env.DATABASE_URL || 'NOT SET';
+    const hasToken = !!process.env.DATABASE_AUTH_TOKEN;
+    const errorMsg = !hasToken
+      ? `DATABASE_AUTH_TOKEN is not set. Set it in Cloudflare Workers → Settings → Variables and Secrets.`
+      : `Database connection failed: ${connTest.error}. Check DATABASE_URL and DATABASE_AUTH_TOKEN in Cloudflare Workers secrets.`;
+    console.error('[auto-seed] ❌ Connection test failed:', errorMsg);
+    return { success: false, error: errorMsg };
+  }
 
   try {
     // Step 1: Create all tables
+    let tableErrors = 0;
     for (const sql of CREATE_TABLES_SQL) {
       try {
         await db.$executeRawUnsafe(sql);
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
-        // "already exists" is fine — table was created by another request
         if (!msg.includes('already exists')) {
           console.warn('[auto-seed] Table creation warning:', msg.substring(0, 100));
+          tableErrors++;
         }
       }
     }
@@ -199,10 +229,11 @@ async function runAutoSeed(): Promise<boolean> {
     const productCount = await db.product.count();
     if (productCount > 0) {
       console.log('[auto-seed] Database already has data, skipping seed');
-      return true;
+      return { success: true };
     }
 
     // Step 3: Seed categories
+    let categoriesSeeded = 0;
     for (const category of categories) {
       try {
         await db.categoryDB.create({
@@ -215,13 +246,15 @@ async function runAutoSeed(): Promise<boolean> {
             featured: category.featured ? 1 : 0,
           },
         });
+        categoriesSeeded++;
       } catch (e) {
         console.warn(`[auto-seed] Category ${category.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
       }
     }
-    console.log(`[auto-seed] Seeded ${categories.length} categories`);
+    console.log(`[auto-seed] Seeded ${categoriesSeeded}/${categories.length} categories`);
 
     // Step 4: Seed brands
+    let brandsSeeded = 0;
     for (const brand of brands) {
       try {
         await db.brandDB.create({
@@ -237,11 +270,12 @@ async function runAutoSeed(): Promise<boolean> {
             productCount: brand.productCount,
           },
         });
+        brandsSeeded++;
       } catch (e) {
         console.warn(`[auto-seed] Brand ${brand.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
       }
     }
-    console.log(`[auto-seed] Seeded ${brands.length} brands`);
+    console.log(`[auto-seed] Seeded ${brandsSeeded}/${brands.length} brands`);
 
     // Step 5: Seed products
     let productsSeeded = 0;
@@ -289,6 +323,7 @@ async function runAutoSeed(): Promise<boolean> {
     console.log(`[auto-seed] Seeded ${productsSeeded}/${products.length} products`);
 
     // Step 6: Seed blog posts
+    let blogPostsSeeded = 0;
     for (const post of blogPosts) {
       try {
         await db.blogPost.create({
@@ -307,17 +342,24 @@ async function runAutoSeed(): Promise<boolean> {
             readingTime: post.readingTime || 5,
           },
         });
+        blogPostsSeeded++;
       } catch (e) {
         console.warn(`[auto-seed] BlogPost ${post.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
       }
     }
-    console.log(`[auto-seed] Seeded ${blogPosts.length} blog posts`);
+    console.log(`[auto-seed] Seeded ${blogPostsSeeded}/${blogPosts.length} blog posts`);
+
+    if (productsSeeded === 0 && categoriesSeeded === 0) {
+      console.error('[auto-seed] ❌ No data was seeded — all operations failed');
+      return { success: false, error: 'Auto-seed completed but no data was inserted. Check database permissions.' };
+    }
 
     console.log('[auto-seed] ✅ Auto-seed completed successfully');
-    return true;
+    return { success: true };
   } catch (error) {
-    console.error('[auto-seed] ❌ Auto-seed failed:', error);
-    return false;
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('[auto-seed] ❌ Auto-seed failed:', msg);
+    return { success: false, error: msg };
   }
 }
 
@@ -329,35 +371,61 @@ export function resetAutoSeedFlag(): void {
   _autoSeedAttempted = false;
 }
 
+/** Get the last auto-seed error (for diagnostics) */
+let _lastAutoSeedError: string | null = null;
+export function getLastAutoSeedError(): string | null {
+  return _lastAutoSeedError;
+}
+
 /**
  * Ensure the database is seeded. Call this from API routes.
  * This function is idempotent — it only seeds if the database is empty.
  * It also prevents concurrent seeding from multiple requests.
+ *
+ * If the database connection fails, this does NOT set _autoSeedAttempted = true,
+ * so the next request will try again.
  */
 export async function ensureSeeded(): Promise<void> {
-  // If we've already attempted auto-seed, skip (even if it failed,
-  // we don't want to retry on every request)
+  // If we've already attempted auto-seed successfully, skip
   if (_autoSeedAttempted) return;
 
-  // Check if seeding is needed
-  const needsIt = await needsSeeding();
-  if (!needsIt) {
+  // Check if seeding is needed and if connection works
+  const check = await checkSeedingNeeded();
+
+  if (!check.connectionOk) {
+    // Connection failed — don't mark as attempted so we retry next time
+    _lastAutoSeedError = check.error || 'Database connection failed';
+    console.error('[auto-seed] Database connection failed, will retry on next request:', _lastAutoSeedError);
+    return;
+  }
+
+  if (!check.needsSeeding) {
+    // Database already has data
     _autoSeedAttempted = true;
+    _lastAutoSeedError = null;
     return;
   }
 
   // Prevent concurrent seeding
   if (_autoSeedPromise) {
-    await _autoSeedPromise;
+    const result = await _autoSeedPromise;
+    if (result.success) {
+      _autoSeedAttempted = true;
+    }
     return;
   }
 
   _autoSeedPromise = runAutoSeed();
-  const success = await _autoSeedPromise;
+  const result = await _autoSeedPromise;
   _autoSeedPromise = null;
-  _autoSeedAttempted = true;
 
-  if (!success) {
-    console.error('[auto-seed] Auto-seed failed. The database may be empty. Try manual seeding via admin panel.');
+  if (result.success) {
+    _autoSeedAttempted = true;
+    _lastAutoSeedError = null;
+  } else {
+    // Seed failed but connection might work (e.g., tables exist but inserts fail)
+    // Mark as attempted to avoid infinite retry loops, but store the error
+    _autoSeedAttempted = true;
+    _lastAutoSeedError = result.error || 'Auto-seed failed';
   }
 }

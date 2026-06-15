@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db, testConnection } from '@/lib/db';
+import { getLastAutoSeedError } from '@/lib/auto-seed';
 
 /**
  * GET /api/debug — Comprehensive diagnostic endpoint for debugging Cloudflare deployment issues.
@@ -28,8 +29,9 @@ export async function GET() {
   info['env'] = {
     DATABASE_URL: dbUrl === 'NOT SET' ? 'NOT SET' : (isFileDb ? dbUrl : dbUrl.substring(0, 40) + '...'),
     DATABASE_URL_type: isFileDb ? 'local SQLite file' : isTurso ? 'Turso remote' : 'unknown',
-    DATABASE_AUTH_TOKEN: hasAuthToken ? 'set (hidden)' : 'NOT SET',
+    DATABASE_AUTH_TOKEN: hasAuthToken ? 'set (hidden)' : '❌ NOT SET',
     NODE_ENV: process.env.NODE_ENV || 'NOT SET',
+    ADMIN_PASSWORD: !!process.env.ADMIN_PASSWORD ? 'set' : 'NOT SET',
   };
 
   // ─── Database Connection Test ───────────────────────────────────
@@ -43,6 +45,10 @@ export async function GET() {
 
   if (!connTest.ok) {
     // Can't do anything else if connection fails
+    info['autoSeedError'] = getLastAutoSeedError();
+    info['hint'] = !hasAuthToken
+      ? '❌ DATABASE_AUTH_TOKEN is not set. Go to Cloudflare Dashboard → Workers → geargeekz → Settings → Variables and Secrets → Add DATABASE_AUTH_TOKEN'
+      : `Connection failed. Verify DATABASE_URL (${dbUrl.substring(0, 30)}...) and DATABASE_AUTH_TOKEN are correct in Cloudflare Workers secrets.`;
     return NextResponse.json(info, { status: 503, headers: { 'Cache-Control': 'no-store, max-age=0' } });
   }
 
@@ -94,6 +100,20 @@ export async function GET() {
     brands: (tableStatus.BrandDB as Record<string, unknown>)?.count ?? 'error',
     blogPosts: (tableStatus.BlogPost as Record<string, unknown>)?.count ?? 'error',
   };
+
+  // ─── Auto-seed status ──────────────────────────────────────────
+  info['autoSeed'] = {
+    lastError: getLastAutoSeedError(),
+    hint: getLastAutoSeedError()
+      ? `Auto-seed failed: ${getLastAutoSeedError()}`
+      : 'Auto-seed has not reported errors',
+  };
+
+  // ─── Hints ──────────────────────────────────────────────────────
+  const productCount = Number((tableStatus.Product as Record<string, unknown>)?.count ?? 0);
+  if (productCount === 0) {
+    info['hint'] = 'Database is empty. Visit /api/seed to seed the database, or use the admin panel.';
+  }
 
   return NextResponse.json(info, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
 }

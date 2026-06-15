@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, testConnection } from '@/lib/db';
 import { ensureSeeded } from '@/lib/auto-seed';
 
 // JSON string fields that need parsing when reading from DB
@@ -110,15 +110,36 @@ export async function GET(req: NextRequest) {
         skip: offset,
       });
       total = await db.product.count({ where });
-    } catch {
+    } catch (dbError) {
       // Fallback: ORDER BY publishedAt may fail if column doesn't exist yet (migration pending)
-      console.warn('Products query with orderBy failed, trying without orderBy');
+      console.warn('Products query with orderBy failed, trying without orderBy:', dbError instanceof Error ? dbError.message : String(dbError));
       try {
         products = await db.product.findMany({ where, take: limit, skip: offset });
         total = await db.product.count({ where });
       } catch (fallbackError) {
-        console.error('Fallback products query also failed:', fallbackError);
-        return NextResponse.json({ products: [], total: 0, error: 'Database query failed — try seeding the database first' }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
+        // Both queries failed — this is a real database connection issue
+        const errMsg = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+        console.error('Products query failed completely:', errMsg);
+
+        // Test connection to give better diagnostics
+        const connTest = await testConnection();
+        const dbUrl = process.env.DATABASE_URL || 'NOT SET';
+        const hasToken = !!process.env.DATABASE_AUTH_TOKEN;
+
+        return NextResponse.json({
+          products: [],
+          total: 0,
+          error: 'Database query failed',
+          diagnostics: {
+            dbUrl: dbUrl === 'NOT SET' ? 'NOT SET' : dbUrl.substring(0, 40) + '...',
+            authTokenSet: hasToken,
+            connectionOk: connTest.ok,
+            connectionError: connTest.error,
+            hint: !hasToken ? 'DATABASE_AUTH_TOKEN is not set — check Cloudflare Workers secrets' :
+                  !connTest.ok ? `Connection test failed: ${connTest.error}` :
+                   'Database connected but query failed — tables may not exist. Try /api/seed',
+          },
+        }, { status: 503, headers: { 'Cache-Control': 'no-store, max-age=0' } });
       }
     }
 
@@ -128,8 +149,26 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ products: parsed, total, limit, offset }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
   } catch (error) {
-    console.error('Error fetching products:', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error('Error fetching products:', errMsg);
+
+    // Test connection for better error message
+    const connTest = await testConnection();
+    const dbUrl = process.env.DATABASE_URL || 'NOT SET';
+    const hasToken = !!process.env.DATABASE_AUTH_TOKEN;
+
+    return NextResponse.json({
+      error: 'Failed to fetch products',
+      diagnostics: {
+        dbUrl: dbUrl === 'NOT SET' ? 'NOT SET' : dbUrl.substring(0, 40) + '...',
+        authTokenSet: hasToken,
+        connectionOk: connTest.ok,
+        connectionError: connTest.error,
+        hint: !hasToken ? 'DATABASE_AUTH_TOKEN is not set — check Cloudflare Workers secrets' :
+              !connTest.ok ? `Connection test failed: ${connTest.error}` :
+               'Unexpected error — check server logs',
+      },
+    }, { status: 500, headers: { 'Cache-Control': 'no-store, max-age=0' } });
   }
 }
 

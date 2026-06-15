@@ -1050,15 +1050,37 @@ export default function HomePage() {
   if (allFetched && productsError && products.length === 0) {
     return (
       <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="w-20 h-20 mx-auto mb-4 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
-            <Package className="w-10 h-10 text-amber-600" />
+        <div className="text-center max-w-lg mx-auto px-4">
+          <div className="w-20 h-20 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+            <Package className="w-10 h-10 text-red-600" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Unable to Load Products</h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">{productsError}</p>
-          <Button onClick={() => useDataStore.getState().fetchAll(true)} className="bg-amber-500 hover:bg-amber-400 text-gray-900">
-            Try Again
-          </Button>
+          <p className="text-gray-600 dark:text-gray-300 mb-2 text-sm font-medium">
+            {productsError.includes('DATABASE_AUTH_TOKEN')
+              ? 'Database authentication failed'
+              : productsError.includes('Connection test failed')
+                ? 'Database connection failed'
+                : productsError.includes('tables may not exist')
+                  ? 'Database tables not found'
+                  : 'Something went wrong'}
+          </p>
+          {productsError && (
+            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 mb-4 text-left">
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-mono break-words">{productsError}</p>
+            </div>
+          )}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button onClick={() => useDataStore.getState().fetchAll(true)} className="bg-amber-500 hover:bg-amber-400 text-gray-900">
+              Try Again
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => window.open('/api/debug', '_blank')}
+              className="border-gray-300 dark:border-gray-600"
+            >
+              View Diagnostics
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -1076,9 +1098,18 @@ export default function HomePage() {
           <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">
             The database appears to be empty. Try seeding the database from the admin panel.
           </p>
-          <Button onClick={() => useDataStore.getState().fetchAll(true)} className="bg-amber-500 hover:bg-amber-400 text-gray-900">
-            Retry
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button onClick={() => useDataStore.getState().fetchAll(true)} className="bg-amber-500 hover:bg-amber-400 text-gray-900">
+              Retry
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => window.open('/api/seed', '_blank')}
+              className="border-gray-300 dark:border-gray-600"
+            >
+              Seed Database
+            </Button>
+          </div>
         </div>
       </div>
     );

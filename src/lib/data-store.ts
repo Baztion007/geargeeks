@@ -70,7 +70,23 @@ function isCacheValid(fetchedAt: number): boolean {
 async function fetchAPI<T>(endpoint: string): Promise<T> {
   const res = await fetch(endpoint);
   if (!res.ok) {
-    throw new Error(`Failed to fetch ${endpoint}: ${res.status} ${res.statusText}`);
+    // Try to extract diagnostic info from error response
+    try {
+      const errorData = await res.json();
+      const hint = (errorData as Record<string, unknown>)?.diagnostics
+        ? ((errorData as Record<string, unknown>).diagnostics as Record<string, unknown>)?.hint
+        : null;
+      const errMsg = (errorData as Record<string, unknown>)?.error
+        ? String((errorData as Record<string, unknown>).error)
+        : `${res.status} ${res.statusText}`;
+      throw new Error(hint ? `${errMsg} — ${hint}` : errMsg);
+    } catch (parseError) {
+      // If we can't parse the error JSON, throw the original error
+      if (parseError instanceof Error && parseError.message !== `${res.status} ${res.statusText}`) {
+        throw parseError; // Re-throw the parsed error with hint
+      }
+      throw new Error(`Failed to fetch ${endpoint}: ${res.status} ${res.statusText}`);
+    }
   }
   return res.json();
 }
