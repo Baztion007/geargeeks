@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { ensureSeeded } from '@/lib/auto-seed';
 
 // GET /api/categories — List all categories
 export async function GET() {
   try {
+    // Auto-seed: If database is empty (first deployment), seed it automatically
+    await ensureSeeded();
+
     const categories = await db.categoryDB.findMany({
       orderBy: { name: 'asc' },
     });

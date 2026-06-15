@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { ensureSeeded } from '@/lib/auto-seed';
 
 // JSON string fields that need parsing when reading from DB
 const JSON_ARRAY_FIELDS = ['gallery', 'pros', 'cons', 'tags', 'bestFor', 'relatedProducts'] as const;
@@ -71,6 +72,9 @@ function stringifyProduct(data: Record<string, unknown>) {
 // Query params: ?category=travel-gear&brand=anker&search=query&limit=20&offset=0
 export async function GET(req: NextRequest) {
   try {
+    // Auto-seed: If database is empty (first deployment), seed it automatically
+    await ensureSeeded();
+
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category');
     const brand = searchParams.get('brand');

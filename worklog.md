@@ -239,3 +239,106 @@
 ### Unresolved Issues
 - Local SQLite database is read-only when accessed concurrently (SQLITE_READONLY) — this is a local-only issue, not relevant on Cloudflare with Turso
 - Need to verify after Cloudflare deployment that the seed works with Turso HTTP client
+
+---
+
+## Session: 2026-06-15 (Continued)
+
+### Task: Fix "No Products on Cloudflare" — Root Cause Analysis & Comprehensive Fix
+
+**Problem**: On Cloudflare Workers deployment, the site shows no products. User reports "same issue on cloudflare still no products" after previous seed fix.
+
+**Root Causes Identified**:
+
+1. **Node.js libsql client bundled into Worker**: The `import { createClient as createLocalClient } from '@libsql/client'` at the top level of `db.ts` was pulling Node.js-specific code into the Cloudflare Worker bundle. Even though only `createWebClient` was used in production, the top-level import caused the bundler to include the Node.js `http` module, which fails on Workers.
+
+2. **No auto-seed on empty database**: When the Turso database is empty (fresh deployment), the API just returns empty arrays with no mechanism to populate data automatically. Users had to manually click "Seed Database" which might also fail.
+
+3. **Silent error swallowing**: The products API catches all database errors and returns `[]` with no useful error message, making it impossible to diagnose connection issues.
+
+4. **No loading/empty state on frontend**: When products fail to load, the homepage just shows empty sections with no feedback.
+
+**Fixes Applied**:
+
+1. **Fixed db.ts imports for Cloudflare Workers** (`/src/lib/db.ts`)
+   - Removed top-level `import { createClient as createLocalClient } from '@libsql/client'`
+   - Only `@libsql/client/web` is imported at top level (works on Workers via fetch)
+   - Added `getClientAsync()` that uses dynamic `import('@libsql/client')` only for local file: databases in development
+   - Changed all 45 `getClient()` calls to `await getClientAsync()` (all in async methods)
+   - Added `testConnection()` export for diagnostics
+
+2. **Created auto-seed mechanism** (`/src/lib/auto-seed.ts`)
+   - `ensureSeeded()` function called by API routes before querying
+   - Detects empty database (0 products or table doesn't exist)
+   - Automatically creates all tables and seeds data from TypeScript files
+   - Idempotent — only runs once per Worker instance
+   - Prevents concurrent seeding from multiple requests
+   - `resetAutoSeedFlag()` for use after manual seeding
+
+3. **Added auto-seed to all main API routes**:
+   - `/src/app/api/products/route.ts` — `await ensureSeeded()` in GET handler
+   - `/src/app/api/categories/route.ts` — `await ensureSeeded()` in GET handler
+   - `/src/app/api/brands/route.ts` — `await ensureSeeded()` in GET handler
+   - `/src/app/api/blog/route.ts` — `await ensureSeeded()` in GET handler
+
+4. **Improved frontend empty/loading states** (`/src/components/views/HomePage.tsx`)
+   - Added loading spinner while data is being fetched
+   - Added error state with "Try Again" button when products fail to load
+   - Shows clear message instead of empty sections
+
+5. **Enhanced health endpoint** (`/src/app/api/health/route.ts`)
+   - Tests actual database connection (SELECT 1)
+   - Shows connection latency
+   - Better error categorization (ok/warning/error)
+
+6. **Created comprehensive debug endpoint** (`/src/app/api/debug/route.ts`)
+   - Full environment configuration (masked for security)
+   - Database connection test with latency
+   - Table existence check for all 10 tables
+   - Product schema verification (which columns exist)
+   - Data summary counts
+   - Intentionally verbose for Cloudflare deployment debugging
+
+7. **Updated seed route** (`/src/app/api/seed/route.ts`)
+   - Resets auto-seed flag after manual seeding
+   - Ensures consistency between auto-seed and manual seed
+
+### Files Modified
+- `/src/lib/db.ts` — Removed Node.js import, added getClientAsync(), added testConnection()
+- `/src/lib/auto-seed.ts` — New file: auto-seed mechanism
+- `/src/app/api/products/route.ts` — Added ensureSeeded() call
+- `/src/app/api/categories/route.ts` — Added ensureSeeded() call
+- `/src/app/api/brands/route.ts` — Added ensureSeeded() call
+- `/src/app/api/blog/route.ts` — Added ensureSeeded() call
+- `/src/app/api/health/route.ts` — Enhanced with connection test and latency
+- `/src/app/api/debug/route.ts` — New file: comprehensive diagnostics
+- `/src/app/api/seed/route.ts` — Added resetAutoSeedFlag() call
+- `/src/components/views/HomePage.tsx` — Added loading/error states
+
+### Verification Results (Local)
+- ✅ All API routes return 200 with correct data
+- ✅ Products API returns 26 products
+- ✅ Health endpoint shows "healthy" with connection test
+- ✅ Debug endpoint shows full diagnostics (tables, schema, counts)
+- ✅ Homepage renders with loading spinner, then shows all sections
+- ✅ Editor's Picks shows 4 products
+- ✅ Trending shows products
+- ✅ Categories section shows 8 categories
+- ✅ Lint passes cleanly
+
+### Key Architecture Decision
+The auto-seed runs on the **first API request** after deployment. This means:
+- No manual "Seed Database" click needed
+- Database is populated automatically on first visit
+- Subsequent requests skip the seed check (in-memory flag)
+- If Worker restarts (cold start), the flag resets but `needsSeeding()` returns false since data exists
+
+### Deployment Instructions for Cloudflare
+1. Push changes to Git (triggers CI/CD)
+2. After deployment, visit the site — products should appear automatically
+3. If issues persist, check `/api/debug` endpoint for detailed diagnostics
+4. Common issues to check:
+   - `DATABASE_URL` secret must be set in Cloudflare dashboard (Workers → Settings → Variables)
+   - `DATABASE_AUTH_TOKEN` secret must be set
+   - URL format: `libsql://your-db-name-your-org.turso.io` (auto-converted to https://)
+5. If auto-seed fails, use admin panel "Seed Database" button as fallback

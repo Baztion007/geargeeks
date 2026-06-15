@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { ensureSeeded } from '@/lib/auto-seed';
 
 // JSON array fields that need parsing for blog posts
 const BLOG_JSON_ARRAY_FIELDS = ['tags'] as const;
@@ -66,6 +67,8 @@ async function ensureBlogTable() {
 // GET /api/blog — List all blog posts
 export async function GET(req: NextRequest) {
   try {
+    // Auto-seed: If database is empty (first deployment), seed it automatically
+    await ensureSeeded();
     await ensureBlogTable();
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category');

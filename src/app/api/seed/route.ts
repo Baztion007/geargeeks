@@ -7,6 +7,9 @@ import { brands } from '@/data/brands';
 import { products } from '@/data/products';
 import { blogPosts } from '@/data/blog-posts';
 
+// Import auto-seed module to reset its flag after manual seeding
+import { resetAutoSeedFlag } from '@/lib/auto-seed';
+
 // ─── Table creation SQL (all tables needed by the app) ────────────────────────
 // These run before any seeding to ensure the database schema exists.
 // This is critical for fresh Turso databases where `prisma db push`
@@ -570,6 +573,9 @@ export async function POST(req: NextRequest) {
       console.error('Error fetching blog posts:', error);
       errors.push(`BlogPosts query failed: ${error instanceof Error ? error.message?.substring(0, 80) : String(error)}`);
     }
+
+    // Reset auto-seed flag so the next API request knows data is available
+    resetAutoSeedFlag();
 
     return NextResponse.json({
       message: 'Seed completed',

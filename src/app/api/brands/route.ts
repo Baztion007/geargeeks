@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { ensureSeeded } from '@/lib/auto-seed';
 
 // JSON array fields that need parsing for brands
 const BRAND_JSON_ARRAY_FIELDS = ['categories'] as const;
@@ -55,6 +56,9 @@ function stringifyBrand(data: Record<string, unknown>): Record<string, string | 
 // GET /api/brands — List all brands
 export async function GET() {
   try {
+    // Auto-seed: If database is empty (first deployment), seed it automatically
+    await ensureSeeded();
+
     let brands;
     try {
       brands = await db.brandDB.findMany({

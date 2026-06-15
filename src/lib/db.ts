@@ -12,45 +12,117 @@
  * - The default `@libsql/client` import has conditional exports that auto-resolve
  *   to `/web` for `workerd` runtime, but explicit `/web` is more reliable with bundlers
  *
+ * CRITICAL FIX: We only import `@libsql/client/web` at the top level.
+ * The Node.js `@libsql/client` (default import) is loaded via dynamic import
+ * ONLY for local file: databases in development. This prevents the bundler
+ * from including Node.js-specific code in the Cloudflare Worker bundle,
+ * which was causing "no products" issues on Cloudflare.
+ *
  * The API is designed to be a drop-in replacement for the Prisma `db` export,
  * so existing route handlers need minimal changes.
  */
 
+// Only import the web client at top level — this works on Cloudflare Workers
 import { createClient as createWebClient, type Client, type InValue } from '@libsql/client/web'
-import { createClient as createLocalClient } from '@libsql/client'
 
 // ─── Client singleton ──────────────────────────────────────────────────────────
 
 const globalForDb = globalThis as unknown as {
   _libsqlClient: Client | undefined
+  _libsqlClientType: 'web' | 'local' | undefined
 }
 
 let _cachedClient: Client | null = null
 
+/**
+ * Get the database client synchronously.
+ * For remote (Turso) databases, returns the web client immediately.
+ * For local (file:) databases, returns the cached client if already initialized,
+ * or creates one via the web client as a fallback (won't work for file: but
+ * the async getClientAsync handles proper initialization).
+ */
 function getClient(): Client {
   // In development, cache on globalThis to survive HMR
   if (process.env.NODE_ENV !== 'production') {
     if (globalForDb._libsqlClient) {
       return globalForDb._libsqlClient
     }
-    const client = createLibsqlClient()
-    globalForDb._libsqlClient = client
-    return client
   }
 
   // In production (Workers), cache for the Worker instance lifetime
-  if (!_cachedClient) {
-    _cachedClient = createLibsqlClient()
+  if (_cachedClient) {
+    return _cachedClient
   }
-  return _cachedClient
+
+  const client = createLibsqlClient()
+
+  if (process.env.NODE_ENV !== 'production') {
+    globalForDb._libsqlClient = client
+  } else {
+    _cachedClient = client
+  }
+  return client
+}
+
+/**
+ * Async version of getClient that properly handles local SQLite via dynamic import.
+ * For remote (Turso) databases, this is effectively the same as getClient().
+ * For local (file:) databases, this dynamically imports @libsql/client to
+ * avoid bundling Node.js code into the Cloudflare Worker bundle.
+ */
+async function getClientAsync(): Promise<Client> {
+  // Check cache first
+  if (process.env.NODE_ENV !== 'production' && globalForDb._libsqlClient && globalForDb._libsqlClientType === 'local') {
+    return globalForDb._libsqlClient
+  }
+  if (_cachedClient) {
+    return _cachedClient
+  }
+
+  const databaseUrl = process.env.DATABASE_URL || 'file:./db/custom.db'
+
+  // Remote database — web client works synchronously
+  if (!databaseUrl.startsWith('file:')) {
+    const client = createLibsqlClient()
+    if (process.env.NODE_ENV !== 'production') {
+      globalForDb._libsqlClient = client
+      globalForDb._libsqlClientType = 'web'
+    } else {
+      _cachedClient = client
+    }
+    return client
+  }
+
+  // Local file: database — need dynamic import of Node.js client
+  try {
+    const libsqlModule = await import('@libsql/client')
+    const client = libsqlModule.createClient({ url: databaseUrl }) as Client
+    if (process.env.NODE_ENV !== 'production') {
+      globalForDb._libsqlClient = client
+      globalForDb._libsqlClientType = 'local'
+    } else {
+      _cachedClient = client
+    }
+    return client
+  } catch (error) {
+    console.error('[db] Failed to dynamically import @libsql/client for local SQLite:', error)
+    // Fallback to web client (won't work for file: but provides a clear error)
+    const client = createLibsqlClient()
+    if (process.env.NODE_ENV !== 'production') {
+      globalForDb._libsqlClient = client
+      globalForDb._libsqlClientType = 'web'
+    } else {
+      _cachedClient = client
+    }
+    return client
+  }
 }
 
 function createLibsqlClient(): Client {
   const databaseUrl = process.env.DATABASE_URL || 'file:./db/custom.db'
   const authToken = process.env.DATABASE_AUTH_TOKEN
 
-  // Cloudflare Workers: Use web client (fetch-based) with HTTPS URL
-  // The libsql:// protocol uses WebSocket which doesn't work in Workers
+  // Remote database (Turso): Use web client (fetch-based) with HTTPS URL
   if (!databaseUrl.startsWith('file:')) {
     // Convert libsql:// URL to https:// for the web client
     let httpUrl = databaseUrl
@@ -64,10 +136,36 @@ function createLibsqlClient(): Client {
     }) as Client
   }
 
-  // Local development: Use the default client with local SQLite
-  return createLocalClient({
+  // Local file: database in development — use web client as bridge
+  // The getClientAsync() will replace this with the proper local client
+  return createWebClient({
     url: databaseUrl,
   }) as Client
+}
+
+/**
+ * Test the database connection by running a simple query.
+ * Returns connection status and error info if it fails.
+ */
+export async function testConnection(): Promise<{ ok: boolean; error?: string; url?: string; latencyMs?: number }> {
+  const databaseUrl = process.env.DATABASE_URL || 'file:./db/custom.db'
+  const maskedUrl = databaseUrl.startsWith('file:')
+    ? databaseUrl
+    : databaseUrl.substring(0, 30) + '...'
+
+  try {
+    const client = await getClientAsync()
+    const start = Date.now()
+    await client.execute('SELECT 1 as test')
+    const latencyMs = Date.now() - start
+    return { ok: true, url: maskedUrl, latencyMs }
+  } catch (error) {
+    return {
+      ok: false,
+      url: maskedUrl,
+      error: error instanceof Error ? error.message : String(error),
+    }
+  }
 }
 
 // ─── Helper types ───────────────────────────────────────────────────────────────
@@ -197,7 +295,7 @@ const productTable = {
     take?: number
     skip?: number
   }): Promise<DbRow[]> {
-    const client = getClient()
+    const client = await getClientAsync()
     let sql = 'SELECT * FROM Product'
     const params: InValue[] = []
     const conditions: string[] = []
@@ -233,7 +331,7 @@ const productTable = {
   },
 
   async count(opts?: { where?: Record<string, unknown> }): Promise<number> {
-    const client = getClient()
+    const client = await getClientAsync()
     let sql = 'SELECT COUNT(*) as cnt FROM Product'
     const params: InValue[] = []
 
@@ -249,7 +347,7 @@ const productTable = {
   },
 
   async findUnique(opts: { where: { slug: string } | { id: string } }): Promise<DbRow | null> {
-    const client = getClient()
+    const client = await getClientAsync()
     let sql: string
     let params: InValue[]
 
@@ -267,7 +365,7 @@ const productTable = {
   },
 
   async findFirst(opts: { where: Record<string, unknown> }): Promise<DbRow | null> {
-    const client = getClient()
+    const client = await getClientAsync()
     const conditions: string[] = []
     const params: InValue[] = []
 
@@ -283,7 +381,7 @@ const productTable = {
   },
 
   async create(opts: { data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = stringifyProductData(opts.data)
 
     if (!data.id) data.id = generateId()
@@ -303,7 +401,7 @@ const productTable = {
   },
 
   async update(opts: { where: { slug: string } | { id: string }; data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = stringifyProductData(opts.data)
     data.updatedAt = new Date().toISOString()
 
@@ -327,7 +425,7 @@ const productTable = {
   },
 
   async delete(opts: { where: { slug: string } | { id: string } }): Promise<void> {
-    const client = getClient()
+    const client = await getClientAsync()
     let sql: string
     let params: InValue[]
 
@@ -347,7 +445,7 @@ const productTable = {
 
 const categoryDBTable = {
   async findMany(opts?: { orderBy?: Record<string, string> }): Promise<DbRow[]> {
-    const client = getClient()
+    const client = await getClientAsync()
     let sql = 'SELECT * FROM CategoryDB'
 
     if (opts?.orderBy) {
@@ -360,13 +458,13 @@ const categoryDBTable = {
   },
 
   async count(): Promise<number> {
-    const client = getClient()
+    const client = await getClientAsync()
     const result = await client.execute('SELECT COUNT(*) as cnt FROM CategoryDB')
     return Number(result.rows[0]?.cnt ?? 0)
   },
 
   async findUnique(opts: { where: { slug: string } }): Promise<DbRow | null> {
-    const client = getClient()
+    const client = await getClientAsync()
     const result = await client.execute({
       sql: 'SELECT * FROM CategoryDB WHERE slug = ? LIMIT 1',
       args: [opts.where.slug],
@@ -376,7 +474,7 @@ const categoryDBTable = {
   },
 
   async create(opts: { data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = { ...opts.data }
     if (!data.id) data.id = generateId()
 
@@ -394,7 +492,7 @@ const categoryDBTable = {
   },
 
   async update(opts: { where: { slug: string }; data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = opts.data
     const setClauses = Object.keys(data).map(k => `${k} = ?`)
     const values: InValue[] = [...Object.values(data) as InValue[], opts.where.slug]
@@ -409,7 +507,7 @@ const categoryDBTable = {
   },
 
   async delete(opts: { where: { slug: string } }): Promise<void> {
-    const client = getClient()
+    const client = await getClientAsync()
     await client.execute({
       sql: 'DELETE FROM CategoryDB WHERE slug = ?',
       args: [opts.where.slug],
@@ -421,7 +519,7 @@ const categoryDBTable = {
 
 const brandDBTable = {
   async findMany(opts?: { orderBy?: Record<string, string> }): Promise<DbRow[]> {
-    const client = getClient()
+    const client = await getClientAsync()
     let sql = 'SELECT * FROM BrandDB'
 
     if (opts?.orderBy) {
@@ -434,13 +532,13 @@ const brandDBTable = {
   },
 
   async count(): Promise<number> {
-    const client = getClient()
+    const client = await getClientAsync()
     const result = await client.execute('SELECT COUNT(*) as cnt FROM BrandDB')
     return Number(result.rows[0]?.cnt ?? 0)
   },
 
   async findUnique(opts: { where: { slug: string } }): Promise<DbRow | null> {
-    const client = getClient()
+    const client = await getClientAsync()
     const result = await client.execute({
       sql: 'SELECT * FROM BrandDB WHERE slug = ? LIMIT 1',
       args: [opts.where.slug],
@@ -450,7 +548,7 @@ const brandDBTable = {
   },
 
   async create(opts: { data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = stringifyBrandData(opts.data)
 
     const columns = Object.keys(data)
@@ -467,7 +565,7 @@ const brandDBTable = {
   },
 
   async update(opts: { where: { slug: string }; data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = stringifyBrandData(opts.data)
     const setClauses = Object.keys(data).map(k => `${k} = ?`)
     const values: InValue[] = [...Object.values(data) as InValue[], opts.where.slug]
@@ -482,7 +580,7 @@ const brandDBTable = {
   },
 
   async delete(opts: { where: { slug: string } }): Promise<void> {
-    const client = getClient()
+    const client = await getClientAsync()
     await client.execute({
       sql: 'DELETE FROM BrandDB WHERE slug = ?',
       args: [opts.where.slug],
@@ -494,7 +592,7 @@ const brandDBTable = {
 
 const contactMessageTable = {
   async create(opts: { data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = { ...opts.data }
     if (!data.id) data.id = generateId()
     data.createdAt = new Date().toISOString()
@@ -520,7 +618,7 @@ const contactMessageTable = {
   },
 
   async findMany(opts: { orderBy?: Record<string, string>; take?: number }): Promise<DbRow[]> {
-    const client = getClient()
+    const client = await getClientAsync()
     let sql = 'SELECT * FROM contact_messages'
     const args: InValue[] = []
 
@@ -548,13 +646,13 @@ const contactMessageTable = {
   },
 
   async count(): Promise<number> {
-    const client = getClient()
+    const client = await getClientAsync()
     const result = await client.execute('SELECT COUNT(*) as cnt FROM contact_messages')
     return Number(result.rows[0]?.cnt ?? 0)
   },
 
   async update(opts: { where: { id: string }; data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = { ...opts.data }
 
     // Map field names
@@ -576,7 +674,7 @@ const contactMessageTable = {
   },
 
   async delete(opts: { where: { id: string } }): Promise<void> {
-    const client = getClient()
+    const client = await getClientAsync()
     await client.execute({
       sql: 'DELETE FROM contact_messages WHERE id = ?',
       args: [opts.where.id],
@@ -588,7 +686,7 @@ const contactMessageTable = {
 
 const newsletterSubscriberTable = {
   async findUnique(opts: { where: { email: string } }): Promise<DbRow | null> {
-    const client = getClient()
+    const client = await getClientAsync()
     const result = await client.execute({
       sql: 'SELECT * FROM NewsletterSubscriber WHERE email = ? LIMIT 1',
       args: [opts.where.email],
@@ -598,7 +696,7 @@ const newsletterSubscriberTable = {
   },
 
   async create(opts: { data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = { ...opts.data }
     if (!data.id) data.id = generateId()
     data.createdAt = new Date().toISOString()
@@ -617,7 +715,7 @@ const newsletterSubscriberTable = {
   },
 
   async update(opts: { where: { email: string }; data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = opts.data
     const setClauses = Object.keys(data).map(k => `${k} = ?`)
     const values: InValue[] = [...Object.values(data) as InValue[], opts.where.email]
@@ -635,7 +733,7 @@ const newsletterSubscriberTable = {
 
 const userReviewTable = {
   async findMany(opts: { where: Record<string, unknown>; orderBy?: Record<string, string>[] | Record<string, string> }): Promise<DbRow[]> {
-    const client = getClient()
+    const client = await getClientAsync()
     const conditions: string[] = []
     const params: InValue[] = []
 
@@ -667,7 +765,7 @@ const userReviewTable = {
   },
 
   async create(opts: { data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = { ...opts.data }
     if (!data.id) data.id = generateId()
     data.createdAt = new Date().toISOString()
@@ -687,7 +785,7 @@ const userReviewTable = {
   },
 
   async update(opts: { where: { id: string }; data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = opts.data
 
     // Handle increment: { helpful: { increment: 1 } }
@@ -719,7 +817,7 @@ const userReviewTable = {
 
 const priceAlertTable = {
   async findUnique(opts: { where: { email_productSlug: { email: string; productSlug: string } } }): Promise<DbRow | null> {
-    const client = getClient()
+    const client = await getClientAsync()
     const result = await client.execute({
       sql: 'SELECT * FROM PriceAlert WHERE email = ? AND productSlug = ? LIMIT 1',
       args: [opts.where.email_productSlug.email, opts.where.email_productSlug.productSlug],
@@ -729,7 +827,7 @@ const priceAlertTable = {
   },
 
   async findMany(opts: { where: Record<string, unknown>; orderBy?: Record<string, string> }): Promise<DbRow[]> {
-    const client = getClient()
+    const client = await getClientAsync()
     const conditions: string[] = []
     const params: InValue[] = []
 
@@ -750,7 +848,7 @@ const priceAlertTable = {
   },
 
   async create(opts: { data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = { ...opts.data }
     if (!data.id) data.id = generateId()
     data.createdAt = new Date().toISOString()
@@ -769,7 +867,7 @@ const priceAlertTable = {
   },
 
   async update(opts: { where: { id: string }; data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = opts.data
     const setClauses = Object.keys(data).map(k => `${k} = ?`)
     const values: InValue[] = [...Object.values(data) as InValue[], opts.where.id]
@@ -787,7 +885,7 @@ const priceAlertTable = {
 
 const affiliateMerchantConfigTable = {
   async findMany(opts?: { orderBy?: Record<string, string> }): Promise<DbRow[]> {
-    const client = getClient()
+    const client = await getClientAsync()
     let sql = 'SELECT * FROM AffiliateMerchantConfig'
 
     if (opts?.orderBy) {
@@ -800,7 +898,7 @@ const affiliateMerchantConfigTable = {
   },
 
   async findUnique(opts: { where: { merchantId: string } }): Promise<DbRow | null> {
-    const client = getClient()
+    const client = await getClientAsync()
     const result = await client.execute({
       sql: 'SELECT * FROM AffiliateMerchantConfig WHERE merchantId = ? LIMIT 1',
       args: [opts.where.merchantId],
@@ -810,7 +908,7 @@ const affiliateMerchantConfigTable = {
   },
 
   async create(opts: { data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = { ...opts.data }
     if (!data.id) data.id = generateId()
     data.updatedAt = new Date().toISOString()
@@ -830,7 +928,7 @@ const affiliateMerchantConfigTable = {
   },
 
   async update(opts: { where: { merchantId: string }; data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = { ...opts.data, updatedAt: new Date().toISOString() }
     const setClauses = Object.keys(data).map(k => `${k} = ?`)
     const values: InValue[] = [...Object.values(data) as InValue[], opts.where.merchantId]
@@ -861,7 +959,7 @@ const affiliateMerchantConfigTable = {
 
 const affiliateGlobalSettingsTable = {
   async findUnique(opts: { where: { id: string } }): Promise<DbRow | null> {
-    const client = getClient()
+    const client = await getClientAsync()
     const result = await client.execute({
       sql: 'SELECT * FROM AffiliateGlobalSettings WHERE id = ? LIMIT 1',
       args: [opts.where.id],
@@ -871,7 +969,7 @@ const affiliateGlobalSettingsTable = {
   },
 
   async upsert(opts: { where: { id: string }; update: Record<string, unknown>; create: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const existing = await affiliateGlobalSettingsTable.findUnique({ where: { id: opts.where.id } })
 
     if (existing) {
@@ -932,7 +1030,7 @@ const blogPostTable = {
     take?: number
     skip?: number
   }): Promise<DbRow[]> {
-    const client = getClient()
+    const client = await getClientAsync()
     let sql = 'SELECT * FROM BlogPost'
     const params: InValue[] = []
 
@@ -982,7 +1080,7 @@ const blogPostTable = {
   },
 
   async count(opts?: { where?: Record<string, unknown> }): Promise<number> {
-    const client = getClient()
+    const client = await getClientAsync()
     let sql = 'SELECT COUNT(*) as cnt FROM BlogPost'
     const params: InValue[] = []
 
@@ -1004,7 +1102,7 @@ const blogPostTable = {
   },
 
   async findUnique(opts: { where: { slug: string } }): Promise<DbRow | null> {
-    const client = getClient()
+    const client = await getClientAsync()
     const result = await client.execute({
       sql: 'SELECT * FROM BlogPost WHERE slug = ? LIMIT 1',
       args: [opts.where.slug],
@@ -1014,7 +1112,7 @@ const blogPostTable = {
   },
 
   async create(opts: { data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = stringifyBlogPostData(opts.data)
 
     if (!data.id) data.id = generateId()
@@ -1037,7 +1135,7 @@ const blogPostTable = {
   },
 
   async update(opts: { where: { slug: string }; data: Record<string, unknown> }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const data = stringifyBlogPostData(opts.data)
     data.updatedAt = new Date().toISOString()
 
@@ -1054,7 +1152,7 @@ const blogPostTable = {
   },
 
   async delete(opts: { where: { slug: string } }): Promise<DbRow> {
-    const client = getClient()
+    const client = await getClientAsync()
     const existing = await blogPostTable.findUnique({ where: { slug: opts.where.slug } })
     if (!existing) throw new Error('BlogPost not found')
 
@@ -1070,13 +1168,13 @@ const blogPostTable = {
 // ─── Raw SQL access (for affiliate route's fallback queries) ────────────────────
 
 async function $queryRaw<T = DbRow[]>(sql: string, ...args: InValue[]): Promise<T> {
-  const client = getClient()
+  const client = await getClientAsync()
   const result = await client.execute({ sql, args })
   return result.rows as T
 }
 
 async function $executeRawUnsafe(sql: string, ...args: InValue[]): Promise<void> {
-  const client = getClient()
+  const client = await getClientAsync()
   await client.execute({ sql, args })
 }
 

@@ -1030,7 +1030,39 @@ function BrowseAllCategoriesSection() {
 }
 
 export default function HomePage() {
-  useEnsureData();
+  const { isLoading } = useEnsureData();
+  const products = useDataStore((s) => s.products);
+  const productsError = useDataStore((s) => s.productsError);
+
+  // Show loading state while data is being fetched
+  if (isLoading && products.length === 0) {
+    return (
+      <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-500 dark:text-gray-400 font-medium">Loading gear reviews...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if data failed to load and we have no cached data
+  if (productsError && products.length === 0) {
+    return (
+      <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="w-20 h-20 mx-auto mb-4 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+            <Package className="w-10 h-10 text-amber-600" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Unable to Load Products</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">{productsError}</p>
+          <Button onClick={() => useDataStore.getState().fetchAll(true)} className="bg-amber-500 hover:bg-amber-400 text-gray-900">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
