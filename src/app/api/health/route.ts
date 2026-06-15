@@ -10,9 +10,10 @@ export async function GET() {
   const hasAuthToken = !!process.env.DATABASE_AUTH_TOKEN;
   const nodeEnv = process.env.NODE_ENV || 'NOT SET';
 
+  // Show full URL (minus token) for debugging — safe since no secrets are in the URL
   checks['env'] = {
     status: dbUrl === 'NOT SET' ? 'error' : 'ok',
-    details: `DATABASE_URL: ${dbUrl.substring(0, 25)}${dbUrl.length > 25 ? '...' : ''}, AUTH_TOKEN: ${hasAuthToken ? 'set' : 'NOT SET'}, NODE_ENV: ${nodeEnv}`,
+    details: `DATABASE_URL: ${dbUrl}, AUTH_TOKEN: ${hasAuthToken ? 'set' : 'NOT SET'}, NODE_ENV: ${nodeEnv}`,
   };
 
   // Check database connectivity
