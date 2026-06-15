@@ -88,7 +88,7 @@ function parseProduct(raw: Record<string, unknown>): Product {
     pros: parseJsonArray(raw.pros),
     cons: parseJsonArray(raw.cons),
     rating: Number(raw.rating ?? 0),
-    ratingBreakdown: parseJsonObj(raw.ratingBreakdown) as Product['ratingBreakdown'],
+    ratingBreakdown: parseJsonObj(raw.ratingBreakdown) as unknown as Product['ratingBreakdown'],
     asin: String(raw.asin ?? ''),
     merchant: (String(raw.merchant ?? 'amazon')) as Product['merchant'],
     affiliateUrl: String(raw.affiliateUrl ?? ''),
