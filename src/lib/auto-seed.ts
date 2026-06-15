@@ -227,8 +227,8 @@ async function seedCategories(): Promise<number> {
 
   // If partially seeded, find and seed missing categories
   if (count > 0) {
-    const existingSlugs = await db.categoryDB.findMany({ select: { slug: true } }).catch(() => []);
-    const existingSlugSet = new Set(existingSlugs.map((c: { slug: string }) => c.slug));
+    const existingRows = await db.categoryDB.findMany().catch(() => []);
+    const existingSlugSet = new Set(existingRows.map((c: Record<string, unknown>) => String(c.slug)));
     const missingCategories = categories.filter(c => !existingSlugSet.has(c.slug));
 
     if (missingCategories.length === 0) return count; // All present despite count mismatch
@@ -287,8 +287,8 @@ async function seedBrands(): Promise<number> {
 
   // If partially seeded, find and seed missing brands
   if (count > 0) {
-    const existingSlugs = await db.brandDB.findMany({ select: { slug: true } }).catch(() => []);
-    const existingSlugSet = new Set(existingSlugs.map((b: { slug: string }) => b.slug));
+    const existingRows = await db.brandDB.findMany().catch(() => []);
+    const existingSlugSet = new Set(existingRows.map((b: Record<string, unknown>) => String(b.slug)));
     const missingBrands = brands.filter(b => !existingSlugSet.has(b.slug));
 
     if (missingBrands.length === 0) return count; // All present despite count mismatch
@@ -389,8 +389,8 @@ async function seedProducts(): Promise<number> {
 
   // If partially seeded, find and seed missing products
   if (count > 0) {
-    const existingSlugs = await db.product.findMany({ select: { slug: true } }).catch(() => []);
-    const existingSlugSet = new Set(existingSlugs.map((p: { slug: string }) => p.slug));
+    const existingRows = await db.product.findMany().catch(() => []);
+    const existingSlugSet = new Set(existingRows.map((p: Record<string, unknown>) => String(p.slug)));
     const missingProducts = products.filter(p => !existingSlugSet.has(p.slug));
 
     if (missingProducts.length === 0) return count; // All present despite count mismatch
@@ -431,8 +431,8 @@ async function seedBlogPosts(): Promise<number> {
 
   // If partially seeded, find and seed missing blog posts
   if (count > 0) {
-    const existingSlugs = await db.blogPost.findMany({ select: { slug: true } }).catch(() => []);
-    const existingSlugSet = new Set(existingSlugs.map((p: { slug: string }) => p.slug));
+    const existingRows = await db.blogPost.findMany().catch(() => []);
+    const existingSlugSet = new Set(existingRows.map((p: Record<string, unknown>) => String(p.slug)));
     const missingPosts = blogPosts.filter(p => !existingSlugSet.has(p.slug));
 
     if (missingPosts.length === 0) return count; // All present despite count mismatch
