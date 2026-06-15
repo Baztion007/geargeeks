@@ -96,14 +96,27 @@ export async function GET(req: NextRequest) {
       ];
     }
 
-    const products = await db.product.findMany({
-      where,
-      orderBy: { publishedAt: 'desc' },
-      take: limit,
-      skip: offset,
-    });
-
-    const total = await db.product.count({ where });
+    let products;
+    let total;
+    try {
+      products = await db.product.findMany({
+        where,
+        orderBy: { publishedAt: 'desc' },
+        take: limit,
+        skip: offset,
+      });
+      total = await db.product.count({ where });
+    } catch {
+      // Fallback: ORDER BY publishedAt may fail if column doesn't exist yet (migration pending)
+      console.warn('Products query with orderBy failed, trying without orderBy');
+      try {
+        products = await db.product.findMany({ where, take: limit, skip: offset });
+        total = await db.product.count({ where });
+      } catch (fallbackError) {
+        console.error('Fallback products query also failed:', fallbackError);
+        return NextResponse.json({ products: [], total: 0, error: 'Database query failed — try seeding the database first' }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
+      }
+    }
 
     // Products are already parsed by db.ts parseProductRow, but do an extra pass
     // for safety in case any fields weren't parsed

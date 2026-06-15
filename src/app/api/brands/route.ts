@@ -55,9 +55,16 @@ function stringifyBrand(data: Record<string, unknown>): Record<string, string | 
 // GET /api/brands — List all brands
 export async function GET() {
   try {
-    const brands = await db.brandDB.findMany({
-      orderBy: { name: 'asc' },
-    });
+    let brands;
+    try {
+      brands = await db.brandDB.findMany({
+        orderBy: { name: 'asc' },
+      });
+    } catch {
+      // Fallback: orderBy may fail if column doesn't exist yet
+      console.warn('Brands query with orderBy failed, trying without');
+      brands = await db.brandDB.findMany();
+    }
 
     // db.brandDB already parses via parseBrandRow, but do an extra pass for safety
     const parsed = brands.map((b) => parseBrand(b as Record<string, unknown>));

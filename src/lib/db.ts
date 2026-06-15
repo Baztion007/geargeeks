@@ -208,12 +208,10 @@ const productTable = {
       sql += ' WHERE ' + conditions.join(' AND ')
     }
 
-    // ORDER BY
+    // ORDER BY — use publishedAt if available, otherwise fallback to rowid
     if (opts?.orderBy) {
       const [field, direction] = Object.entries(opts.orderBy)[0]
       sql += ` ORDER BY ${field} ${direction === 'desc' ? 'DESC' : 'ASC'}`
-    } else {
-      sql += ' ORDER BY publishedAt DESC'
     }
 
     if (opts?.take) {

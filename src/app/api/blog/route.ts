@@ -83,11 +83,21 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {};
     if (category) where.category = category;
 
-    const posts = await db.blogPost.findMany({
-      where: Object.keys(where).length > 0 ? where : undefined,
-      orderBy: { publishedAt: 'desc' },
-      take: limit > 0 ? limit : undefined,
-    });
+    let posts;
+    try {
+      posts = await db.blogPost.findMany({
+        where: Object.keys(where).length > 0 ? where : undefined,
+        orderBy: { publishedAt: 'desc' },
+        take: limit > 0 ? limit : undefined,
+      });
+    } catch {
+      // Fallback: orderBy may fail if column doesn't exist yet
+      console.warn('Blog query with orderBy failed, trying without');
+      posts = await db.blogPost.findMany({
+        where: Object.keys(where).length > 0 ? where : undefined,
+        take: limit > 0 ? limit : undefined,
+      });
+    }
 
     const parsed = posts.map((p) => parseBlogPost(p as Record<string, unknown>));
 

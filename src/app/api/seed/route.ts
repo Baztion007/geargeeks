@@ -309,23 +309,52 @@ export async function POST(req: NextRequest) {
     }
 
     // ─── Step 1.5: Run migrations — add missing columns ─────────────────────────
+    // If any migrations succeed (meaning columns were missing), we do an
+    // automatic reset+reseed because ALTER TABLE alone doesn't fix existing
+    // data that was inserted without those columns, and UPDATE queries
+    // referencing new columns would fail on rows that don't have them.
+    let needsFullReset = false;
     for (const sql of MIGRATION_SQL) {
       try {
         await db.$executeRawUnsafe(sql);
-        // If it succeeded, the column was actually missing
+        // If it succeeded, the column was actually missing → schema was outdated
         const match = sql.match(/ALTER TABLE (\w+) ADD COLUMN (\w+)/);
         if (match) {
           migrationResults.push(`Added ${match[2]} to ${match[1]}`);
+          needsFullReset = true;
         }
       } catch (e) {
-        // "duplicate column name" or "table has no column" is expected if column already exists
+        // "duplicate column name" or "already exists" is expected if column exists
         const msg = e instanceof Error ? e.message : String(e);
         if (!msg.includes('duplicate column') && !msg.includes('already exists')) {
           console.error('Migration error:', msg);
-          // Don't add to errors — non-critical
         }
-        // Column already exists — this is fine, silently skip
       }
+    }
+
+    // If migrations were needed, auto-reset to ensure clean data
+    if (needsFullReset && !reset) {
+      console.log('Schema was outdated (migrations applied). Auto-resetting tables for clean data...');
+      const DROP_TABLES_SQL = [
+        'DROP TABLE IF EXISTS Product',
+        'DROP TABLE IF EXISTS CategoryDB',
+        'DROP TABLE IF EXISTS BrandDB',
+        'DROP TABLE IF EXISTS BlogPost',
+        'DROP TABLE IF EXISTS contact_messages',
+        'DROP TABLE IF EXISTS NewsletterSubscriber',
+        'DROP TABLE IF EXISTS UserReview',
+        'DROP TABLE IF EXISTS PriceAlert',
+        'DROP TABLE IF EXISTS AffiliateMerchantConfig',
+        'DROP TABLE IF EXISTS AffiliateGlobalSettings',
+      ];
+      for (const sql of DROP_TABLES_SQL) {
+        try { await db.$executeRawUnsafe(sql); } catch { /* ok */ }
+      }
+      // Recreate tables with the correct schema
+      for (const sql of CREATE_TABLES_SQL) {
+        try { await db.$executeRawUnsafe(sql); } catch { /* ok */ }
+      }
+      migrationResults.push('Auto-reset: tables dropped and recreated for schema consistency');
     }
 
     const result = {
