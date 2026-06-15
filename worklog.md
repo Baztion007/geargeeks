@@ -300,6 +300,80 @@ The user mentioned the Turso DATABASE_AUTH_TOKEN has been changed on Cloudflare.
 
 ---
 
+## Session: 2026-06-15 (Continued #3)
+
+### Task: Fix "No Products Found" on Cloudflare — Comprehensive Diagnostic & Error Handling Overhaul
+
+**Problem**: After fixing the infinite loading loop, the Cloudflare deployment still shows "No Products Found". The API returns 200 with empty products when the database connection fails, making it impossible to tell if the database is empty vs broken.
+
+**Root Causes**:
+1. **Products API returns 200 with empty products on DB failure** — Frontend can't distinguish "DB empty" from "DB connection failed"
+2. **Auto-seed swallows connection errors** — If auth fails, auto-seed silently fails and marks itself as attempted, never retrying
+3. **Frontend shows generic "No Products Found"** — No useful diagnostic info for the user to fix the issue
+4. **No actionable error messages** — User can't tell if the problem is missing DATABASE_AUTH_TOKEN, wrong token, or empty database
+
+**Fixes Applied**:
+
+1. **Products API: Return 503 when database query fails** (`/src/app/api/products/route.ts`)
+   - When both primary and fallback queries fail, return 503 (not 200 with empty products)
+   - Response includes `diagnostics` object with: dbUrl status, authToken status, connection test result, actionable hint
+   - Outer catch also includes diagnostics
+   - Example: `"hint": "DATABASE_AUTH_TOKEN is not set — check Cloudflare Workers secrets"`
+
+2. **Auto-seed: Connection-aware retry logic** (`/src/lib/auto-seed.ts`)
+   - Added `checkSeedingNeeded()` that distinguishes "table missing" from "connection failed"
+   - If connection fails (401, 403, auth errors), DON'T set `_autoSeedAttempted = true` — allows retry on next request
+   - `runAutoSeed()` now runs `testConnection()` FIRST before attempting any SQL
+   - Better error messages: tells user specifically to check Cloudflare Workers secrets
+   - Added `getLastAutoSeedError()` export for diagnostics
+   - Track seeded counts per entity type (productsSeeded, categoriesSeeded, etc.)
+
+3. **Frontend: Meaningful error states with diagnostics** (`/src/components/views/HomePage.tsx`)
+   - Error state shows specific issue category: "Database authentication failed", "Database connection failed", "Database tables not found"
+   - Raw error message shown in a code block for debugging
+   - "View Diagnostics" button opens `/api/debug` in new tab
+   - "Seed Database" button in empty state opens `/api/seed`
+   - Error icon changed from amber to red for better visual distinction
+
+4. **Data store: Parse diagnostic info from error responses** (`/src/lib/data-store.ts`)
+   - `fetchAPI()` now extracts `diagnostics.hint` from 503/500 error responses
+   - Error message includes the server-side hint (e.g., "DATABASE_AUTH_TOKEN is not set")
+
+5. **Debug endpoint: More diagnostic info** (`/src/app/api/debug/route.ts`)
+   - Shows ADMIN_PASSWORD set status
+   - Shows auto-seed error history via `getLastAutoSeedError()`
+   - Provides actionable hints when connection fails
+   - Clear ❌ marker for missing DATABASE_AUTH_TOKEN
+
+### Files Modified
+- `src/app/api/products/route.ts` — Return 503 with diagnostics on DB failure
+- `src/lib/auto-seed.ts` — Connection-aware retry, better error messages, getLastAutoSeedError
+- `src/lib/data-store.ts` — Parse diagnostic hints from error responses
+- `src/components/views/HomePage.tsx` — Meaningful error/empty states with diagnostics
+- `src/app/api/debug/route.ts` — More diagnostic info, auto-seed status, hints
+
+### Pushed to GitHub
+- Commit 8857712 pushed to origin/main
+
+### Critical: Cloudflare Workers Secrets Configuration
+For the Cloudflare deployment to work, these secrets MUST be set correctly in the Cloudflare Dashboard:
+1. **Workers → geargeekz → Settings → Variables and Secrets**
+2. `DATABASE_URL` = `libsql://your-db-name-your-org.turso.io` (Turso database URL)
+3. `DATABASE_AUTH_TOKEN` = your Turso auth token (user said this has been changed)
+4. `ADMIN_PASSWORD` = secure admin password
+
+**If these are not set, the site will show "Unable to Load Products" with a specific error message telling you what's missing.**
+
+### After Deployment
+Visit `/api/debug` on the deployed site to see full diagnostics including:
+- Whether DATABASE_URL is set and what type (local vs Turso)
+- Whether DATABASE_AUTH_TOKEN is set
+- Connection test result with latency
+- Table existence and counts
+- Auto-seed error history
+
+---
+
 ## Session: 2026-06-15 (Continued)
 
 ### Task: Fix "No Products on Cloudflare" — Root Cause Analysis & Comprehensive Fix
