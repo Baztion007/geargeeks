@@ -607,3 +607,24 @@ Stage Summary:
 - Admin panel text now WCAG AA compliant (4.5:1+ contrast on all text)
 - Auto-seed will now complete partial seeding (fixes "only 6 products" on Cloudflare)
 - Both fixes deployed to GitHub, Cloudflare deployment should pick them up
+
+---
+
+Task ID: 2
+Agent: Main
+Task: Fix build failure caused by findMany({ select }) - root cause of "only 6 products on Cloudflare"
+
+Work Log:
+- Discovered previous push (cd5dacb) failed to build on GitHub Actions
+- Build error: "Object literal may only specify known properties, and 'select' does not exist in type '{ orderBy?: Record<string, string> }'"
+- Root cause: auto-seed.ts used findMany({ select: { slug: true } }) but the custom DB client doesn't support 'select'
+- Fixed all 4 findMany calls to use findMany() without select, extracting slugs from full row objects
+- Changed type annotations from { slug: string } to Record<string, unknown>
+- Committed and pushed as ca15e67
+- Verified GitHub Actions deployment completed successfully
+
+Stage Summary:
+- Previous deployment (cd5dacb) FAILED because findMany({ select }) is not supported
+- Fixed deployment (ca15e67) SUCCEEDED - Cloudflare deployment is now live
+- Auto-seed will now detect partial seeding (6 products) and complete it (19 missing)
+- All 25 products should appear on Cloudflare after the first API request triggers auto-seed
