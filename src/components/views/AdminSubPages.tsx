@@ -204,7 +204,7 @@ function AdminShell({ activeTab }: { activeTab: AdminTab }) {
                 key={item.id}
                 onClick={() => handleTabChange(item.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
-                  isActive ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200 border border-transparent'
+                  isActive ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20' : 'text-gray-300 hover:bg-gray-800 hover:text-white border border-transparent'
                 }`}
               >
                 <Icon size={18} className={isActive ? 'text-amber-500' : ''} />
@@ -215,7 +215,7 @@ function AdminShell({ activeTab }: { activeTab: AdminTab }) {
           })}
         </nav>
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800">
-          <Button variant="ghost" size="sm" className="w-full text-gray-400 hover:text-white" onClick={() => navigate({ page: 'home' })}>
+          <Button variant="ghost" size="sm" className="w-full text-gray-300 hover:text-white" onClick={() => navigate({ page: 'home' })}>
             ← Back to Site
           </Button>
         </div>
@@ -499,30 +499,30 @@ function ProductsContent() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-800 bg-gray-900/50">
-                <th className="text-left py-3 px-4 text-gray-400 font-medium"><input type="checkbox" checked={paginated.length > 0 && selectedIds.size === paginated.length} onChange={toggleSelectAll} className="rounded border-gray-600 bg-gray-800" /></th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Image</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Title</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Category</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Brand</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Rating</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Merchant</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Status</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Actions</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium"><input type="checkbox" checked={paginated.length > 0 && selectedIds.size === paginated.length} onChange={toggleSelectAll} className="rounded border-gray-600 bg-gray-800" /></th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium">Image</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium">Title</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium">Category</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium">Brand</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium">Rating</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium">Merchant</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium">Status</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {paginated.length === 0 ? (
-                <tr><td colSpan={9} className="py-8 text-center text-gray-500">No products found. Seed the database or add a product.</td></tr>
+                <tr><td colSpan={9} className="py-8 text-center text-gray-400">No products found. Seed the database or add a product.</td></tr>
               ) : (
                 paginated.map((product, idx) => (
                   <tr key={product.id} className={`border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors ${idx % 2 === 0 ? 'bg-gray-900/30' : ''} ${selectedIds.has(product.id) ? 'bg-amber-500/5' : ''}`}>
                     <td className="py-2.5 px-4"><input type="checkbox" checked={selectedIds.has(product.id)} onChange={() => toggleSelect(product.id)} className="rounded border-gray-600 bg-gray-800" /></td>
-                    <td className="py-2.5 px-4"><div className="w-10 h-10 rounded bg-gray-800 overflow-hidden">{product.image ? <img src={product.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Package size={16} className="text-gray-600" /></div>}</div></td>
-                    <td className="py-2.5 px-4"><button onClick={() => navigate({ page: 'product', slug: product.slug })} className="text-white font-medium hover:text-amber-400 transition-colors text-left max-w-[200px] truncate block">{product.title}</button><span className="text-xs text-gray-500 font-mono">{product.asin}</span></td>
+                    <td className="py-2.5 px-4"><div className="w-10 h-10 rounded bg-gray-800 overflow-hidden">{product.image ? <img src={product.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Package size={16} className="text-gray-400" /></div>}</div></td>
+                    <td className="py-2.5 px-4"><button onClick={() => navigate({ page: 'product', slug: product.slug })} className="text-white font-medium hover:text-amber-400 transition-colors text-left max-w-[200px] truncate block">{product.title}</button><span className="text-xs text-gray-400 font-mono">{product.asin}</span></td>
                     <td className="py-2.5 px-4 text-gray-400">{product.category}</td>
                     <td className="py-2.5 px-4 text-gray-400">{product.brand}</td>
                     <td className="py-2.5 px-4"><div className="flex items-center gap-1"><Star size={12} className="text-amber-500 fill-amber-500" /><span className="text-white">{product.rating}</span></div></td>
-                    <td className="py-2.5 px-4"><Badge variant="outline" className="text-[10px] border-gray-700 text-gray-400 capitalize">{product.merchant}</Badge>{(product.affiliateUrl || product.priceUrl) && <div className="mt-0.5"><Badge variant="outline" className="text-[9px] border-amber-500/30 text-amber-400">Custom Link</Badge></div>}</td>
+                    <td className="py-2.5 px-4"><Badge variant="outline" className="text-[10px] border-gray-600 text-gray-300 capitalize">{product.merchant}</Badge>{(product.affiliateUrl || product.priceUrl) && <div className="mt-0.5"><Badge variant="outline" className="text-[9px] border-amber-500/30 text-amber-400">Custom Link</Badge></div>}</td>
                     <td className="py-2.5 px-4"><Badge variant="outline" className={`text-[10px] ${product.reviewStatus === 'verified' ? 'border-green-500/30 text-green-400' : product.reviewStatus === 'updated' ? 'border-amber-500/30 text-amber-400' : 'border-blue-500/30 text-blue-400'}`}>{product.reviewStatus}</Badge></td>
                     <td className="py-2.5 px-4"><div className="flex items-center gap-1"><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-amber-400" onClick={() => { setEditingProduct(product); setShowForm(true); }}>Edit</Button><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-blue-400" onClick={() => handleDuplicate(product)} disabled={duplicating === product.id}>{duplicating === product.id ? <Loader2 size={12} className="animate-spin" /> : <Copy size={12} />}</Button><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-red-400" onClick={() => setDeleteTarget(product)}>Delete</Button></div></td>
                   </tr>
@@ -534,11 +534,11 @@ function ProductsContent() {
         <div className="flex items-center justify-between px-4 py-3 border-t border-gray-800">
           <span className="text-sm text-gray-400">Showing {filtered.length > 0 ? ((currentPage - 1) * ITEMS_PER_PAGE) + 1 : 0}–{Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length}</span>
           <div className="flex items-center gap-1">
-            <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)} className="border-gray-700 text-gray-400">Prev</Button>
+            <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)} className="border-gray-600 text-gray-300">Prev</Button>
             {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((page) => (
-              <Button key={page} variant={currentPage === page ? 'default' : 'outline'} size="sm" onClick={() => setCurrentPage(page)} className={currentPage === page ? 'bg-amber-500 text-black' : 'border-gray-700 text-gray-400'}>{page}</Button>
+              <Button key={page} variant={currentPage === page ? 'default' : 'outline'} size="sm" onClick={() => setCurrentPage(page)} className={currentPage === page ? 'bg-amber-500 text-black' : 'border-gray-600 text-gray-300'}>{page}</Button>
             ))}
-            <Button variant="outline" size="sm" disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage(currentPage + 1)} className="border-gray-700 text-gray-400">Next</Button>
+            <Button variant="outline" size="sm" disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage(currentPage + 1)} className="border-gray-600 text-gray-300">Next</Button>
           </div>
         </div>
       </Card>
@@ -561,7 +561,7 @@ function ProductsContent() {
             <h3 className="text-lg font-semibold text-white mb-2">Delete Product</h3>
             <p className="text-gray-400 text-sm mb-4">Are you sure you want to delete &quot;{deleteTarget.title}&quot;?</p>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteTarget(null)} className="border-gray-700 text-gray-400">Cancel</Button>
+              <Button variant="outline" onClick={() => setDeleteTarget(null)} className="border-gray-600 text-gray-300">Cancel</Button>
               <Button variant="destructive" onClick={handleDelete}>Delete</Button>
             </div>
           </div>
@@ -581,7 +581,7 @@ function ProductsContent() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Amazon URLs or ASINs</label>
-                <p className="text-xs text-gray-500 mb-2">Paste one URL or ASIN per line. Supports Amazon /dp/ and /gp/product/ URLs, or plain ASINs like B08V8HS2Z4</p>
+                <p className="text-xs text-gray-400 mb-2">Paste one URL or ASIN per line. Supports Amazon /dp/ and /gp/product/ URLs, or plain ASINs like B08V8HS2Z4</p>
                 <textarea
                   value={bulkInput}
                   onChange={e => setBulkInput(e.target.value)}
@@ -591,20 +591,20 @@ function ProductsContent() {
                   disabled={bulkLoading}
                 />
                 {bulkInput.trim() && (
-                  <p className="text-xs text-gray-500 mt-1">{bulkInput.trim().split('\n').filter(l => l.trim()).length} items detected</p>
+                  <p className="text-xs text-gray-400 mt-1">{bulkInput.trim().split('\n').filter(l => l.trim()).length} items detected</p>
                 )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1">Default Category</label>
+                  <label className="block text-xs font-medium text-gray-300 mb-1">Default Category</label>
                   <select value={bulkCategory} onChange={e => setBulkCategory(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" disabled={bulkLoading}>
                     <option value="">— None —</option>
                     {categories.map(c => <option key={c.slug} value={c.name}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1">Default Brand</label>
+                  <label className="block text-xs font-medium text-gray-300 mb-1">Default Brand</label>
                   <input
                     type="text"
                     value={bulkBrand}
@@ -615,7 +615,7 @@ function ProductsContent() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1">Merchant</label>
+                  <label className="block text-xs font-medium text-gray-300 mb-1">Merchant</label>
                   <select value={bulkMerchant} onChange={e => setBulkMerchant(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" disabled={bulkLoading}>
                     <option value="amazon">Amazon</option>
                     <option value="walmart">Walmart</option>
@@ -631,7 +631,7 @@ function ProductsContent() {
                 <Button onClick={handleBulkImport} disabled={bulkLoading || !bulkInput.trim()} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">
                   {bulkLoading ? <><Loader2 size={16} className="mr-1.5 animate-spin" /> Importing...</> : <><Upload size={16} className="mr-1.5" /> Import Products</>}
                 </Button>
-                <Button variant="outline" onClick={() => { setShowBulkImport(false); setBulkInput(''); setBulkResults(null); }} className="border-gray-700 text-gray-400">Cancel</Button>
+                <Button variant="outline" onClick={() => { setShowBulkImport(false); setBulkInput(''); setBulkResults(null); }} className="border-gray-600 text-gray-300">Cancel</Button>
               </div>
 
               {bulkResults && (
@@ -839,26 +839,26 @@ function ProductFormModal({ product, categories, brands, onClose, saving, setSav
           <section>
             <h4 className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-3">Basic Information</h4>
             <div className="grid sm:grid-cols-2 gap-3">
-              <div className="sm:col-span-2"><label className="text-xs text-gray-400 mb-1 block">Title</label><input type="text" value={form.title} onChange={(e) => handleTitleChange(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Slug</label><input type="text" value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">ASIN / Product ID</label><input type="text" value={form.asin} onChange={(e) => setForm((f) => ({ ...f, asin: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Category</label><select value={form.categorySlug} onChange={(e) => setForm((f) => ({ ...f, categorySlug: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500"><option value="">Select category</option>{categories.map((c) => (<option key={c.slug} value={c.slug}>{c.name}</option>))}</select></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Brand</label><select value={form.brandSlug} onChange={(e) => setForm((f) => ({ ...f, brandSlug: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500"><option value="">Select brand</option>{brands.map((b) => (<option key={b.slug} value={b.slug}>{b.name}</option>))}</select></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Merchant</label><select value={form.merchant} onChange={(e) => setForm((f) => ({ ...f, merchant: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500"><option value="amazon">Amazon</option><option value="walmart">Walmart</option><option value="bestbuy">Best Buy</option><option value="target">Target</option><option value="rei">REI</option><option value="bhphoto">B&H Photo</option></select></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Rating (1-5)</label><input type="number" min={1} max={5} step={0.1} value={form.rating} onChange={(e) => setForm((f) => ({ ...f, rating: parseFloat(e.target.value) || 1 }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
+              <div className="sm:col-span-2"><label className="text-xs text-gray-300 mb-1 block">Title</label><input type="text" value={form.title} onChange={(e) => handleTitleChange(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Slug</label><input type="text" value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">ASIN / Product ID</label><input type="text" value={form.asin} onChange={(e) => setForm((f) => ({ ...f, asin: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Category</label><select value={form.categorySlug} onChange={(e) => setForm((f) => ({ ...f, categorySlug: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500"><option value="">Select category</option>{categories.map((c) => (<option key={c.slug} value={c.slug}>{c.name}</option>))}</select></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Brand</label><select value={form.brandSlug} onChange={(e) => setForm((f) => ({ ...f, brandSlug: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500"><option value="">Select brand</option>{brands.map((b) => (<option key={b.slug} value={b.slug}>{b.name}</option>))}</select></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Merchant</label><select value={form.merchant} onChange={(e) => setForm((f) => ({ ...f, merchant: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500"><option value="amazon">Amazon</option><option value="walmart">Walmart</option><option value="bestbuy">Best Buy</option><option value="target">Target</option><option value="rei">REI</option><option value="bhphoto">B&H Photo</option></select></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Rating (1-5)</label><input type="number" min={1} max={5} step={0.1} value={form.rating} onChange={(e) => setForm((f) => ({ ...f, rating: parseFloat(e.target.value) || 1 }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
             </div>
           </section>
           <section>
             <h4 className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2"><Link2 size={14} /> Affiliate Links</h4>
-            <p className="text-xs text-gray-500 mb-3">Override the auto-generated affiliate URLs. If left empty, URLs are generated from ASIN + Merchant + Affiliate Settings.</p>
+            <p className="text-xs text-gray-400 mb-3">Override the auto-generated affiliate URLs. If left empty, URLs are generated from ASIN + Merchant + Affiliate Settings.</p>
             <div className="grid sm:grid-cols-2 gap-3">
-              <div className="sm:col-span-2"><label className="text-xs text-gray-400 mb-1 block">Custom Affiliate URL (overrides &quot;View Latest Deal&quot; button)</label><input type="url" value={form.affiliateUrl} onChange={(e) => setForm((f) => ({ ...f, affiliateUrl: e.target.value }))} placeholder="https://www.amazon.com/dp/B08V8HS2Z4?tag=yourtag-20" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" />{form.affiliateUrl && <p className="text-[10px] text-green-400 mt-1">✓ Custom affiliate URL active — will override auto-generated URL</p>}</div>
-              <div className="sm:col-span-2"><label className="text-xs text-gray-400 mb-1 block">Custom Price Check URL (overrides &quot;Check Price&quot; button)</label><input type="url" value={form.priceUrl} onChange={(e) => setForm((f) => ({ ...f, priceUrl: e.target.value }))} placeholder="https://www.amazon.com/dp/B08V8HS2Z4?tag=yourtag-20" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" />{form.priceUrl && <p className="text-[10px] text-green-400 mt-1">✓ Custom price check URL active — will override auto-generated URL</p>}</div>
+              <div className="sm:col-span-2"><label className="text-xs text-gray-300 mb-1 block">Custom Affiliate URL (overrides &quot;View Latest Deal&quot; button)</label><input type="url" value={form.affiliateUrl} onChange={(e) => setForm((f) => ({ ...f, affiliateUrl: e.target.value }))} placeholder="https://www.amazon.com/dp/B08V8HS2Z4?tag=yourtag-20" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" />{form.affiliateUrl && <p className="text-[10px] text-green-400 mt-1">✓ Custom affiliate URL active — will override auto-generated URL</p>}</div>
+              <div className="sm:col-span-2"><label className="text-xs text-gray-300 mb-1 block">Custom Price Check URL (overrides &quot;Check Price&quot; button)</label><input type="url" value={form.priceUrl} onChange={(e) => setForm((f) => ({ ...f, priceUrl: e.target.value }))} placeholder="https://www.amazon.com/dp/B08V8HS2Z4?tag=yourtag-20" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" />{form.priceUrl && <p className="text-[10px] text-green-400 mt-1">✓ Custom price check URL active — will override auto-generated URL</p>}</div>
             </div>
             {!form.affiliateUrl && !form.priceUrl && form.asin && (
               <div className="mt-3 p-3 bg-gray-800/50 border border-gray-700 rounded-lg">
-                <p className="text-xs text-gray-400 mb-1.5 font-medium">Auto-generated preview (from ASIN + Merchant):</p>
-                <p className="text-xs text-gray-500 font-mono truncate">https://www.amazon.com/dp/{form.asin}?tag=productreview0b-20</p>
+                <p className="text-xs text-gray-300 mb-1.5 font-medium">Auto-generated preview (from ASIN + Merchant):</p>
+                <p className="text-xs text-gray-400 font-mono truncate">https://www.amazon.com/dp/{form.asin}?tag=productreview0b-20</p>
               </div>
             )}
           </section>
@@ -907,43 +907,43 @@ function ProductFormModal({ product, categories, brands, onClose, saving, setSav
           <section>
             <h4 className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-3">Content</h4>
             <div className="space-y-3">
-              <div><label className="text-xs text-gray-400 mb-1 block">Excerpt</label><textarea value={form.excerpt} onChange={(e) => setForm((f) => ({ ...f, excerpt: e.target.value }))} rows={2} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Summary</label><textarea value={form.summary} onChange={(e) => setForm((f) => ({ ...f, summary: e.target.value }))} rows={3} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Full Review</label><textarea value={form.fullReview} onChange={(e) => setForm((f) => ({ ...f, fullReview: e.target.value }))} rows={6} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Excerpt</label><textarea value={form.excerpt} onChange={(e) => setForm((f) => ({ ...f, excerpt: e.target.value }))} rows={2} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Summary</label><textarea value={form.summary} onChange={(e) => setForm((f) => ({ ...f, summary: e.target.value }))} rows={3} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Full Review</label><textarea value={form.fullReview} onChange={(e) => setForm((f) => ({ ...f, fullReview: e.target.value }))} rows={6} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
               <div className="grid sm:grid-cols-2 gap-3">
-                <div><label className="text-xs text-gray-400 mb-1 block">Who Is It For</label><textarea value={form.whoIsItFor} onChange={(e) => setForm((f) => ({ ...f, whoIsItFor: e.target.value }))} rows={3} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
-                <div><label className="text-xs text-gray-400 mb-1 block">Who Should Skip</label><textarea value={form.whoShouldSkip} onChange={(e) => setForm((f) => ({ ...f, whoShouldSkip: e.target.value }))} rows={3} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
+                <div><label className="text-xs text-gray-300 mb-1 block">Who Is It For</label><textarea value={form.whoIsItFor} onChange={(e) => setForm((f) => ({ ...f, whoIsItFor: e.target.value }))} rows={3} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
+                <div><label className="text-xs text-gray-300 mb-1 block">Who Should Skip</label><textarea value={form.whoShouldSkip} onChange={(e) => setForm((f) => ({ ...f, whoShouldSkip: e.target.value }))} rows={3} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
               </div>
             </div>
           </section>
           <section>
             <h4 className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-3">Tags & Lists</h4>
             <div className="space-y-3">
-              <div><label className="text-xs text-gray-400 mb-1 block">Best For (comma separated)</label><input type="text" value={form.bestFor} onChange={(e) => setForm((f) => ({ ...f, bestFor: e.target.value }))} placeholder="e.g., Travelers, Commuters" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" />{form.bestFor && (<div className="flex flex-wrap gap-1 mt-2">{form.bestFor.split(',').map((tag, i) => tag.trim() && <Badge key={i} className="bg-amber-500/20 text-amber-400 text-[10px] border-amber-500/30">{tag.trim()}</Badge>)}</div>)}</div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Pros (one per line)</label><textarea value={form.pros} onChange={(e) => setForm((f) => ({ ...f, pros: e.target.value }))} rows={3} placeholder="One pro per line" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Cons (one per line)</label><textarea value={form.cons} onChange={(e) => setForm((f) => ({ ...f, cons: e.target.value }))} rows={3} placeholder="One con per line" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Tags (comma separated)</label><input type="text" value={form.tags} onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))} placeholder="e.g., wireless, noise-cancelling" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Best For (comma separated)</label><input type="text" value={form.bestFor} onChange={(e) => setForm((f) => ({ ...f, bestFor: e.target.value }))} placeholder="e.g., Travelers, Commuters" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" />{form.bestFor && (<div className="flex flex-wrap gap-1 mt-2">{form.bestFor.split(',').map((tag, i) => tag.trim() && <Badge key={i} className="bg-amber-500/20 text-amber-400 text-[10px] border-amber-500/30">{tag.trim()}</Badge>)}</div>)}</div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Pros (one per line)</label><textarea value={form.pros} onChange={(e) => setForm((f) => ({ ...f, pros: e.target.value }))} rows={3} placeholder="One pro per line" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Cons (one per line)</label><textarea value={form.cons} onChange={(e) => setForm((f) => ({ ...f, cons: e.target.value }))} rows={3} placeholder="One con per line" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Tags (comma separated)</label><input type="text" value={form.tags} onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))} placeholder="e.g., wireless, noise-cancelling" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
             </div>
           </section>
           <section>
             <h4 className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-3">Features</h4>
             <div className="space-y-2">
               {Object.entries(features).map(([key, value]) => (<div key={key} className="flex items-center gap-2"><span className="text-sm text-white font-medium w-40 shrink-0 truncate">{key}</span><span className="text-sm text-gray-400 flex-1 truncate">{value}</span><button onClick={() => removeFeature(key)} className="text-red-400 hover:text-red-300 shrink-0"><X size={14} /></button></div>))}
-              <div className="flex items-center gap-2"><input type="text" value={newFeatureKey} onChange={(e) => setNewFeatureKey(e.target.value)} placeholder="Feature name" className="flex-1 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-amber-500" /><input type="text" value={newFeatureValue} onChange={(e) => setNewFeatureValue(e.target.value)} placeholder="Value" className="flex-1 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-amber-500" /><Button variant="outline" size="sm" onClick={addFeature} className="border-gray-700 text-gray-400 shrink-0">Add</Button></div>
+              <div className="flex items-center gap-2"><input type="text" value={newFeatureKey} onChange={(e) => setNewFeatureKey(e.target.value)} placeholder="Feature name" className="flex-1 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-amber-500" /><input type="text" value={newFeatureValue} onChange={(e) => setNewFeatureValue(e.target.value)} placeholder="Value" className="flex-1 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-amber-500" /><Button variant="outline" size="sm" onClick={addFeature} className="border-gray-600 text-gray-300 shrink-0">Add</Button></div>
             </div>
           </section>
           <section>
             <h4 className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-3">Specifications</h4>
             <div className="space-y-2">
               {Object.entries(specifications).map(([key, value]) => (<div key={key} className="flex items-center gap-2"><span className="text-sm text-white font-medium w-40 shrink-0 truncate">{key}</span><span className="text-sm text-gray-400 flex-1 truncate">{value}</span><button onClick={() => removeSpec(key)} className="text-red-400 hover:text-red-300 shrink-0"><X size={14} /></button></div>))}
-              <div className="flex items-center gap-2"><input type="text" value={newSpecKey} onChange={(e) => setNewSpecKey(e.target.value)} placeholder="Spec name" className="flex-1 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-amber-500" /><input type="text" value={newSpecValue} onChange={(e) => setNewSpecValue(e.target.value)} placeholder="Value" className="flex-1 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-amber-500" /><Button variant="outline" size="sm" onClick={addSpec} className="border-gray-700 text-gray-400 shrink-0">Add</Button></div>
+              <div className="flex items-center gap-2"><input type="text" value={newSpecKey} onChange={(e) => setNewSpecKey(e.target.value)} placeholder="Spec name" className="flex-1 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-amber-500" /><input type="text" value={newSpecValue} onChange={(e) => setNewSpecValue(e.target.value)} placeholder="Value" className="flex-1 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-amber-500" /><Button variant="outline" size="sm" onClick={addSpec} className="border-gray-600 text-gray-300 shrink-0">Add</Button></div>
             </div>
           </section>
           <section>
             <h4 className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-3">Publishing</h4>
             <div className="grid sm:grid-cols-2 gap-3">
-              <div><label className="text-xs text-gray-400 mb-1 block">Review Status</label><select value={form.reviewStatus} onChange={(e) => setForm((f) => ({ ...f, reviewStatus: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500"><option value="new">New</option><option value="verified">Verified</option><option value="updated">Updated</option></select></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Author</label><select value={form.authorSlug} onChange={(e) => setForm((f) => ({ ...f, authorSlug: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500"><option value="alex-rivera">Alex Rivera</option><option value="maya-chen">Maya Chen</option></select></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Review Status</label><select value={form.reviewStatus} onChange={(e) => setForm((f) => ({ ...f, reviewStatus: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500"><option value="new">New</option><option value="verified">Verified</option><option value="updated">Updated</option></select></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Author</label><select value={form.authorSlug} onChange={(e) => setForm((f) => ({ ...f, authorSlug: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500"><option value="alex-rivera">Alex Rivera</option><option value="maya-chen">Maya Chen</option></select></div>
             </div>
           </section>
         </div>
@@ -954,7 +954,7 @@ function ProductFormModal({ product, categories, brands, onClose, saving, setSav
               <span>{saveError}</span>
             </div>
           )}
-          <Button variant="outline" onClick={onClose} className="border-gray-700 text-gray-400">Cancel</Button>
+          <Button variant="outline" onClick={onClose} className="border-gray-600 text-gray-300">Cancel</Button>
           <Button onClick={handleSubmit} disabled={saving || uploading} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">{saving ? 'Saving...' : isEdit ? 'Update Product' : 'Create Product'}</Button>
         </div>
       </div>
@@ -1062,24 +1062,24 @@ function CategoriesContent() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-400">{categories.length} categories</p>
+        <p className="text-sm text-gray-300">{categories.length} categories</p>
         <Button onClick={openCreate} className="bg-amber-500 hover:bg-amber-400 text-black font-medium"><FolderOpen size={16} className="mr-1.5" /> Add Category</Button>
       </div>
       <Card className="bg-gray-900 border-gray-800 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead><tr className="border-b border-gray-800 bg-gray-900/50"><th className="text-left py-3 px-4 text-gray-400 font-medium">Image</th><th className="text-left py-3 px-4 text-gray-400 font-medium">Name</th><th className="text-left py-3 px-4 text-gray-400 font-medium">Slug</th><th className="text-left py-3 px-4 text-gray-400 font-medium">Products</th><th className="text-left py-3 px-4 text-gray-400 font-medium">Featured</th><th className="text-left py-3 px-4 text-gray-400 font-medium">Actions</th></tr></thead>
+            <thead><tr className="border-b border-gray-800 bg-gray-900/50"><th className="text-left py-3 px-4 text-gray-300 font-medium">Image</th><th className="text-left py-3 px-4 text-gray-300 font-medium">Name</th><th className="text-left py-3 px-4 text-gray-300 font-medium">Slug</th><th className="text-left py-3 px-4 text-gray-300 font-medium">Products</th><th className="text-left py-3 px-4 text-gray-300 font-medium">Featured</th><th className="text-left py-3 px-4 text-gray-300 font-medium">Actions</th></tr></thead>
             <tbody>
               {categories.length === 0 ? (
-                <tr><td colSpan={6} className="py-8 text-center text-gray-500">No categories found. Seed the database or add a category.</td></tr>
+                <tr><td colSpan={6} className="py-8 text-center text-gray-400">No categories found. Seed the database or add a category.</td></tr>
               ) : (
                 categories.map((cat, idx) => (
                   <tr key={cat.id} className={`border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors ${idx % 2 === 0 ? 'bg-gray-900/30' : ''}`}>
-                    <td className="py-2.5 px-4"><div className="w-10 h-10 rounded bg-gray-800 overflow-hidden">{cat.image ? <img src={cat.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><FolderOpen size={16} className="text-gray-600" /></div>}</div></td>
+                    <td className="py-2.5 px-4"><div className="w-10 h-10 rounded bg-gray-800 overflow-hidden">{cat.image ? <img src={cat.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><FolderOpen size={16} className="text-gray-400" /></div>}</div></td>
                     <td className="py-2.5 px-4 text-white font-medium">{cat.name}</td>
                     <td className="py-2.5 px-4 text-gray-400 font-mono text-xs">{cat.slug}</td>
                     <td className="py-2.5 px-4 text-gray-400">{cat.productCount}</td>
-                    <td className="py-2.5 px-4">{cat.featured ? <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px]">Featured</Badge> : <span className="text-gray-600">—</span>}</td>
+                    <td className="py-2.5 px-4">{cat.featured ? <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px]">Featured</Badge> : <span className="text-gray-400">—</span>}</td>
                     <td className="py-2.5 px-4"><div className="flex items-center gap-1"><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-amber-400" onClick={() => openEdit(cat)}>Edit</Button><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-red-400" onClick={() => setDeleteTarget(cat)}>Delete</Button></div></td>
                   </tr>
                 ))
@@ -1094,13 +1094,13 @@ function CategoriesContent() {
           <div className="bg-gray-900 border border-gray-800 rounded-xl w-full max-w-lg my-8">
             <div className="flex items-center justify-between p-4 border-b border-gray-800"><h3 className="text-lg font-semibold text-white">{editingCategory ? 'Edit Category' : 'Add New Category'}</h3><button onClick={() => setShowForm(false)} className="p-1 hover:bg-gray-800 rounded" aria-label="Close"><X size={20} className="text-gray-400" /></button></div>
             <div className="p-4 sm:p-6 space-y-4">
-              <div><label className="text-xs text-gray-400 mb-1 block">Name</label><input type="text" value={form.name} onChange={(e) => handleNameChange(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Slug</label><input type="text" value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Description</label><textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={3} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Image URL</label><input type="text" value={form.image} onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))} placeholder="/images/category-slug.jpg" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Name</label><input type="text" value={form.name} onChange={(e) => handleNameChange(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Slug</label><input type="text" value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Description</label><textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={3} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Image URL</label><input type="text" value={form.image} onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))} placeholder="/images/category-slug.jpg" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
               <div className="flex items-center gap-3"><label className="text-sm text-gray-300">Featured</label><button onClick={() => setForm((f) => ({ ...f, featured: !f.featured }))} className={`w-10 h-5 rounded-full transition-colors ${form.featured ? 'bg-amber-500' : 'bg-gray-700'} relative`}><div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${form.featured ? 'left-5.5' : 'left-0.5'}`} /></button></div>
             </div>
-            <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-800">{saveError && (<div className="flex-1 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2"><AlertTriangle size={14} className="shrink-0" /><span>{saveError}</span></div>)}<Button variant="outline" onClick={() => setShowForm(false)} className="border-gray-700 text-gray-400">Cancel</Button><Button onClick={handleSubmit} disabled={saving} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">{saving ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}</Button></div>
+            <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-800">{saveError && (<div className="flex-1 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2"><AlertTriangle size={14} className="shrink-0" /><span>{saveError}</span></div>)}<Button variant="outline" onClick={() => setShowForm(false)} className="border-gray-600 text-gray-300">Cancel</Button><Button onClick={handleSubmit} disabled={saving} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">{saving ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}</Button></div>
           </div>
         </div>
       )}
@@ -1111,7 +1111,7 @@ function CategoriesContent() {
             <h3 className="text-lg font-semibold text-white mb-2">Delete Category</h3>
             <p className="text-gray-400 text-sm mb-4">Are you sure you want to delete &quot;{deleteTarget.name}&quot;?</p>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteTarget(null)} className="border-gray-700 text-gray-400">Cancel</Button>
+              <Button variant="outline" onClick={() => setDeleteTarget(null)} className="border-gray-600 text-gray-300">Cancel</Button>
               <Button variant="destructive" onClick={handleDelete}>Delete</Button>
             </div>
           </div>
@@ -1228,20 +1228,20 @@ function BrandsContent() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-400">{brands.length} brands</p>
+        <p className="text-sm text-gray-300">{brands.length} brands</p>
         <Button onClick={openCreate} className="bg-amber-500 hover:bg-amber-400 text-black font-medium"><Building2 size={16} className="mr-1.5" /> Add Brand</Button>
       </div>
       <Card className="bg-gray-900 border-gray-800 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead><tr className="border-b border-gray-800 bg-gray-900/50"><th className="text-left py-3 px-4 text-gray-400 font-medium">Logo</th><th className="text-left py-3 px-4 text-gray-400 font-medium">Name</th><th className="text-left py-3 px-4 text-gray-400 font-medium">Slug</th><th className="text-left py-3 px-4 text-gray-400 font-medium">Products</th><th className="text-left py-3 px-4 text-gray-400 font-medium">Actions</th></tr></thead>
+            <thead><tr className="border-b border-gray-800 bg-gray-900/50"><th className="text-left py-3 px-4 text-gray-300 font-medium">Logo</th><th className="text-left py-3 px-4 text-gray-300 font-medium">Name</th><th className="text-left py-3 px-4 text-gray-300 font-medium">Slug</th><th className="text-left py-3 px-4 text-gray-300 font-medium">Products</th><th className="text-left py-3 px-4 text-gray-300 font-medium">Actions</th></tr></thead>
             <tbody>
               {brands.length === 0 ? (
-                <tr><td colSpan={5} className="py-8 text-center text-gray-500">No brands found. Seed the database or add a brand.</td></tr>
+                <tr><td colSpan={5} className="py-8 text-center text-gray-400">No brands found. Seed the database or add a brand.</td></tr>
               ) : (
                 brands.map((brand, idx) => (
                   <tr key={brand.slug} className={`border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors ${idx % 2 === 0 ? 'bg-gray-900/30' : ''}`}>
-                    <td className="py-2.5 px-4"><div className="w-10 h-10 rounded bg-gray-800 overflow-hidden">{brand.logo ? <img src={brand.logo} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Building2 size={16} className="text-gray-600" /></div>}</div></td>
+                    <td className="py-2.5 px-4"><div className="w-10 h-10 rounded bg-gray-800 overflow-hidden">{brand.logo ? <img src={brand.logo} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Building2 size={16} className="text-gray-400" /></div>}</div></td>
                     <td className="py-2.5 px-4 text-white font-medium">{brand.name}</td>
                     <td className="py-2.5 px-4 text-gray-400 font-mono text-xs">{brand.slug}</td>
                     <td className="py-2.5 px-4 text-gray-400">{brand.productCount}</td>
@@ -1259,18 +1259,18 @@ function BrandsContent() {
           <div className="bg-gray-900 border border-gray-800 rounded-xl w-full max-w-lg my-8">
             <div className="flex items-center justify-between p-4 border-b border-gray-800"><h3 className="text-lg font-semibold text-white">{editingBrand ? 'Edit Brand' : 'Add New Brand'}</h3><button onClick={() => setShowForm(false)} className="p-1 hover:bg-gray-800 rounded" aria-label="Close"><X size={20} className="text-gray-400" /></button></div>
             <div className="p-4 sm:p-6 space-y-4">
-              <div><label className="text-xs text-gray-400 mb-1 block">Name</label><input type="text" value={form.name} onChange={(e) => handleNameChange(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Slug</label><input type="text" value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Logo URL</label><input type="text" value={form.logo} onChange={(e) => setForm((f) => ({ ...f, logo: e.target.value }))} placeholder="/images/brand-slug.jpg" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Description</label><textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={3} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Name</label><input type="text" value={form.name} onChange={(e) => handleNameChange(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Slug</label><input type="text" value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Logo URL</label><input type="text" value={form.logo} onChange={(e) => setForm((f) => ({ ...f, logo: e.target.value }))} placeholder="/images/brand-slug.jpg" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Description</label><textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={3} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500 resize-none" /></div>
               <div className="grid sm:grid-cols-2 gap-3">
-                <div><label className="text-xs text-gray-400 mb-1 block">Founded</label><input type="text" value={form.founded} onChange={(e) => setForm((f) => ({ ...f, founded: e.target.value }))} placeholder="e.g., 1946" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
-                <div><label className="text-xs text-gray-400 mb-1 block">Headquarters</label><input type="text" value={form.headquarters} onChange={(e) => setForm((f) => ({ ...f, headquarters: e.target.value }))} placeholder="e.g., Tokyo, Japan" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
+                <div><label className="text-xs text-gray-300 mb-1 block">Founded</label><input type="text" value={form.founded} onChange={(e) => setForm((f) => ({ ...f, founded: e.target.value }))} placeholder="e.g., 1946" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
+                <div><label className="text-xs text-gray-300 mb-1 block">Headquarters</label><input type="text" value={form.headquarters} onChange={(e) => setForm((f) => ({ ...f, headquarters: e.target.value }))} placeholder="e.g., Tokyo, Japan" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
               </div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Website</label><input type="text" value={form.website} onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))} placeholder="https://example.com" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
-              <div><label className="text-xs text-gray-400 mb-1 block">Categories (comma separated slugs)</label><input type="text" value={form.categories} onChange={(e) => setForm((f) => ({ ...f, categories: e.target.value }))} placeholder="e.g., electronics, audio" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Website</label><input type="text" value={form.website} onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))} placeholder="https://example.com" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500" /></div>
+              <div><label className="text-xs text-gray-300 mb-1 block">Categories (comma separated slugs)</label><input type="text" value={form.categories} onChange={(e) => setForm((f) => ({ ...f, categories: e.target.value }))} placeholder="e.g., electronics, audio" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" /></div>
             </div>
-            <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-800">{saveError && (<div className="flex-1 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2"><AlertTriangle size={14} className="shrink-0" /><span>{saveError}</span></div>)}<Button variant="outline" onClick={() => setShowForm(false)} className="border-gray-700 text-gray-400">Cancel</Button><Button onClick={handleSubmit} disabled={saving} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">{saving ? 'Saving...' : editingBrand ? 'Update Brand' : 'Create Brand'}</Button></div>
+            <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-800">{saveError && (<div className="flex-1 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2"><AlertTriangle size={14} className="shrink-0" /><span>{saveError}</span></div>)}<Button variant="outline" onClick={() => setShowForm(false)} className="border-gray-600 text-gray-300">Cancel</Button><Button onClick={handleSubmit} disabled={saving} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">{saving ? 'Saving...' : editingBrand ? 'Update Brand' : 'Create Brand'}</Button></div>
           </div>
         </div>
       )}
@@ -1281,7 +1281,7 @@ function BrandsContent() {
             <h3 className="text-lg font-semibold text-white mb-2">Delete Brand</h3>
             <p className="text-gray-400 text-sm mb-4">Are you sure you want to delete &quot;{deleteTarget.name}&quot;?</p>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteTarget(null)} className="border-gray-700 text-gray-400">Cancel</Button>
+              <Button variant="outline" onClick={() => setDeleteTarget(null)} className="border-gray-600 text-gray-300">Cancel</Button>
               <Button variant="destructive" onClick={handleDelete}>Delete</Button>
             </div>
           </div>
@@ -1398,7 +1398,7 @@ function MessagesContent() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-sm text-gray-400">
+          <div className="flex items-center gap-2 text-sm text-gray-300">
             <MessageSquare size={16} />
             <span>{total} message{total !== 1 ? 's' : ''}</span>
           </div>
@@ -1413,7 +1413,7 @@ function MessagesContent() {
             variant="outline"
             size="sm"
             onClick={fetchMessages}
-            className="border-gray-700 text-gray-400 hover:text-white"
+            className="border-gray-600 text-gray-300 hover:text-white"
           >
             <RefreshCw size={14} className="mr-1.5" />
             Refresh
@@ -1436,20 +1436,20 @@ function MessagesContent() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-800 bg-gray-900/50">
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Status</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Name</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Email</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Subject</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Message</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Date</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Actions</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium">Status</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium">Name</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium">Email</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium">Subject</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium">Message</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium">Date</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {messages.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-gray-500">
-                    <MessageSquare size={32} className="mx-auto mb-2 text-gray-600" />
+                  <td colSpan={7} className="py-12 text-center text-gray-400">
+                    <MessageSquare size={32} className="mx-auto mb-2 text-gray-400" />
                     <p>No messages yet.</p>
                     <p className="text-xs mt-1">Messages from the contact form will appear here.</p>
                   </td>
@@ -1465,7 +1465,7 @@ function MessagesContent() {
                     >
                       <td className="py-2.5 px-4">
                         {msg.isRead ? (
-                          <MailOpen size={16} className="text-gray-500" />
+                          <MailOpen size={16} className="text-gray-400" />
                         ) : (
                           <Mail size={16} className="text-amber-500" />
                         )}
@@ -1477,12 +1477,12 @@ function MessagesContent() {
                       </td>
                       <td className="py-2.5 px-4 text-gray-400 text-xs">{msg.email}</td>
                       <td className="py-2.5 px-4 text-gray-300 max-w-[150px] truncate">
-                        {msg.subject || <span className="text-gray-600 italic">No subject</span>}
+                        {msg.subject || <span className="text-gray-400 italic">No subject</span>}
                       </td>
                       <td className="py-2.5 px-4 text-gray-400 max-w-[200px] truncate">
                         {truncate(msg.message, 60)}
                       </td>
-                      <td className="py-2.5 px-4 text-gray-500 text-xs whitespace-nowrap">
+                      <td className="py-2.5 px-4 text-gray-400 text-xs whitespace-nowrap">
                         {formatDate(msg.createdAt)}
                       </td>
                       <td className="py-2.5 px-4" onClick={(e) => e.stopPropagation()}>
@@ -1515,7 +1515,7 @@ function MessagesContent() {
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">From:</span>
                               <span className="text-white font-medium">{msg.name}</span>
-                              <span className="text-gray-500 text-xs">({msg.email})</span>
+                              <span className="text-gray-400 text-xs">({msg.email})</span>
                             </div>
                             {msg.subject && (
                               <div className="flex items-center gap-2">
@@ -1540,7 +1540,7 @@ function MessagesContent() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="border-gray-700 text-gray-400 hover:text-red-400"
+                                className="border-gray-600 text-gray-300 hover:text-red-400"
                                 onClick={() => deleteMessage(msg.id)}
                               >
                                 <Trash2 size={14} className="mr-1" />
@@ -1702,7 +1702,7 @@ function BlogContent() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white">Blog Posts</h2>
-          <p className="text-gray-400 text-sm mt-1">{posts.length} posts published</p>
+          <p className="text-gray-300 text-sm mt-1">{posts.length} posts published</p>
         </div>
         <Button onClick={() => { resetForm(); setShowForm(true); }} className="bg-amber-500 hover:bg-amber-400 text-black font-semibold">
           <Plus size={16} className="mr-2" /> New Post
@@ -1802,22 +1802,22 @@ function BlogContent() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-800">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Title</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Category</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Author</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Published</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Read Time</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-300 uppercase tracking-wider">Title</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-300 uppercase tracking-wider">Category</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-300 uppercase tracking-wider">Author</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-300 uppercase tracking-wider">Published</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-300 uppercase tracking-wider">Read Time</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-300 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredPosts.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-8 text-gray-500">No blog posts found</td></tr>
+                <tr><td colSpan={6} className="text-center py-8 text-gray-400">No blog posts found</td></tr>
               ) : filteredPosts.map((post) => (
                 <tr key={post.id} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="font-medium text-white line-clamp-1">{post.title}</div>
-                    <div className="text-xs text-gray-500 mt-0.5">{post.slug}</div>
+                    <div className="text-xs text-gray-400 mt-0.5">{post.slug}</div>
                   </td>
                   <td className="px-4 py-3"><Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs">{post.category}</Badge></td>
                   <td className="px-4 py-3 text-gray-300 text-sm">{post.authorSlug}</td>

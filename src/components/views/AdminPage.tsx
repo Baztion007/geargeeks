@@ -150,7 +150,7 @@ function AdminLoginGate() {
 
             <button
               onClick={() => navigate({ page: 'home' })}
-              className="w-full text-center text-gray-500 hover:text-gray-300 text-sm mt-4 transition-colors"
+              className="w-full text-center text-gray-400 hover:text-gray-200 text-sm mt-4 transition-colors"
             >
               ← Back to site
             </button>
@@ -217,7 +217,7 @@ function AuditLogCard({ token }: { token: string | null }) {
             <Loader2 size={16} className="text-amber-500 animate-spin" />
           </div>
         ) : logs.length === 0 ? (
-          <p className="text-gray-500 text-sm text-center py-4">No activity recorded yet</p>
+          <p className="text-gray-400 text-sm text-center py-4">No activity recorded yet</p>
         ) : (
           <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
             {logs.slice().reverse().map((log, i) => (
@@ -228,11 +228,11 @@ function AuditLogCard({ token }: { token: string | null }) {
                     <span className={`font-medium ${getActionColor(log.action, log.success)}`}>
                       {log.action.replace(/_/g, ' ')}
                     </span>
-                    <span className="text-gray-600 text-[10px]">
+                    <span className="text-gray-400 text-[10px]">
                       {new Date(log.timestamp).toLocaleTimeString()}
                     </span>
                   </div>
-                  <div className="text-gray-500 text-[10px]">
+                  <div className="text-gray-400 text-[10px]">
                     IP: {log.ip}
                     {log.details && ` · ${log.details}`}
                   </div>
@@ -372,7 +372,7 @@ function ChangePasswordCard() {
               {result.message}
             </div>
           )}
-          <p className="text-[10px] text-gray-500 leading-relaxed">
+          <p className="text-[10px] text-gray-400 leading-relaxed">
             ⚡ Password changes take effect immediately. On Cloudflare Workers, the password resets to the ADMIN_PASSWORD env var on redeployment. Set ADMIN_PASSWORD in your Cloudflare dashboard for a persistent password.
           </p>
         </form>
@@ -544,7 +544,7 @@ function AdminDashboard() {
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
                   isActive
                     ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20'
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200 border border-transparent'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white border border-transparent'
                 }`}
               >
                 <Icon size={18} className={isActive ? 'text-amber-500' : ''} />
@@ -556,7 +556,7 @@ function AdminDashboard() {
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800 space-y-2">
-          <Button variant="ghost" size="sm" className="w-full text-gray-400 hover:text-white" onClick={() => navigate({ page: 'home' })}>
+          <Button variant="ghost" size="sm" className="w-full text-gray-300 hover:text-white" onClick={() => navigate({ page: 'home' })}>
             ← Back to Site
           </Button>
           <Button variant="ghost" size="sm" className="w-full text-red-400 hover:text-red-300 hover:bg-red-500/10" onClick={() => { logout(); navigate({ page: 'home' }); }}>
@@ -612,10 +612,10 @@ function AdminDashboard() {
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center justify-between mb-2">
                       <Package size={20} className="text-amber-500" />
-                      <Badge variant="outline" className="text-[10px] border-gray-700 text-gray-400">Total</Badge>
+                      <Badge variant="outline" className="text-[10px] border-gray-600 text-gray-300">Total</Badge>
                     </div>
                     <p className="text-3xl font-bold text-white">{stats.products}</p>
-                    <p className="text-sm text-gray-400 mt-1">Products</p>
+                    <p className="text-sm text-gray-300 mt-1">Products</p>
                     {stats.noAsin > 0 && <p className="text-[10px] text-amber-400 mt-0.5">{stats.noAsin} missing ASIN</p>}
                   </CardContent>
                 </Card>
@@ -623,30 +623,30 @@ function AdminDashboard() {
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center justify-between mb-2">
                       <FolderOpen size={20} className="text-amber-500" />
-                      <Badge variant="outline" className="text-[10px] border-gray-700 text-gray-400">Active</Badge>
+                      <Badge variant="outline" className="text-[10px] border-gray-600 text-gray-300">Active</Badge>
                     </div>
                     <p className="text-3xl font-bold text-white">{stats.categories}</p>
-                    <p className="text-sm text-gray-400 mt-1">Categories</p>
+                    <p className="text-sm text-gray-300 mt-1">Categories</p>
                   </CardContent>
                 </Card>
                 <Card className="bg-gray-900 border-gray-800">
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center justify-between mb-2">
                       <Building2 size={20} className="text-amber-500" />
-                      <Badge variant="outline" className="text-[10px] border-gray-700 text-gray-400">Partners</Badge>
+                      <Badge variant="outline" className="text-[10px] border-gray-600 text-gray-300">Partners</Badge>
                     </div>
                     <p className="text-3xl font-bold text-white">{stats.brands}</p>
-                    <p className="text-sm text-gray-400 mt-1">Brands</p>
+                    <p className="text-sm text-gray-300 mt-1">Brands</p>
                   </CardContent>
                 </Card>
                 <Card className="bg-gray-900 border-gray-800">
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center justify-between mb-2">
                       <Star size={20} className="text-amber-500" />
-                      <Badge variant="outline" className="text-[10px] border-gray-700 text-gray-400">Avg</Badge>
+                      <Badge variant="outline" className="text-[10px] border-gray-600 text-gray-300">Avg</Badge>
                     </div>
                     <p className="text-3xl font-bold text-white">{stats.avgRating}</p>
-                    <p className="text-sm text-gray-400 mt-1">Avg Rating</p>
+                    <p className="text-sm text-gray-300 mt-1">Avg Rating</p>
                   </CardContent>
                 </Card>
               </div>
@@ -660,7 +660,7 @@ function AdminDashboard() {
                     </div>
                     <div>
                       <p className="text-xl font-bold text-white">{stats.blogs}</p>
-                      <p className="text-xs text-gray-400">Blog Posts</p>
+                      <p className="text-xs text-gray-300">Blog Posts</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -671,7 +671,7 @@ function AdminDashboard() {
                     </div>
                     <div>
                       <p className="text-xl font-bold text-white">{stats.customLinks}</p>
-                      <p className="text-xs text-gray-400">Custom Affiliate Links</p>
+                      <p className="text-xs text-gray-300">Custom Affiliate Links</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -682,7 +682,7 @@ function AdminDashboard() {
                     </div>
                     <div>
                       <p className="text-xl font-bold text-white">{stats.products > 0 ? Math.round((verifiedCount / stats.products) * 100) : 0}%</p>
-                      <p className="text-xs text-gray-400">Verified Reviews</p>
+                      <p className="text-xs text-gray-300">Verified Reviews</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -700,7 +700,7 @@ function AdminDashboard() {
                   <CardContent>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">Verified</span>
+                        <span className="text-sm text-gray-300">Verified</span>
                         <div className="flex items-center gap-2">
                           <div className="w-32 h-2 bg-gray-800 rounded-full overflow-hidden">
                             <div className="h-full bg-green-500 rounded-full" style={{ width: totalProducts > 0 ? `${(verifiedCount / totalProducts) * 100}%` : '0%' }} />
@@ -709,7 +709,7 @@ function AdminDashboard() {
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">Updated</span>
+                        <span className="text-sm text-gray-300">Updated</span>
                         <div className="flex items-center gap-2">
                           <div className="w-32 h-2 bg-gray-800 rounded-full overflow-hidden">
                             <div className="h-full bg-amber-500 rounded-full" style={{ width: totalProducts > 0 ? `${(updatedCount / totalProducts) * 100}%` : '0%' }} />
@@ -718,7 +718,7 @@ function AdminDashboard() {
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">New</span>
+                        <span className="text-sm text-gray-300">New</span>
                         <div className="flex items-center gap-2">
                           <div className="w-32 h-2 bg-gray-800 rounded-full overflow-hidden">
                             <div className="h-full bg-blue-500 rounded-full" style={{ width: totalProducts > 0 ? `${((totalProducts - verifiedCount - updatedCount) / totalProducts) * 100}%` : '0%' }} />
@@ -799,7 +799,7 @@ function AdminDashboard() {
                 <CardContent>
                   {recentProducts.length === 0 ? (
                     <div className="text-center py-6">
-                      <Package size={32} className="mx-auto text-gray-600 mb-2" />
+                      <Package size={32} className="mx-auto text-gray-400 mb-2" />
                       <p className="text-gray-400 text-sm">No products yet. Seed the database to get started.</p>
                     </div>
                   ) : (
@@ -807,10 +807,10 @@ function AdminDashboard() {
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-gray-800">
-                            <th className="text-left py-2 pr-4 text-gray-400 font-medium">Product</th>
-                            <th className="text-left py-2 pr-4 text-gray-400 font-medium">Category</th>
-                            <th className="text-left py-2 pr-4 text-gray-400 font-medium">Rating</th>
-                            <th className="text-left py-2 text-gray-400 font-medium">Status</th>
+                            <th className="text-left py-2 pr-4 text-gray-300 font-medium">Product</th>
+                            <th className="text-left py-2 pr-4 text-gray-300 font-medium">Category</th>
+                            <th className="text-left py-2 pr-4 text-gray-300 font-medium">Rating</th>
+                            <th className="text-left py-2 text-gray-300 font-medium">Status</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -866,39 +866,39 @@ function AdminDashboard() {
                   <CardContent>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">Server-side Auth</span>
+                        <span className="text-sm text-gray-300">Server-side Auth</span>
                         <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">Active</Badge>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">Rate Limiting</span>
+                        <span className="text-sm text-gray-300">Rate Limiting</span>
                         <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">5 attempts</Badge>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">Lockout Policy</span>
+                        <span className="text-sm text-gray-300">Lockout Policy</span>
                         <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30 text-[10px]">Exponential</Badge>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">Idle Timeout</span>
+                        <span className="text-sm text-gray-300">Idle Timeout</span>
                         <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/30 text-[10px]">30 min</Badge>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">Session Duration</span>
+                        <span className="text-sm text-gray-300">Session Duration</span>
                         <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/30 text-[10px]">4 hours</Badge>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">Session Encryption</span>
+                        <span className="text-sm text-gray-300">Session Encryption</span>
                         <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">AES-256</Badge>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">IP Allowlist</span>
+                        <span className="text-sm text-gray-300">IP Allowlist</span>
                         <Badge className="bg-gray-500/15 text-gray-400 border-gray-500/30 text-[10px]">Open</Badge>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">Timing Attack Protection</span>
+                        <span className="text-sm text-gray-300">Timing Attack Protection</span>
                         <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">Enabled</Badge>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">httpOnly Cookie</span>
+                        <span className="text-sm text-gray-300">httpOnly Cookie</span>
                         <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">Enabled</Badge>
                       </div>
                     </div>

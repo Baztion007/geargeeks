@@ -189,7 +189,7 @@ async function checkEntityCounts(): Promise<{
       categoryCount,
       brandCount,
       blogPostCount,
-      needsAnySeeding: productCount === 0 || categoryCount === 0 || brandCount === 0 || blogPostCount === 0,
+      needsAnySeeding: productCount < products.length || categoryCount < categories.length || brandCount < brands.length || blogPostCount < blogPosts.length,
       connectionOk: true,
     };
   } catch (e) {
@@ -219,12 +219,43 @@ async function checkEntityCounts(): Promise<{
 }
 
 /**
- * Seed categories if the table is empty.
+ * Seed categories if the table is empty or partially seeded.
  */
 async function seedCategories(): Promise<number> {
   const count = await db.categoryDB.count().catch(() => 0);
-  if (count > 0) return count;
+  if (count >= categories.length) return count; // Fully seeded
 
+  // If partially seeded, find and seed missing categories
+  if (count > 0) {
+    const existingSlugs = await db.categoryDB.findMany({ select: { slug: true } }).catch(() => []);
+    const existingSlugSet = new Set(existingSlugs.map((c: { slug: string }) => c.slug));
+    const missingCategories = categories.filter(c => !existingSlugSet.has(c.slug));
+
+    if (missingCategories.length === 0) return count; // All present despite count mismatch
+
+    let seeded = 0;
+    for (const category of missingCategories) {
+      try {
+        await db.categoryDB.create({
+          data: {
+            slug: category.slug,
+            name: category.name,
+            description: category.description,
+            image: category.image,
+            productCount: category.productCount,
+            featured: category.featured ? 1 : 0,
+          },
+        });
+        seeded++;
+      } catch (e) {
+        console.warn(`[auto-seed] Category ${category.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
+      }
+    }
+    console.log(`[auto-seed] Seeded ${seeded} missing categories (had ${count}/${categories.length})`);
+    return count + seeded;
+  }
+
+  // Count is 0 — seed all
   let seeded = 0;
   for (const category of categories) {
     try {
@@ -248,12 +279,46 @@ async function seedCategories(): Promise<number> {
 }
 
 /**
- * Seed brands if the table is empty.
+ * Seed brands if the table is empty or partially seeded.
  */
 async function seedBrands(): Promise<number> {
   const count = await db.brandDB.count().catch(() => 0);
-  if (count > 0) return count;
+  if (count >= brands.length) return count; // Fully seeded
 
+  // If partially seeded, find and seed missing brands
+  if (count > 0) {
+    const existingSlugs = await db.brandDB.findMany({ select: { slug: true } }).catch(() => []);
+    const existingSlugSet = new Set(existingSlugs.map((b: { slug: string }) => b.slug));
+    const missingBrands = brands.filter(b => !existingSlugSet.has(b.slug));
+
+    if (missingBrands.length === 0) return count; // All present despite count mismatch
+
+    let seeded = 0;
+    for (const brand of missingBrands) {
+      try {
+        await db.brandDB.create({
+          data: {
+            slug: brand.slug,
+            name: brand.name,
+            logo: brand.logo,
+            description: brand.description,
+            founded: brand.founded || null,
+            headquarters: brand.headquarters || null,
+            website: brand.website || null,
+            categories: JSON.stringify(brand.categories || []),
+            productCount: brand.productCount,
+          },
+        });
+        seeded++;
+      } catch (e) {
+        console.warn(`[auto-seed] Brand ${brand.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
+      }
+    }
+    console.log(`[auto-seed] Seeded ${seeded} missing brands (had ${count}/${brands.length})`);
+    return count + seeded;
+  }
+
+  // Count is 0 — seed all
   let seeded = 0;
   for (const brand of brands) {
     try {
@@ -280,49 +345,74 @@ async function seedBrands(): Promise<number> {
 }
 
 /**
- * Seed products if the table is empty.
+ * Seed products if the table is empty or partially seeded.
  */
 async function seedProducts(): Promise<number> {
   const count = await db.product.count().catch(() => 0);
-  if (count > 0) return count;
+  if (count >= products.length) return count; // Fully seeded
 
+  // Helper to build product data from a product object
+  function buildProductData(product: typeof products[number]): Record<string, unknown> {
+    return {
+      slug: product.slug,
+      title: product.title,
+      image: product.image,
+      gallery: JSON.stringify(product.gallery || []),
+      excerpt: product.excerpt,
+      category: product.category,
+      categorySlug: product.categorySlug,
+      subcategory: product.subcategory || '',
+      brand: product.brand,
+      brandSlug: product.brandSlug,
+      features: JSON.stringify(product.features || {}),
+      pros: JSON.stringify(product.pros || []),
+      cons: JSON.stringify(product.cons || []),
+      rating: product.rating || 0,
+      ratingBreakdown: JSON.stringify(product.ratingBreakdown || {}),
+      asin: product.asin || '',
+      merchant: product.merchant || 'amazon',
+      affiliateUrl: product.affiliateUrl || '',
+      priceUrl: product.priceUrl || '',
+      tags: JSON.stringify(product.tags || []),
+      authorSlug: product.authorSlug || 'alex-rivera',
+      reviewStatus: product.reviewStatus || 'new',
+      bestFor: JSON.stringify(product.bestFor || []),
+      summary: product.summary || '',
+      fullReview: product.fullReview || '',
+      whoIsItFor: product.whoIsItFor || '',
+      whoShouldSkip: product.whoShouldSkip || '',
+      specifications: JSON.stringify(product.specifications || {}),
+      relatedProducts: JSON.stringify(product.relatedProducts || []),
+      publishedAt: product.publishedAt || new Date().toISOString(),
+    };
+  }
+
+  // If partially seeded, find and seed missing products
+  if (count > 0) {
+    const existingSlugs = await db.product.findMany({ select: { slug: true } }).catch(() => []);
+    const existingSlugSet = new Set(existingSlugs.map((p: { slug: string }) => p.slug));
+    const missingProducts = products.filter(p => !existingSlugSet.has(p.slug));
+
+    if (missingProducts.length === 0) return count; // All present despite count mismatch
+
+    let seeded = 0;
+    for (const product of missingProducts) {
+      try {
+        await db.product.create({ data: buildProductData(product) });
+        seeded++;
+      } catch (e) {
+        console.warn(`[auto-seed] Product ${product.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
+      }
+    }
+    console.log(`[auto-seed] Seeded ${seeded} missing products (had ${count}/${products.length})`);
+    return count + seeded;
+  }
+
+  // Count is 0 — seed all
   let seeded = 0;
   for (const product of products) {
     try {
-      const productData: Record<string, unknown> = {
-        slug: product.slug,
-        title: product.title,
-        image: product.image,
-        gallery: JSON.stringify(product.gallery || []),
-        excerpt: product.excerpt,
-        category: product.category,
-        categorySlug: product.categorySlug,
-        subcategory: product.subcategory || '',
-        brand: product.brand,
-        brandSlug: product.brandSlug,
-        features: JSON.stringify(product.features || {}),
-        pros: JSON.stringify(product.pros || []),
-        cons: JSON.stringify(product.cons || []),
-        rating: product.rating || 0,
-        ratingBreakdown: JSON.stringify(product.ratingBreakdown || {}),
-        asin: product.asin || '',
-        merchant: product.merchant || 'amazon',
-        affiliateUrl: product.affiliateUrl || '',
-        priceUrl: product.priceUrl || '',
-        tags: JSON.stringify(product.tags || []),
-        authorSlug: product.authorSlug || 'alex-rivera',
-        reviewStatus: product.reviewStatus || 'new',
-        bestFor: JSON.stringify(product.bestFor || []),
-        summary: product.summary || '',
-        fullReview: product.fullReview || '',
-        whoIsItFor: product.whoIsItFor || '',
-        whoShouldSkip: product.whoShouldSkip || '',
-        specifications: JSON.stringify(product.specifications || {}),
-        relatedProducts: JSON.stringify(product.relatedProducts || []),
-        publishedAt: product.publishedAt || new Date().toISOString(),
-      };
-
-      await db.product.create({ data: productData });
+      await db.product.create({ data: buildProductData(product) });
       seeded++;
     } catch (e) {
       console.warn(`[auto-seed] Product ${product.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
@@ -333,12 +423,49 @@ async function seedProducts(): Promise<number> {
 }
 
 /**
- * Seed blog posts if the table is empty.
+ * Seed blog posts if the table is empty or partially seeded.
  */
 async function seedBlogPosts(): Promise<number> {
   const count = await db.blogPost.count().catch(() => 0);
-  if (count > 0) return count;
+  if (count >= blogPosts.length) return count; // Fully seeded
 
+  // If partially seeded, find and seed missing blog posts
+  if (count > 0) {
+    const existingSlugs = await db.blogPost.findMany({ select: { slug: true } }).catch(() => []);
+    const existingSlugSet = new Set(existingSlugs.map((p: { slug: string }) => p.slug));
+    const missingPosts = blogPosts.filter(p => !existingSlugSet.has(p.slug));
+
+    if (missingPosts.length === 0) return count; // All present despite count mismatch
+
+    let seeded = 0;
+    for (const post of missingPosts) {
+      try {
+        await db.blogPost.create({
+          data: {
+            id: post.id || generateId(),
+            slug: post.slug,
+            title: post.title,
+            excerpt: post.excerpt,
+            image: post.image || '',
+            category: post.category,
+            content: post.content,
+            publishedAt: post.publishedAt || new Date().toISOString(),
+            updatedAt: post.updatedAt || new Date().toISOString(),
+            authorSlug: post.authorSlug,
+            tags: JSON.stringify(post.tags || []),
+            readingTime: post.readingTime || 5,
+          },
+        });
+        seeded++;
+      } catch (e) {
+        console.warn(`[auto-seed] BlogPost ${post.slug} skipped:`, e instanceof Error ? e.message?.substring(0, 60) : String(e));
+      }
+    }
+    console.log(`[auto-seed] Seeded ${seeded} missing blog posts (had ${count}/${blogPosts.length})`);
+    return count + seeded;
+  }
+
+  // Count is 0 — seed all
   let seeded = 0;
   for (const post of blogPosts) {
     try {
@@ -369,7 +496,7 @@ async function seedBlogPosts(): Promise<number> {
 
 /**
  * Run the auto-seed process.
- * Creates tables and seeds any entity type that has 0 rows.
+ * Creates tables and seeds any entity type that is missing rows.
  * Each entity type is checked independently, so partial seeding is supported.
  */
 async function runAutoSeed(): Promise<void> {
@@ -403,9 +530,9 @@ async function runAutoSeed(): Promise<void> {
     }
     console.log('[auto-seed] Tables created successfully');
 
-    // Step 2: Seed each entity type individually (only if empty)
+    // Step 2: Seed each entity type individually (only if missing rows)
     // This is the key fix: each type is checked separately, so if products
-    // were seeded but blog posts failed, we'll still seed blog posts.
+    // were partially seeded or blog posts failed, we'll seed the missing ones.
     await seedCategories();
     await seedBrands();
     await seedProducts();
@@ -447,7 +574,7 @@ export function getLastAutoSeedError(): string | null {
 
 /**
  * Ensure the database is seeded. Call this from API routes.
- * This function is idempotent — it only seeds entity types that have 0 rows.
+ * This function is idempotent — it only seeds entity types that are missing rows.
  * It also prevents concurrent seeding from multiple requests.
  *
  * If the database connection fails, this does NOT set _autoSeedCompleted = true,
