@@ -474,3 +474,70 @@ The auto-seed runs on the **first API request** after deployment. This means:
    - `DATABASE_AUTH_TOKEN` secret must be set
    - URL format: `libsql://your-db-name-your-org.turso.io` (auto-converted to https://)
 5. If auto-seed fails, use admin panel "Seed Database" button as fallback
+
+---
+
+## Session: 2026-06-15 (Continued #4)
+
+### Task: Fix 401 Auth Error on Cloudflare — Database Connection Error UI
+
+**Problem**: The Cloudflare deployment shows "No Products Found" because the Turso database connection fails with HTTP 401 (Unauthorized). The `DATABASE_AUTH_TOKEN` on Cloudflare doesn't match what Turso expects. The user changed the token on Cloudflare but it's still failing.
+
+**Root Cause**: The 401 error is a **configuration issue**, not a code bug. The code correctly reads `process.env.DATABASE_AUTH_TOKEN` and passes it to the libsql client. But the token value stored in Cloudflare Workers secrets is incorrect/expired.
+
+**Fixes Applied**:
+
+1. **Added `/api/db-status` endpoint** (`/src/app/api/db-status/route.ts`)
+   - Lightweight database connection check separate from data fetches
+   - Returns structured response with: `connected`, `errorType` (auth/forbidden/network/unknown), `action` (update_token/check_url/check_config/seed), `instructions`
+   - When auth fails (401/403): Provides step-by-step instructions to fix the token
+   - When network fails: Provides URL troubleshooting steps
+   - When connected but empty: Suggests seeding the database
+
+2. **Updated data-store with DB connection status tracking** (`/src/lib/data-store.ts`)
+   - Added `DbConnectionStatus` interface with: checked, connected, errorType, errorMessage, action, instructions, checking
+   - Added `dbStatus` field to store state
+   - Added `checkDbStatus()` action that calls `/api/db-status`
+   - `fetchAPI()` now detects `connectionFailed` and `errorType` in API error responses and auto-triggers `checkDbStatus()`
+   - `useEnsureData()` hook now triggers DB status check when `productsError` is set
+
+3. **Improved HomePage error states** (`/src/components/views/HomePage.tsx`)
+   - **New: Database Connection Error state** — Shows when `dbStatus.checked && !dbStatus.connected`
+     - Auth error (401/403): "Database Authentication Failed" with shield icon, step-by-step fix instructions
+     - Network error: "Database Connection Failed" with URL troubleshooting
+     - Raw error message shown in red-bordered box
+     - "Retry Connection" button resets dbStatus and re-fetches
+     - "View Diagnostics" button opens `/api/debug`
+   - **Existing: General data error** — Shows when products fail but DB might be connected
+   - **Existing: Empty database** — Shows when connected but no products
+
+4. **Improved Products API error responses** (`/src/app/api/products/route.ts`)
+   - Added `connectionFailed` boolean flag to 503/500 error responses
+   - Added `errorType` field ('auth' | 'network' | 'query' | 'unknown')
+   - These flags help the data-store automatically trigger a DB status check
+
+### Files Modified
+- `/src/app/api/db-status/route.ts` — New file: lightweight DB status check
+- `/src/lib/data-store.ts` — Added DbConnectionStatus, checkDbStatus(), auto-trigger from fetchAPI
+- `/src/components/views/HomePage.tsx` — Database Connection Error state with fix instructions
+- `/src/app/api/products/route.ts` — Added connectionFailed and errorType to error responses
+
+### How to Fix the Cloudflare 401 Error
+The 401 error means the `DATABASE_AUTH_TOKEN` stored in Cloudflare doesn't match what Turso expects. Steps:
+
+1. Go to **Turso Dashboard** (https://turso.tech) → your database → **Tokens** → **Create a new token**
+2. Copy the new token value
+3. Go to **Cloudflare Dashboard** (https://dash.cloudflare.com) → Workers & Pages → **geargeekz** → Settings → Variables and Secrets
+4. Update `DATABASE_AUTH_TOKEN` with the new value
+5. Redeploy the Worker (push a commit or manually redeploy)
+6. After redeployment, the site should connect and auto-seed the database
+
+### Verification Results (Local)
+- ✅ `/api/db-status` returns `{"connected": true, "databaseType": "local", "hasData": true, "productCount": 26}`
+- ✅ Homepage renders with all sections (products, categories, brands)
+- ✅ All API routes return 200 with correct data
+- ✅ Lint passes cleanly
+
+### Unresolved Issues
+- **Cloudflare deployment still shows 401** — User needs to update DATABASE_AUTH_TOKEN in Cloudflare secrets
+- Once token is fixed, auto-seed should populate the Turso database automatically

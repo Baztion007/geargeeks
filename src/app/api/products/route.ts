@@ -126,10 +126,14 @@ export async function GET(req: NextRequest) {
         const dbUrl = process.env.DATABASE_URL || 'NOT SET';
         const hasToken = !!process.env.DATABASE_AUTH_TOKEN;
 
+        const isAuthError = !connTest.ok && (connTest.error?.includes('401') || connTest.error?.includes('403') || connTest.error?.includes('Unauthorized'));
+
         return NextResponse.json({
           products: [],
           total: 0,
           error: 'Database query failed',
+          connectionFailed: !connTest.ok,
+          errorType: isAuthError ? 'auth' : !connTest.ok ? 'network' : 'query',
           diagnostics: {
             dbUrl: dbUrl === 'NOT SET' ? 'NOT SET' : dbUrl.substring(0, 40) + '...',
             authTokenSet: hasToken,
@@ -157,8 +161,12 @@ export async function GET(req: NextRequest) {
     const dbUrl = process.env.DATABASE_URL || 'NOT SET';
     const hasToken = !!process.env.DATABASE_AUTH_TOKEN;
 
+    const isAuthError = !connTest.ok && (connTest.error?.includes('401') || connTest.error?.includes('403') || connTest.error?.includes('Unauthorized'));
+
     return NextResponse.json({
       error: 'Failed to fetch products',
+      connectionFailed: !connTest.ok,
+      errorType: isAuthError ? 'auth' : !connTest.ok ? 'network' : 'unknown',
       diagnostics: {
         dbUrl: dbUrl === 'NOT SET' ? 'NOT SET' : dbUrl.substring(0, 40) + '...',
         authTokenSet: hasToken,

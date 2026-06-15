@@ -13,6 +13,16 @@ import type { Product, Category, Brand, BlogPost } from '@/lib/types';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
+interface DbConnectionStatus {
+  checked: boolean;
+  connected: boolean;
+  errorType: 'auth' | 'forbidden' | 'network' | 'unknown' | null;
+  errorMessage: string | null;
+  action: 'update_token' | 'check_url' | 'check_config' | 'seed' | null;
+  instructions: string | null;
+  checking: boolean;
+}
+
 interface DataState {
   // Data
   products: Product[];
@@ -44,12 +54,16 @@ interface DataState {
   brandsFetchedOnce: boolean;
   blogPostsFetchedOnce: boolean;
 
+  // Database connection status (checked separately from data fetches)
+  dbStatus: DbConnectionStatus;
+
   // Actions
   fetchProducts: (force?: boolean) => Promise<void>;
   fetchCategories: (force?: boolean) => Promise<void>;
   fetchBrands: (force?: boolean) => Promise<void>;
   fetchBlogPosts: (force?: boolean) => Promise<void>;
   fetchAll: (force?: boolean) => Promise<void>;
+  checkDbStatus: () => Promise<void>;
 
   // Invalidators (call after admin mutations)
   invalidateProducts: () => void;
@@ -72,12 +86,22 @@ async function fetchAPI<T>(endpoint: string): Promise<T> {
   if (!res.ok) {
     // Try to extract diagnostic info from error response
     try {
-      const errorData = await res.json();
-      const hint = (errorData as Record<string, unknown>)?.diagnostics
-        ? ((errorData as Record<string, unknown>).diagnostics as Record<string, unknown>)?.hint
+      const errorData = await res.json() as Record<string, unknown>;
+
+      // If the API reports a connection failure, trigger a DB status check
+      // so the frontend can show the correct error state
+      if (errorData.connectionFailed || errorData.errorType === 'auth') {
+        // Schedule a DB status check (don't await to avoid blocking the error throw)
+        setTimeout(() => {
+          useDataStore.getState().checkDbStatus();
+        }, 100);
+      }
+
+      const hint = errorData.diagnostics
+        ? (errorData.diagnostics as Record<string, unknown>)?.hint
         : null;
-      const errMsg = (errorData as Record<string, unknown>)?.error
-        ? String((errorData as Record<string, unknown>).error)
+      const errMsg = errorData.error
+        ? String(errorData.error)
         : `${res.status} ${res.statusText}`;
       throw new Error(hint ? `${errMsg} — ${hint}` : errMsg);
     } catch (parseError) {
@@ -233,6 +257,17 @@ export const useDataStore = create<DataState>((set, get) => ({
   brandsFetchedOnce: false,
   blogPostsFetchedOnce: false,
 
+  // Database connection status
+  dbStatus: {
+    checked: false,
+    connected: false,
+    errorType: null,
+    errorMessage: null,
+    action: null,
+    instructions: null,
+    checking: false,
+  },
+
   // ─── Fetch Products ────────────────────────────────────────────────────
   fetchProducts: async (force = false) => {
     const state = get();
@@ -294,6 +329,56 @@ export const useDataStore = create<DataState>((set, get) => ({
       set({ blogPosts, blogPostsLoading: false, blogPostsFetchedAt: Date.now(), blogPostsFetchedOnce: true });
     } catch (error) {
       set({ blogPostsError: error instanceof Error ? error.message : 'Failed to fetch blog posts', blogPostsLoading: false, blogPostsFetchedOnce: true });
+    }
+  },
+
+  // ─── Check Database Status ────────────────────────────────────────────
+  checkDbStatus: async () => {
+    const state = get();
+    if (state.dbStatus.checking) return;
+
+    set({ dbStatus: { ...state.dbStatus, checking: true } });
+    try {
+      const res = await fetch('/api/db-status');
+      const data = await res.json() as Record<string, unknown>;
+
+      if (data.connected) {
+        set({
+          dbStatus: {
+            checked: true,
+            connected: true,
+            errorType: null,
+            errorMessage: null,
+            action: (data.action as DbConnectionStatus['action']) || null,
+            instructions: (data.instructions as string) || null,
+            checking: false,
+          },
+        });
+      } else {
+        set({
+          dbStatus: {
+            checked: true,
+            connected: false,
+            errorType: (data.errorType as DbConnectionStatus['errorType']) || 'unknown',
+            errorMessage: (data.error as string) || null,
+            action: (data.action as DbConnectionStatus['action']) || null,
+            instructions: (data.instructions as string) || null,
+            checking: false,
+          },
+        });
+      }
+    } catch {
+      set({
+        dbStatus: {
+          checked: true,
+          connected: false,
+          errorType: 'network',
+          errorMessage: 'Failed to check database status',
+          action: 'check_config',
+          instructions: 'Could not reach the server to check database status.',
+          checking: false,
+        },
+      });
     }
   },
 
@@ -391,6 +476,7 @@ export function searchProducts(products: Product[], query: string): Product[] {
 /** Fetch all data on mount if not already loaded */
 export function useEnsureData() {
   const fetchAll = useDataStore((s) => s.fetchAll);
+  const checkDbStatus = useDataStore((s) => s.checkDbStatus);
   const productsLoading = useDataStore((s) => s.productsLoading);
   const categoriesLoading = useDataStore((s) => s.categoriesLoading);
   const brandsLoading = useDataStore((s) => s.brandsLoading);
@@ -399,11 +485,20 @@ export function useEnsureData() {
   const categoriesFetchedOnce = useDataStore((s) => s.categoriesFetchedOnce);
   const brandsFetchedOnce = useDataStore((s) => s.brandsFetchedOnce);
   const blogPostsFetchedOnce = useDataStore((s) => s.blogPostsFetchedOnce);
+  const productsError = useDataStore((s) => s.productsError);
+  const dbStatus = useDataStore((s) => s.dbStatus);
 
   // Trigger fetch on first render
   React.useEffect(() => {
     fetchAll();
   }, [fetchAll]);
+
+  // If data fetch fails, also check DB status to provide better error info
+  React.useEffect(() => {
+    if (productsError && !dbStatus.checked) {
+      checkDbStatus();
+    }
+  }, [productsError, dbStatus.checked, checkDbStatus]);
 
   const allFetched = productsFetchedOnce && categoriesFetchedOnce && brandsFetchedOnce && blogPostsFetchedOnce;
   const anyLoading = productsLoading || categoriesLoading || brandsLoading || blogPostsLoading;

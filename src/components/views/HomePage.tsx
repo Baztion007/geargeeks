@@ -1033,6 +1033,7 @@ export default function HomePage() {
   const { isLoading, allFetched } = useEnsureData();
   const products = useDataStore((s) => s.products);
   const productsError = useDataStore((s) => s.productsError);
+  const dbStatus = useDataStore((s) => s.dbStatus);
 
   // Show loading state while initial data fetch is in progress
   if (isLoading) {
@@ -1046,8 +1047,79 @@ export default function HomePage() {
     );
   }
 
-  // Show error state if data failed to load and we have no cached data
-  if (allFetched && productsError && products.length === 0) {
+  // ─── Database Connection Error (auth, network, etc.) ────────────────────────
+  // Show this when the DB connection check fails — this is the most common
+  // deployment issue and needs specific, actionable instructions.
+  if (allFetched && dbStatus.checked && !dbStatus.connected) {
+    const isAuthError = dbStatus.errorType === 'auth' || dbStatus.errorType === 'forbidden';
+
+    return (
+      <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
+        <div className="text-center max-w-xl mx-auto px-4">
+          <div className="w-20 h-20 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+            <ShieldCheck className="w-10 h-10 text-red-600" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+            {isAuthError ? 'Database Authentication Failed' : 'Database Connection Failed'}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
+            {isAuthError
+              ? 'The DATABASE_AUTH_TOKEN doesn\'t match the Turso database. This usually happens after regenerating the token on Turso but not updating it on Cloudflare.'
+              : 'The application cannot connect to the database server. Please check your configuration.'}
+          </p>
+
+          {dbStatus.errorMessage && (
+            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4 text-left">
+              <p className="text-xs text-red-700 dark:text-red-400 font-mono break-words">{dbStatus.errorMessage}</p>
+            </div>
+          )}
+
+          {isAuthError && (
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4 text-left">
+              <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-2">How to Fix:</h3>
+              <ol className="text-xs text-amber-700 dark:text-amber-400 space-y-1.5 list-decimal list-inside">
+                <li>Go to <strong>Turso Dashboard</strong> → your database → <strong>Tokens</strong> → <strong>Create a new token</strong></li>
+                <li>Copy the new token value</li>
+                <li>Go to <strong>Cloudflare Dashboard</strong> → Workers & Pages → <strong>geargeekz</strong> → Settings → Variables and Secrets</li>
+                <li>Update <code className="bg-amber-100 dark:bg-amber-900 px-1 py-0.5 rounded">DATABASE_AUTH_TOKEN</code> with the new value</li>
+                <li>Redeploy the Worker (push a new commit or manually redeploy)</li>
+              </ol>
+            </div>
+          )}
+
+          {dbStatus.errorType === 'network' && (
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4 text-left">
+              <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-2">How to Fix:</h3>
+              <ol className="text-xs text-amber-700 dark:text-amber-400 space-y-1.5 list-decimal list-inside">
+                <li>Check that <code className="bg-amber-100 dark:bg-amber-900 px-1 py-0.5 rounded">DATABASE_URL</code> is correct in Cloudflare secrets</li>
+                <li>Ensure the Turso database is running (check Turso dashboard)</li>
+                <li>Verify the URL format is <code className="bg-amber-100 dark:bg-amber-900 px-1 py-0.5 rounded">libsql://your-db.turso.io</code></li>
+              </ol>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button onClick={() => {
+              useDataStore.setState({ dbStatus: { checked: false, connected: false, errorType: null, errorMessage: null, action: null, instructions: null, checking: false } });
+              useDataStore.getState().fetchAll(true);
+            }} className="bg-amber-500 hover:bg-amber-400 text-gray-900">
+              Retry Connection
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => window.open('/api/debug', '_blank')}
+              className="border-gray-300 dark:border-gray-600"
+            >
+              View Diagnostics
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── General Data Fetch Error (not a connection issue) ──────────────────────
+  if (allFetched && productsError && products.length === 0 && (dbStatus.checked && dbStatus.connected || !dbStatus.checked)) {
     return (
       <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
         <div className="text-center max-w-lg mx-auto px-4">
@@ -1086,7 +1158,7 @@ export default function HomePage() {
     );
   }
 
-  // Show empty state if data loaded successfully but no products found
+  // ─── Empty Database (connected but no data) ─────────────────────────────────
   if (allFetched && !productsError && products.length === 0) {
     return (
       <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
@@ -1096,7 +1168,7 @@ export default function HomePage() {
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Products Found</h2>
           <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">
-            The database appears to be empty. Try seeding the database from the admin panel.
+            The database is connected but appears to be empty. The auto-seed should populate it automatically, or you can seed manually.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button onClick={() => useDataStore.getState().fetchAll(true)} className="bg-amber-500 hover:bg-amber-400 text-gray-900">
