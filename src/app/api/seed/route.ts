@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, generateId } from '@/lib/db';
 
+// Use static imports instead of dynamic — more reliable on Cloudflare Workers
+import { categories } from '@/data/categories';
+import { brands } from '@/data/brands';
+import { products } from '@/data/products';
+import { blogPosts } from '@/data/blog-posts';
+
 // ─── Table creation SQL (all tables needed by the app) ────────────────────────
 // These run before any seeding to ensure the database schema exists.
 // This is critical for fresh Turso databases where `prisma db push`
@@ -149,14 +155,147 @@ const CREATE_TABLES_SQL = [
   )`,
 ];
 
+// ─── Migration SQL: Add missing columns to existing tables ──────────────────────
+// These ALTER TABLE statements add columns that may not exist on older databases.
+// Each uses "ADD COLUMN" and will be skipped if the column already exists (Turso/libsql
+// will throw "duplicate column name" which we catch and ignore).
+
+const MIGRATION_SQL = [
+  // Product table — columns added in later versions
+  'ALTER TABLE Product ADD COLUMN affiliateUrl TEXT DEFAULT ""',
+  'ALTER TABLE Product ADD COLUMN priceUrl TEXT DEFAULT ""',
+  'ALTER TABLE Product ADD COLUMN subcategory TEXT DEFAULT ""',
+  'ALTER TABLE Product ADD COLUMN bestFor TEXT DEFAULT "[]"',
+  'ALTER TABLE Product ADD COLUMN summary TEXT DEFAULT ""',
+  'ALTER TABLE Product ADD COLUMN fullReview TEXT DEFAULT ""',
+  'ALTER TABLE Product ADD COLUMN whoIsItFor TEXT DEFAULT ""',
+  'ALTER TABLE Product ADD COLUMN whoShouldSkip TEXT DEFAULT ""',
+  'ALTER TABLE Product ADD COLUMN specifications TEXT DEFAULT "{}"',
+  'ALTER TABLE Product ADD COLUMN relatedProducts TEXT DEFAULT "[]"',
+  'ALTER TABLE Product ADD COLUMN authorSlug TEXT DEFAULT "alex-rivera"',
+  'ALTER TABLE Product ADD COLUMN reviewStatus TEXT DEFAULT "new"',
+  'ALTER TABLE Product ADD COLUMN gallery TEXT DEFAULT "[]"',
+  'ALTER TABLE Product ADD COLUMN features TEXT DEFAULT "{}"',
+  'ALTER TABLE Product ADD COLUMN pros TEXT DEFAULT "[]"',
+  'ALTER TABLE Product ADD COLUMN cons TEXT DEFAULT "[]"',
+  'ALTER TABLE Product ADD COLUMN ratingBreakdown TEXT DEFAULT "{}"',
+  'ALTER TABLE Product ADD COLUMN tags TEXT DEFAULT "[]"',
+  'ALTER TABLE Product ADD COLUMN asin TEXT DEFAULT ""',
+  'ALTER TABLE Product ADD COLUMN merchant TEXT DEFAULT "amazon"',
+  'ALTER TABLE Product ADD COLUMN publishedAt TEXT DEFAULT ""',
+  'ALTER TABLE Product ADD COLUMN updatedAt TEXT DEFAULT ""',
+
+  // BrandDB table
+  'ALTER TABLE BrandDB ADD COLUMN founded TEXT',
+  'ALTER TABLE BrandDB ADD COLUMN headquarters TEXT',
+  'ALTER TABLE BrandDB ADD COLUMN website TEXT',
+  'ALTER TABLE BrandDB ADD COLUMN categories TEXT DEFAULT "[]"',
+  'ALTER TABLE BrandDB ADD COLUMN productCount INTEGER DEFAULT 0',
+
+  // BlogPost table
+  'ALTER TABLE BlogPost ADD COLUMN authorSlug TEXT DEFAULT ""',
+  'ALTER TABLE BlogPost ADD COLUMN tags TEXT DEFAULT "[]"',
+  'ALTER TABLE BlogPost ADD COLUMN readingTime INTEGER DEFAULT 5',
+
+  // contact_messages table
+  'ALTER TABLE contact_messages ADD COLUMN ip_address TEXT',
+];
+
+// GET /api/seed — Diagnostics: check current DB status
+export async function GET() {
+  const info: Record<string, unknown> = {};
+
+  info.env = {
+    dbUrl: process.env.DATABASE_URL ? `${process.env.DATABASE_URL.substring(0, 40)}...` : 'NOT SET',
+    hasAuthToken: !!process.env.DATABASE_AUTH_TOKEN,
+    nodeEnv: process.env.NODE_ENV,
+  };
+
+  try {
+    const productCount = await db.product.count();
+    info.products = { count: productCount };
+  } catch (e) {
+    info.products = { error: e instanceof Error ? e.message : String(e) };
+  }
+
+  try {
+    const categoryCount = await db.categoryDB.count();
+    info.categories = { count: categoryCount };
+  } catch (e) {
+    info.categories = { error: e instanceof Error ? e.message : String(e) };
+  }
+
+  try {
+    const brandCount = await db.brandDB.count();
+    info.brands = { count: brandCount };
+  } catch (e) {
+    info.brands = { error: e instanceof Error ? e.message : String(e) };
+  }
+
+  try {
+    const blogCount = await db.blogPost.count();
+    info.blogPosts = { count: blogCount };
+  } catch (e) {
+    info.blogPosts = { error: e instanceof Error ? e.message : String(e) };
+  }
+
+  // Check if Product table has key columns (affiliateUrl, priceUrl)
+  try {
+    const testProduct = await db.product.findMany({ take: 1 });
+    if (testProduct.length > 0) {
+      const p = testProduct[0];
+      info.productColumns = {
+        hasAffiliateUrl: 'affiliateUrl' in p,
+        hasPriceUrl: 'priceUrl' in p,
+        hasSubcategory: 'subcategory' in p,
+        hasBestFor: 'bestFor' in p,
+        hasSummary: 'summary' in p,
+      };
+    }
+  } catch (e) {
+    info.productColumns = { error: e instanceof Error ? e.message : String(e) };
+  }
+
+  return NextResponse.json(info, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
+}
+
 // POST /api/seed — Seed database from TypeScript data files
-// Query param: ?force=true to force reseed even if data exists
+// Query params: ?force=true to force reseed | ?reset=true to drop & recreate tables first
 export async function POST(req: NextRequest) {
   const errors: string[] = [];
+  const migrationResults: string[] = [];
 
   try {
     const { searchParams } = new URL(req.url);
     const force = searchParams.get('force') === 'true';
+    const reset = searchParams.get('reset') === 'true';
+
+    // ─── Step 0 (optional): Drop and recreate all tables ──────────────────────────
+    // Use ?reset=true to completely wipe the database and start fresh.
+    // This is useful when the schema is corrupted or missing columns can't be added.
+    if (reset) {
+      const DROP_TABLES_SQL = [
+        'DROP TABLE IF EXISTS Product',
+        'DROP TABLE IF EXISTS CategoryDB',
+        'DROP TABLE IF EXISTS BrandDB',
+        'DROP TABLE IF EXISTS BlogPost',
+        'DROP TABLE IF EXISTS contact_messages',
+        'DROP TABLE IF EXISTS NewsletterSubscriber',
+        'DROP TABLE IF EXISTS UserReview',
+        'DROP TABLE IF EXISTS PriceAlert',
+        'DROP TABLE IF EXISTS AffiliateMerchantConfig',
+        'DROP TABLE IF EXISTS AffiliateGlobalSettings',
+      ];
+      for (const sql of DROP_TABLES_SQL) {
+        try {
+          await db.$executeRawUnsafe(sql);
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          errors.push(`Drop table warning: ${msg.substring(0, 100)}`);
+        }
+      }
+      migrationResults.push('All tables dropped for full reset');
+    }
 
     // ─── Step 1: Ensure all tables exist ────────────────────────────────────────
     for (const sql of CREATE_TABLES_SQL) {
@@ -169,11 +308,25 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ─── Step 2: Load seed data ─────────────────────────────────────────────────
-    const { categories } = await import('@/data/categories');
-    const { brands } = await import('@/data/brands');
-    const { products } = await import('@/data/products');
-    const { blogPosts } = await import('@/data/blog-posts');
+    // ─── Step 1.5: Run migrations — add missing columns ─────────────────────────
+    for (const sql of MIGRATION_SQL) {
+      try {
+        await db.$executeRawUnsafe(sql);
+        // If it succeeded, the column was actually missing
+        const match = sql.match(/ALTER TABLE (\w+) ADD COLUMN (\w+)/);
+        if (match) {
+          migrationResults.push(`Added ${match[2]} to ${match[1]}`);
+        }
+      } catch (e) {
+        // "duplicate column name" or "table has no column" is expected if column already exists
+        const msg = e instanceof Error ? e.message : String(e);
+        if (!msg.includes('duplicate column') && !msg.includes('already exists')) {
+          console.error('Migration error:', msg);
+          // Don't add to errors — non-critical
+        }
+        // Column already exists — this is fine, silently skip
+      }
+    }
 
     const result = {
       products: { seeded: 0, skipped: 0, errors: 0 },
@@ -182,7 +335,7 @@ export async function POST(req: NextRequest) {
       blogPosts: { seeded: 0, skipped: 0, errors: 0 },
     };
 
-    // ─── Step 3: Seed categories ────────────────────────────────────────────────
+    // ─── Step 2: Seed categories ────────────────────────────────────────────────
     try {
       const existingCategories = await db.categoryDB.findMany();
       const existingCategorySlugs = new Set(existingCategories.map((c) => c.slug as string));
@@ -229,7 +382,7 @@ export async function POST(req: NextRequest) {
       errors.push(`Categories query failed: ${error instanceof Error ? error.message?.substring(0, 80) : String(error)}`);
     }
 
-    // ─── Step 4: Seed brands ────────────────────────────────────────────────────
+    // ─── Step 3: Seed brands ────────────────────────────────────────────────────
     try {
       const existingBrands = await db.brandDB.findMany();
       const existingBrandSlugs = new Set(existingBrands.map((b) => b.slug as string));
@@ -275,7 +428,7 @@ export async function POST(req: NextRequest) {
       errors.push(`Brands query failed: ${error instanceof Error ? error.message?.substring(0, 80) : String(error)}`);
     }
 
-    // ─── Step 5: Seed products ──────────────────────────────────────────────────
+    // ─── Step 4: Seed products ──────────────────────────────────────────────────
     try {
       const existingProducts = await db.product.findMany();
       const existingProductSlugs = new Set(existingProducts.map((p) => p.slug as string));
@@ -287,7 +440,7 @@ export async function POST(req: NextRequest) {
         }
 
         try {
-          const productData = {
+          const productData: Record<string, unknown> = {
             slug: product.slug,
             title: product.title,
             image: product.image,
@@ -323,7 +476,7 @@ export async function POST(req: NextRequest) {
           if (existingProductSlugs.has(product.slug)) {
             const { slug, ...updateData } = productData;
             await db.product.update({
-              where: { slug },
+              where: { slug: slug as string },
               data: updateData,
             });
           } else {
@@ -341,7 +494,7 @@ export async function POST(req: NextRequest) {
       errors.push(`Products query failed: ${error instanceof Error ? error.message?.substring(0, 80) : String(error)}`);
     }
 
-    // ─── Step 6: Seed blog posts ────────────────────────────────────────────────
+    // ─── Step 5: Seed blog posts ────────────────────────────────────────────────
     try {
       const existingBlogPosts = await db.blogPost.findMany();
       const existingBlogSlugs = new Set(existingBlogPosts.map((p) => p.slug as string));
@@ -392,6 +545,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       message: 'Seed completed',
       result,
+      migrations: migrationResults.length > 0 ? migrationResults : undefined,
       totalSeeded: result.products.seeded + result.categories.seeded + result.brands.seeded + result.blogPosts.seeded,
       warnings: errors.length > 0 ? errors : undefined,
     });
@@ -406,6 +560,7 @@ export async function POST(req: NextRequest) {
       dbUrl: process.env.DATABASE_URL ? `${process.env.DATABASE_URL.substring(0, 30)}...` : 'NOT SET',
       hasAuthToken: !!process.env.DATABASE_AUTH_TOKEN,
       env: process.env.NODE_ENV,
+      migrationsRun: migrationResults,
       earlierWarnings: errors.length > 0 ? errors : undefined,
     }, { status: 500 });
   }

@@ -470,11 +470,12 @@ function AdminDashboard() {
     goToPage(pageMap[tab]);
   };
 
-  const handleSeed = async () => {
+  const handleSeed = async (resetMode = false) => {
     setSeeding(true);
     setSeedResult(null);
     try {
-      const res = await fetch('/api/seed?force=true', { method: 'POST' });
+      const url = resetMode ? '/api/seed?reset=true' : '/api/seed?force=true';
+      const res = await fetch(url, { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
         const parts: string[] = [];
@@ -483,15 +484,20 @@ function AdminDashboard() {
         if (data.result?.brands?.seeded) parts.push(`${data.result.brands.seeded} brands`);
         if (data.result?.blogPosts?.seeded) parts.push(`${data.result.blogPosts.seeded} blog posts`);
         const skipped = (data.result?.products?.skipped || 0) + (data.result?.categories?.skipped || 0) + (data.result?.brands?.skipped || 0) + (data.result?.blogPosts?.skipped || 0);
+        const errCount = (data.result?.products?.errors || 0) + (data.result?.categories?.errors || 0) + (data.result?.brands?.errors || 0) + (data.result?.blogPosts?.errors || 0);
         let msg = parts.length > 0 ? `Seeded: ${parts.join(', ')}` : 'All data already exists';
-        if (skipped > 0) msg += ` (${skipped} skipped - already in DB)`;
+        if (skipped > 0) msg += ` (${skipped} skipped)`;
+        if (errCount > 0) msg += ` | ${errCount} errors`;
+        if (data.migrations?.length) msg += ` | Migrations: ${data.migrations.join(', ')}`;
         if (data.warnings?.length) msg += ` | Warnings: ${data.warnings.length}`;
+        if (resetMode) msg = `[FULL RESET] ${msg}`;
         setSeedResult(msg);
         fetchStats();
       } else {
         let errMsg = data.error || 'Failed to seed';
         if (data.details) errMsg += ` — ${data.details}`;
         if (data.dbUrl) errMsg += ` | DB: ${data.dbUrl}`;
+        if (data.hasAuthToken !== undefined) errMsg += ` | Auth: ${data.hasAuthToken ? 'set' : 'NOT SET'}`;
         setSeedResult(`Error: ${errMsg}`);
       }
     } catch (err) {
@@ -752,11 +758,20 @@ function AdminDashboard() {
                       <Button
                         variant="outline"
                         className="h-auto py-3 flex flex-col items-center gap-1 bg-amber-500/10 border-amber-500/30 hover:border-amber-500/50 hover:bg-amber-500/20"
-                        onClick={handleSeed}
+                        onClick={() => handleSeed(false)}
                         disabled={seeding}
                       >
                         {seeding ? <Loader2 size={18} className="text-amber-500 animate-spin" /> : <Database size={18} className="text-amber-500" />}
                         <span className="text-xs">{seeding ? 'Seeding...' : 'Seed Database'}</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-auto py-3 flex flex-col items-center gap-1 bg-red-500/10 border-red-500/30 hover:border-red-500/50 hover:bg-red-500/20"
+                        onClick={() => { if (confirm('This will DELETE all data and recreate tables. Continue?')) handleSeed(true); }}
+                        disabled={seeding}
+                      >
+                        <AlertTriangle size={18} className="text-red-500" />
+                        <span className="text-xs">Full Reset</span>
                       </Button>
                     </div>
                     {seedResult && (

@@ -163,3 +163,79 @@
 - Priority: Custom URL > Auto-generated URL
 - "View Latest Deal" button checks `product.affiliateUrl` first
 - "Check Price" button checks `product.priceUrl` first, then falls back to `product.affiliateUrl`, then auto-generated
+
+---
+
+## Session: 2026-06-15 (Current)
+
+### Task: Fix Cloudflare Deployment - "Failed to seed database" & empty trending/deals pages
+
+**Problem**: On Cloudflare deployment:
+1. Admin panel shows no products on trending and best deals
+2. Clicking "Seed Database" in admin shows "Error: Failed to seed database"
+
+**Root Causes Identified**:
+1. **Dynamic imports fail on Cloudflare Workers**: Seed route used `await import('@/data/products')` which is unreliable on Workers
+2. **Missing database columns**: Turso database created before `affiliateUrl`/`priceUrl` columns were added — `CREATE TABLE IF NOT EXISTS` silently skips, leaving old schema without new columns
+3. **No migration logic**: No ALTER TABLE statements to add missing columns to existing tables
+4. **Poor error diagnostics**: Error response didn't include enough info to debug Cloudflare-specific issues
+
+**Fixes Applied**:
+
+1. **Changed dynamic imports to static imports** in `/src/app/api/seed/route.ts`
+   - `await import('@/data/products')` → `import { products } from '@/data/products'`
+   - Same for categories, brands, blog-posts
+   - Static imports are bundled at build time, more reliable on Workers
+
+2. **Added migration SQL** — 22 ALTER TABLE statements to add missing columns
+   - Product table: affiliateUrl, priceUrl, subcategory, bestFor, summary, fullReview, whoIsItFor, whoShouldSkip, specifications, relatedProducts, authorSlug, reviewStatus, gallery, features, pros, cons, ratingBreakdown, tags, asin, merchant, publishedAt, updatedAt
+   - BrandDB table: founded, headquarters, website, categories, productCount
+   - BlogPost table: authorSlug, tags, readingTime
+   - contact_messages table: ip_address
+   - Each migration silently skips if column already exists ("duplicate column name")
+
+3. **Added `?reset=true` option** — Drops and recreates all tables before seeding
+   - Use for completely corrupted databases
+   - Admin panel now has a "Full Reset" button with confirmation dialog
+
+4. **Added GET /api/seed endpoint** — Diagnostics showing:
+   - Database URL (first 40 chars)
+   - Auth token status
+   - Product/category/brand/blog counts
+   - Column presence check (affiliateUrl, priceUrl, etc.)
+
+5. **Improved error reporting** in seed response:
+   - Migration results (which columns were actually added)
+   - Error counts per entity type
+   - Auth token status on failure
+
+6. **Fixed React warning** — AdminAuthGuard was calling `navigate()` during render, causing "Cannot update a component while rendering a different component" warning. Moved to useEffect.
+
+7. **Added "Full Reset" button** to admin dashboard with red styling and confirmation dialog
+
+### Files Modified
+- `/src/app/api/seed/route.ts` — Static imports, migration SQL, reset option, GET diagnostics
+- `/src/components/views/AdminPage.tsx` — Full Reset button, improved seed error handling
+- `/src/components/views/AdminSubPages.tsx` — Fixed AdminAuthGuard React warning
+
+### Verification Results (Local)
+- ✅ GET /api/seed returns diagnostics correctly (26 products, 12 brands, 8 categories, 4 blog posts)
+- ✅ Trending page shows 26 products with proper filtering
+- ✅ Deals page shows products with Amazon links
+- ✅ Admin dashboard has both "Seed Database" and "Full Reset" buttons
+- ✅ Lint passes cleanly
+- ✅ No React warnings in dev log
+
+### Deployment Instructions for Cloudflare
+1. Push changes to Git (triggers CI/CD)
+2. After deployment, go to admin panel
+3. Click "Seed Database" button — this will:
+   - Create any missing tables
+   - Run ALTER TABLE migrations to add missing columns
+   - Seed all data from TypeScript data files
+4. If seed still fails, try "Full Reset" button (drops and recreates all tables)
+5. Verify trending/deals pages show products
+
+### Unresolved Issues
+- Local SQLite database is read-only when accessed concurrently (SQLITE_READONLY) — this is a local-only issue, not relevant on Cloudflare with Turso
+- Need to verify after Cloudflare deployment that the seed works with Turso HTTP client
