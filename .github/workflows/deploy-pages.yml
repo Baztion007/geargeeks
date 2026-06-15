@@ -29,9 +29,6 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Generate Prisma Client
-        run: bun run db:generate
-
       - name: Build static site
         run: bash scripts/build-static.sh /geargeekz
         env:
