@@ -112,6 +112,12 @@ function AdminAuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { checkSession(); }, [checkSession]);
 
+  useEffect(() => {
+    if (!isChecking && !isAuthenticated) {
+      navigate({ page: 'admin' });
+    }
+  }, [isChecking, isAuthenticated, navigate]);
+
   if (isChecking) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
@@ -121,7 +127,6 @@ function AdminAuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAuthenticated) {
-    navigate({ page: 'admin' });
     return null;
   }
 
