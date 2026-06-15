@@ -6,16 +6,18 @@
  * issues on Workers. @libsql/client works natively via HTTP.
  *
  * KEY INSIGHT for Cloudflare Workers:
- * - Must use `@libsql/client/http` import (not default `@libsql/client`)
+ * - Must use `@libsql/client/web` import (not `@libsql/client/http`)
+ * - `/web` uses fetch() which works in Workers; `/http` uses Node.js http which doesn't
  * - Must use HTTPS URL (not libsql:// WebSocket URL)
- * - The default import uses WebSocket which doesn't work in Workers
+ * - The default `@libsql/client` import has conditional exports that auto-resolve
+ *   to `/web` for `workerd` runtime, but explicit `/web` is more reliable with bundlers
  *
  * The API is designed to be a drop-in replacement for the Prisma `db` export,
  * so existing route handlers need minimal changes.
  */
 
-import { createClient as createHttpClient } from '@libsql/client/http'
-import { createClient as createLocalClient, type Client, type InValue } from '@libsql/client'
+import { createClient as createWebClient, type Client, type InValue } from '@libsql/client/web'
+import { createClient as createLocalClient } from '@libsql/client'
 
 // ─── Client singleton ──────────────────────────────────────────────────────────
 
@@ -47,16 +49,16 @@ function createLibsqlClient(): Client {
   const databaseUrl = process.env.DATABASE_URL || 'file:./db/custom.db'
   const authToken = process.env.DATABASE_AUTH_TOKEN
 
-  // Cloudflare Workers: Use HTTP client with HTTPS URL
+  // Cloudflare Workers: Use web client (fetch-based) with HTTPS URL
   // The libsql:// protocol uses WebSocket which doesn't work in Workers
   if (!databaseUrl.startsWith('file:')) {
-    // Convert libsql:// URL to https:// for the HTTP client
+    // Convert libsql:// URL to https:// for the web client
     let httpUrl = databaseUrl
     if (httpUrl.startsWith('libsql://')) {
       httpUrl = 'https://' + httpUrl.slice('libsql://'.length)
     }
 
-    return createHttpClient({
+    return createWebClient({
       url: httpUrl,
       authToken: authToken || undefined,
     }) as Client
@@ -65,7 +67,7 @@ function createLibsqlClient(): Client {
   // Local development: Use the default client with local SQLite
   return createLocalClient({
     url: databaseUrl,
-  })
+  }) as Client
 }
 
 // ─── Helper types ───────────────────────────────────────────────────────────────
