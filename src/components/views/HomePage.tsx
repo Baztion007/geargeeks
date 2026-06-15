@@ -1030,12 +1030,12 @@ function BrowseAllCategoriesSection() {
 }
 
 export default function HomePage() {
-  const { isLoading } = useEnsureData();
+  const { isLoading, allFetched } = useEnsureData();
   const products = useDataStore((s) => s.products);
   const productsError = useDataStore((s) => s.productsError);
 
-  // Show loading state while data is being fetched
-  if (isLoading && products.length === 0) {
+  // Show loading state while initial data fetch is in progress
+  if (isLoading) {
     return (
       <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -1047,7 +1047,7 @@ export default function HomePage() {
   }
 
   // Show error state if data failed to load and we have no cached data
-  if (productsError && products.length === 0) {
+  if (allFetched && productsError && products.length === 0) {
     return (
       <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
@@ -1058,6 +1058,26 @@ export default function HomePage() {
           <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">{productsError}</p>
           <Button onClick={() => useDataStore.getState().fetchAll(true)} className="bg-amber-500 hover:bg-amber-400 text-gray-900">
             Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state if data loaded successfully but no products found
+  if (allFetched && !productsError && products.length === 0) {
+    return (
+      <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+            <Package className="w-10 h-10 text-gray-400" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Products Found</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">
+            The database appears to be empty. Try seeding the database from the admin panel.
+          </p>
+          <Button onClick={() => useDataStore.getState().fetchAll(true)} className="bg-amber-500 hover:bg-amber-400 text-gray-900">
+            Retry
           </Button>
         </div>
       </div>

@@ -38,6 +38,12 @@ interface DataState {
   brandsFetchedAt: number;
   blogPostsFetchedAt: number;
 
+  // Track whether initial fetch has completed (even with empty data or errors)
+  productsFetchedOnce: boolean;
+  categoriesFetchedOnce: boolean;
+  brandsFetchedOnce: boolean;
+  blogPostsFetchedOnce: boolean;
+
   // Actions
   fetchProducts: (force?: boolean) => Promise<void>;
   fetchCategories: (force?: boolean) => Promise<void>;
@@ -205,67 +211,73 @@ export const useDataStore = create<DataState>((set, get) => ({
   brandsFetchedAt: 0,
   blogPostsFetchedAt: 0,
 
+  // Initial fetch tracking
+  productsFetchedOnce: false,
+  categoriesFetchedOnce: false,
+  brandsFetchedOnce: false,
+  blogPostsFetchedOnce: false,
+
   // ─── Fetch Products ────────────────────────────────────────────────────
   fetchProducts: async (force = false) => {
     const state = get();
-    if (!force && isCacheValid(state.productsFetchedAt) && state.products.length > 0) return;
+    if (!force && state.productsFetchedOnce) return; // Already fetched (even if empty)
     if (state.productsLoading) return;
 
     set({ productsLoading: true, productsError: null });
     try {
       const data = await fetchAPI<{ products: Record<string, unknown>[] }>('/api/products');
       const products = data.products.map(parseProduct);
-      set({ products, productsLoading: false, productsFetchedAt: Date.now() });
+      set({ products, productsLoading: false, productsFetchedAt: Date.now(), productsFetchedOnce: true });
     } catch (error) {
-      set({ productsError: error instanceof Error ? error.message : 'Failed to fetch products', productsLoading: false });
+      set({ productsError: error instanceof Error ? error.message : 'Failed to fetch products', productsLoading: false, productsFetchedOnce: true });
     }
   },
 
   // ─── Fetch Categories ──────────────────────────────────────────────────
   fetchCategories: async (force = false) => {
     const state = get();
-    if (!force && isCacheValid(state.categoriesFetchedAt) && state.categories.length > 0) return;
+    if (!force && state.categoriesFetchedOnce) return;
     if (state.categoriesLoading) return;
 
     set({ categoriesLoading: true, categoriesError: null });
     try {
       const data = await fetchAPI<{ categories: Record<string, unknown>[] }>('/api/categories');
       const categories = data.categories.map(parseCategory);
-      set({ categories, categoriesLoading: false, categoriesFetchedAt: Date.now() });
+      set({ categories, categoriesLoading: false, categoriesFetchedAt: Date.now(), categoriesFetchedOnce: true });
     } catch (error) {
-      set({ categoriesError: error instanceof Error ? error.message : 'Failed to fetch categories', categoriesLoading: false });
+      set({ categoriesError: error instanceof Error ? error.message : 'Failed to fetch categories', categoriesLoading: false, categoriesFetchedOnce: true });
     }
   },
 
   // ─── Fetch Brands ──────────────────────────────────────────────────────
   fetchBrands: async (force = false) => {
     const state = get();
-    if (!force && isCacheValid(state.brandsFetchedAt) && state.brands.length > 0) return;
+    if (!force && state.brandsFetchedOnce) return;
     if (state.brandsLoading) return;
 
     set({ brandsLoading: true, brandsError: null });
     try {
       const data = await fetchAPI<{ brands: Record<string, unknown>[] }>('/api/brands');
       const brands = data.brands.map(parseBrand);
-      set({ brands, brandsLoading: false, brandsFetchedAt: Date.now() });
+      set({ brands, brandsLoading: false, brandsFetchedAt: Date.now(), brandsFetchedOnce: true });
     } catch (error) {
-      set({ brandsError: error instanceof Error ? error.message : 'Failed to fetch brands', brandsLoading: false });
+      set({ brandsError: error instanceof Error ? error.message : 'Failed to fetch brands', brandsLoading: false, brandsFetchedOnce: true });
     }
   },
 
   // ─── Fetch Blog Posts ──────────────────────────────────────────────────
   fetchBlogPosts: async (force = false) => {
     const state = get();
-    if (!force && isCacheValid(state.blogPostsFetchedAt) && state.blogPosts.length > 0) return;
+    if (!force && state.blogPostsFetchedOnce) return;
     if (state.blogPostsLoading) return;
 
     set({ blogPostsLoading: true, blogPostsError: null });
     try {
       const data = await fetchAPI<{ posts: Record<string, unknown>[] }>('/api/blog');
       const blogPosts = data.posts.map(parseBlogPost);
-      set({ blogPosts, blogPostsLoading: false, blogPostsFetchedAt: Date.now() });
+      set({ blogPosts, blogPostsLoading: false, blogPostsFetchedAt: Date.now(), blogPostsFetchedOnce: true });
     } catch (error) {
-      set({ blogPostsError: error instanceof Error ? error.message : 'Failed to fetch blog posts', blogPostsLoading: false });
+      set({ blogPostsError: error instanceof Error ? error.message : 'Failed to fetch blog posts', blogPostsLoading: false, blogPostsFetchedOnce: true });
     }
   },
 
@@ -280,10 +292,10 @@ export const useDataStore = create<DataState>((set, get) => ({
   },
 
   // ─── Invalidators ──────────────────────────────────────────────────────
-  invalidateProducts: () => set({ productsFetchedAt: 0, products: [], productsLoading: false }),
-  invalidateCategories: () => set({ categoriesFetchedAt: 0, categories: [], categoriesLoading: false }),
-  invalidateBrands: () => set({ brandsFetchedAt: 0, brands: [], brandsLoading: false }),
-  invalidateBlogPosts: () => set({ blogPostsFetchedAt: 0, blogPosts: [], blogPostsLoading: false }),
+  invalidateProducts: () => set({ productsFetchedAt: 0, products: [], productsLoading: false, productsFetchedOnce: false, productsError: null }),
+  invalidateCategories: () => set({ categoriesFetchedAt: 0, categories: [], categoriesLoading: false, categoriesFetchedOnce: false, categoriesError: null }),
+  invalidateBrands: () => set({ brandsFetchedAt: 0, brands: [], brandsLoading: false, brandsFetchedOnce: false, brandsError: null }),
+  invalidateBlogPosts: () => set({ blogPostsFetchedAt: 0, blogPosts: [], blogPostsLoading: false, blogPostsFetchedOnce: false, blogPostsError: null }),
 }));
 
 // ─── Derived data helpers (match the old static data function signatures) ───
@@ -367,13 +379,22 @@ export function useEnsureData() {
   const categoriesLoading = useDataStore((s) => s.categoriesLoading);
   const brandsLoading = useDataStore((s) => s.brandsLoading);
   const blogPostsLoading = useDataStore((s) => s.blogPostsLoading);
+  const productsFetchedOnce = useDataStore((s) => s.productsFetchedOnce);
+  const categoriesFetchedOnce = useDataStore((s) => s.categoriesFetchedOnce);
+  const brandsFetchedOnce = useDataStore((s) => s.brandsFetchedOnce);
+  const blogPostsFetchedOnce = useDataStore((s) => s.blogPostsFetchedOnce);
 
   // Trigger fetch on first render
   React.useEffect(() => {
     fetchAll();
   }, [fetchAll]);
 
+  const allFetched = productsFetchedOnce && categoriesFetchedOnce && brandsFetchedOnce && blogPostsFetchedOnce;
+  const anyLoading = productsLoading || categoriesLoading || brandsLoading || blogPostsLoading;
+
   return {
-    isLoading: productsLoading || categoriesLoading || brandsLoading || blogPostsLoading,
+    isLoading: !allFetched && anyLoading, // Only loading if initial fetch hasn't completed yet
+    isInitialLoading: !allFetched && anyLoading,
+    allFetched,
   };
 }
