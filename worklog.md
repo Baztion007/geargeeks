@@ -709,3 +709,67 @@ Stage Summary:
 Unresolved:
 - GitHub push pending (token expired)
 - Lint errors remain in pre-existing keep-alive.js file (require() imports) — unrelated to this work
+
+---
+
+Task ID: 4
+Agent: Main
+Task: Explain the stripped-text root cause + add Re-fetch feature for existing products with empty fields
+
+Work Log:
+- Explained what stripped text the LLM was receiving (user asked for clarification):
+  - Amazon page HTML = 1.2 MB, stripped to 37,233 chars of plain text
+  - Old code sliced to first 4,000 chars and sent to LLM
+  - But first 4,000 chars was 100% navigation junk (department dropdown lists, cart/account links, prime day deals, shipper/seller/returns boilerplate)
+  - Actual product data was buried: Price at char 7,142 (19%), Rating at char 11,791 (32%), Feature bullets at char 24,213 (65%) — ALL OUTSIDE the 4,000 char window
+  - That's why LLM returned all empty fields — it had no product data to extract
+  - Fix: hybrid regex (extracts directly from raw HTML at the real positions) + LLM (only writes editorial fields using regex-extracted data as input)
+
+NEW FEATURE: Re-fetch existing products from Amazon
+- Created /api/products/refetch endpoint
+- Re-runs auto-fetch pipeline on existing product (by slug or ASIN)
+- Two modes: fill-empty-only (default, preserves manual edits) or overwrite-all
+- Auto-creates brand/category if missing (same as bulk-import)
+- Preserves slug, publishedAt, reviewStatus, authorSlug
+
+ADMIN UI UPDATES (AdminSubPages.tsx):
+- New Re-fetch mode toggle bar above products table:
+  - Checkbox: switch between 'Fill empty fields only' and 'Overwrite ALL fields'
+  - RefreshCw icon turns green when overwrite mode is on
+  - Helper text explains the ⟳ icon on product rows
+- New RefreshCw icon button on each product row (between Edit and Copy)
+  - Shows Loader2 spinner while re-fetching
+  - Title tooltip explains current mode
+- Result banner with color coding:
+  - Green (success): product name + message + list of updated fields
+  - Red (error): error message
+  - Dismissable with X button
+
+VERIFICATION:
+- curl test on B08L27GRVM (was 'B08L27GRVM (Amazon Product)' with empty fields):
+  - Re-fetched in overwrite mode in 15.4 seconds
+  - Result: 'Re-fetched and updated 16 field(s)'
+  - Product transformed into 'Lenovo Legion 5 Gaming Laptop' with:
+    - brand: Lenovo (auto-created)
+    - category: Gaming (auto-created)
+    - features: 1 highlight
+    - pros: 4 items, cons: 3 items
+    - bestFor: budget gamers, students, content creators, everyday users
+    - summary, fullReview, whoIsItFor, whoShouldSkip all populated
+- agent-browser UI test:
+  - Navigated to admin → products
+  - Verified Re-fetch mode toggle bar visible (VLM confirmed)
+  - Verified RefreshCw icons on each product row (VLM confirmed)
+  - Clicked re-fetch on Lenovo product row
+  - Green banner appeared: 'Re-fetched and updated 1 field(s) — Updated: rating'
+  - VLM confirmed UI is clean and readable
+
+Stage Summary:
+- Re-fetch feature complete and verified end-to-end
+- Admins can now populate empty fields on existing products with one click
+- Two modes protect manual edits (fill-empty-only) or allow full refresh (overwrite)
+- Commit 51001ff saved locally (GitHub push still blocked by expired token)
+
+Unresolved:
+- GitHub push pending (token [REDACTED:github_token] expired/revoked)
+- 15-min webDevReview cron job active (job_id 234224)
