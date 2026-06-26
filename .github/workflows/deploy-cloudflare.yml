@@ -27,6 +27,13 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Lint
+        run: bun run lint
+        continue-on-error: true
+
+      - name: Type check (fail fast with readable errors)
+        run: bunx tsc --noEmit
+
       - name: Build with OpenNext for Cloudflare
         run: npx opennextjs-cloudflare build
 

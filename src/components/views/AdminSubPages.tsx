@@ -903,7 +903,7 @@ function ProductsContent() {
                                   {r.blocked && <Badge variant="outline" className="text-[9px] border-amber-500/40 text-amber-400">AI-reconstructed</Badge>}
                                   {r.source && !r.blocked && <Badge variant="outline" className="text-[9px] border-blue-500/30 text-blue-400">{r.source}</Badge>}
                                   {r.price && <Badge variant="outline" className="text-[9px] border-green-500/30 text-green-400">${r.price}</Badge>}
-                                  {r.rating > 0 && (
+                                  {r.rating != null && r.rating > 0 && (
                                     <span className="text-[10px] text-amber-400 flex items-center gap-0.5">
                                       <Star size={9} className="fill-amber-500 text-amber-500" /> {r.rating}
                                       {r.ratingCount ? ` (${r.ratingCount.toLocaleString()})` : ''}
