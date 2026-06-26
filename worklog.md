@@ -808,3 +808,31 @@ Stage Summary:
 Unresolved:
 - None for this task. Project auto-fetch/refetch features fully delivered and pushed.
 - 15-min webDevReview cron job remains active (job_id 234224)
+
+---
+Task ID: build-fix-cloudflare
+Agent: main
+Task: Fix GitHub Actions Cloudflare Workers build failure ("Next.js build worker exited with code: 1")
+
+Work Log:
+- Reproduced the failure locally with `bun run build` (the opennextjs-cloudflare wrapper suppresses next build's stdout/stderr, so GitHub Actions showed stdout:null/stderr:null)
+- Root cause: TypeScript type error in src/components/views/AdminSubPages.tsx:906
+  - `r.rating > 0` flagged by tsc because `rating?: number` is optional → could be undefined
+- Fix: changed guard to `r.rating != null && r.rating > 0` (nullish check before comparison)
+- Improved .github/workflows/deploy-cloudflare.yml:
+  - Added explicit `bunx tsc --noEmit` step BEFORE the opennextjs-cloudflare build, so future type errors fail fast with readable error messages instead of being swallowed
+  - Added `bun run lint` step (continue-on-error: true, non-blocking)
+- Verified locally:
+  - `bunx tsc --noEmit` → exit 0 (clean)
+  - `bun run build` → ✓ Compiled successfully, Finished TypeScript, 30/30 static pages generated
+  - `npx opennextjs-cloudflare build` → ✓ OpenNext build complete, Worker saved in .open-next/worker.js
+- Committed as 6b4ef64 and pushed to origin/main (5228a91..6b4ef64) — this triggers the GitHub Actions workflow
+- Restarted dev server (pid 7907) after clearing stale .next cache; serving GET / 200, /api/brands 200, /api/categories 200, /api/products 200
+
+Stage Summary:
+- Cloudflare build blocker resolved; GitHub Actions should now turn green on the next run
+- Workflow now fails fast on type errors with full readable output (no more silent stdout:null)
+- Dev server healthy on port 3000
+
+Unresolved:
+- Monitoring: confirm the GitHub Actions run triggered by push 6b4ef64 succeeds end-to-end (build + deploy). If deploy step fails, check CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID secrets.
