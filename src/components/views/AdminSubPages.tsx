@@ -25,6 +25,10 @@ import {
   Search,
   Plus,
   Copy,
+  Wand2,
+  Zap,
+  CheckCircle2,
+  ExternalLink,
 } from 'lucide-react';
 import { useRouterStore, type SimplePage } from '@/lib/router';
 import { useAdminAuth } from '@/lib/admin-auth';
@@ -91,6 +95,31 @@ interface BrandItem {
   website?: string;
   categories: string[];
   productCount: number;
+}
+
+interface AutoFetchResult {
+  input: string;
+  asin?: string;
+  success: boolean;
+  blocked?: boolean;
+  source?: string;
+  title?: string;
+  brand?: string;
+  image?: string;
+  price?: string;
+  rating?: number;
+  ratingCount?: number;
+  features?: string[];
+  description?: string;
+  overview?: string;
+  whoIsItFor?: string;
+  whoShouldSkip?: string;
+  bestFor?: string[];
+  pros?: string[];
+  cons?: string[];
+  categoryGuess?: string;
+  warning?: string;
+  error?: string;
 }
 
 type AdminTab = 'dashboard' | 'products' | 'categories' | 'brands' | 'affiliate' | 'messages' | 'blog';
@@ -295,7 +324,13 @@ function ProductsContent() {
   const [bulkBrand, setBulkBrand] = useState('');
   const [bulkMerchant, setBulkMerchant] = useState('amazon');
   const [bulkLoading, setBulkLoading] = useState(false);
-  const [bulkResults, setBulkResults] = useState<{ message: string; summary: { total: number; succeeded: number; failed: number }; results: { success: boolean; asin: string; title?: string; slug?: string; error?: string }[] } | null>(null);
+  const [bulkResults, setBulkResults] = useState<{ message: string; summary: { total: number; succeeded: number; failed: number }; results: { success: boolean; asin: string; title?: string; slug?: string; brandCreated?: boolean; categoryCreated?: boolean; error?: string }[] } | null>(null);
+  // Auto-fetch state (2-step: fetch preview → review → import)
+  const [bulkMode, setBulkMode] = useState<'quick' | 'autofetch'>('autofetch');
+  const [autoFetchLoading, setAutoFetchLoading] = useState(false);
+  const [autoFetchError, setAutoFetchError] = useState<string | null>(null);
+  const [autoFetchPreview, setAutoFetchPreview] = useState<AutoFetchResult[]>([]);
+  const [autoFetchEdited, setAutoFetchEdited] = useState<Record<number, { category?: string; brand?: string }>>({});
   const ITEMS_PER_PAGE = 20;
 
   const fetchData = useCallback(async () => {
@@ -434,7 +469,105 @@ function ProductsContent() {
       });
       const data = await res.json();
       setBulkResults(data);
-      if (data.summary?.succeeded > 0) { fetchData(); useDataStore.getState().invalidateProducts(); }
+      if (data.summary?.succeeded > 0) {
+        fetchData();
+        useDataStore.getState().invalidateProducts();
+        // Auto-close the modal shortly after a successful import so the products
+        // table (which was covered by the modal backdrop) becomes interactive again.
+        setTimeout(() => {
+          setShowBulkImport(false);
+          setBulkInput('');
+          setBulkResults(null);
+        }, 2500);
+      }
+    } catch (err) {
+      setBulkResults({ message: 'Import failed', summary: { total: 0, succeeded: 0, failed: 1 }, results: [{ success: false, asin: '', error: err instanceof Error ? err.message : 'Network error' }] });
+    }
+    setBulkLoading(false);
+  };
+
+  // Step 1: Auto-fetch product details from Amazon using the page_reader skill
+  const handleAutoFetch = async () => {
+    if (!bulkInput.trim()) return;
+    setAutoFetchLoading(true);
+    setAutoFetchError(null);
+    setAutoFetchPreview([]);
+    setAutoFetchEdited({});
+    try {
+      const inputs = bulkInput.trim().split('\n').map(l => l.trim()).filter(Boolean);
+      const res = await fetch('/api/products/auto-fetch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inputs }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAutoFetchError(data.error || `Auto-fetch failed (HTTP ${res.status})`);
+      } else {
+        setAutoFetchPreview(data.results || []);
+        if (data.summary?.failed > 0 && data.summary?.succeeded === 0) {
+          setAutoFetchError('All fetches failed. Amazon may be blocking automated requests — try fewer URLs or check the ASINs.');
+        }
+      }
+    } catch (err) {
+      setAutoFetchError(err instanceof Error ? err.message : 'Network error during auto-fetch');
+    }
+    setAutoFetchLoading(false);
+  };
+
+  // Step 2: Commit the auto-fetched (and possibly edited) products to the database
+  const handleAutoFetchImport = async () => {
+    const successful = autoFetchPreview.filter(r => r.success);
+    if (successful.length === 0) return;
+    setBulkLoading(true);
+    setBulkResults(null);
+    try {
+      const products = successful.map((r, idx) => {
+        const edits = autoFetchEdited[idx] || {};
+        return {
+          input: r.input,
+          asin: r.asin,
+          title: r.title,
+          brand: edits.brand || r.brand || bulkBrand || undefined,
+          image: r.image,
+          rating: r.rating,
+          ratingCount: r.ratingCount,
+          price: r.price,
+          features: r.features,
+          description: r.description,
+          overview: r.overview,
+          whoIsItFor: r.whoIsItFor,
+          whoShouldSkip: r.whoShouldSkip,
+          bestFor: r.bestFor,
+          pros: r.pros,
+          cons: r.cons,
+          categoryGuess: r.categoryGuess,
+          category: edits.category || bulkCategory || undefined,
+          merchant: bulkMerchant || 'amazon',
+        };
+      });
+      const res = await fetch('/api/products/bulk-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ products, defaultMerchant: bulkMerchant || 'amazon' }),
+      });
+      const data = await res.json();
+      setBulkResults(data);
+      setAutoFetchPreview([]);
+      setAutoFetchEdited({});
+      setBulkInput('');
+      if (data.summary?.succeeded > 0) {
+        fetchData();
+        useDataStore.getState().invalidateProducts();
+        useDataStore.getState().invalidateBrands();
+        useDataStore.getState().invalidateCategories();
+        // Auto-close the modal shortly after a successful import so the products
+        // table (which was covered by the modal backdrop) becomes interactive again.
+        setTimeout(() => {
+          setShowBulkImport(false);
+          setBulkResults(null);
+        }, 3000);
+      }
     } catch (err) {
       setBulkResults({ message: 'Import failed', summary: { total: 0, succeeded: 0, failed: 1 }, results: [{ success: false, asin: '', error: err instanceof Error ? err.message : 'Network error' }] });
     }
@@ -570,25 +703,59 @@ function ProductsContent() {
 
       {showBulkImport && (
         <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                 <Upload size={20} className="text-amber-500" /> Bulk Import Products
               </h3>
-              <button onClick={() => { setShowBulkImport(false); setBulkInput(''); setBulkResults(null); }} className="text-gray-400 hover:text-white"><X size={20} /></button>
+              <button onClick={() => { setShowBulkImport(false); setBulkInput(''); setBulkResults(null); setAutoFetchPreview([]); setAutoFetchError(null); }} className="text-gray-400 hover:text-white"><X size={20} /></button>
             </div>
 
             <div className="space-y-4">
+              {/* Mode toggle */}
+              <div className="flex gap-2 p-1 bg-gray-800/50 rounded-lg border border-gray-700">
+                <button
+                  onClick={() => { setBulkMode('autofetch'); setBulkResults(null); setAutoFetchPreview([]); setAutoFetchError(null); }}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${bulkMode === 'autofetch' ? 'bg-amber-500 text-black' : 'text-gray-300 hover:bg-gray-700/50'}`}
+                >
+                  <Wand2 size={15} /> Auto-Fetch (Recommended)
+                </button>
+                <button
+                  onClick={() => { setBulkMode('quick'); setBulkResults(null); setAutoFetchPreview([]); setAutoFetchError(null); }}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${bulkMode === 'quick' ? 'bg-gray-200 text-black' : 'text-gray-300 hover:bg-gray-700/50'}`}
+                >
+                  <Zap size={15} /> Quick Import
+                </button>
+              </div>
+
+              {bulkMode === 'autofetch' && (
+                <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
+                  <p className="text-xs text-amber-300 flex items-start gap-2">
+                    <Wand2 size={14} className="shrink-0 mt-0.5" />
+                    <span><strong className="font-semibold">Auto-Fetch mode:</strong> Paste Amazon URLs or ASINs below, click &quot;Fetch Details&quot;, and the system will automatically extract the title, brand, image, price, rating, features, and description from each Amazon product page. You can review &amp; tweak before importing — no manual field entry needed.</span>
+                  </p>
+                </div>
+              )}
+
+              {bulkMode === 'quick' && (
+                <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-3">
+                  <p className="text-xs text-blue-300 flex items-start gap-2">
+                    <Zap size={14} className="shrink-0 mt-0.5" />
+                    <span><strong className="font-semibold">Quick Import mode:</strong> Creates lightweight stub products from ASINs only (no page scraping). Faster but you&apos;ll need to fill in details manually afterwards. Good when Amazon pages are blocked.</span>
+                  </p>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Amazon URLs or ASINs</label>
-                <p className="text-xs text-gray-400 mb-2">Paste one URL or ASIN per line. Supports Amazon /dp/ and /gp/product/ URLs, or plain ASINs like B08V8HS2Z4</p>
+                <p className="text-xs text-gray-400 mb-2">Paste one URL or ASIN per line. Supports Amazon /dp/ and /gp/product/ URLs, or plain ASINs like B08V8HS2Z4. {bulkMode === 'autofetch' && 'Max 20 per batch for auto-fetch.'}</p>
                 <textarea
                   value={bulkInput}
                   onChange={e => setBulkInput(e.target.value)}
                   placeholder={"https://www.amazon.com/dp/B08V8HS2Z4\nhttps://www.amazon.com/gp/product/B09V3KXJPB\nB08N5WRWNW"}
-                  rows={8}
+                  rows={7}
                   className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-amber-500 font-mono"
-                  disabled={bulkLoading}
+                  disabled={bulkLoading || autoFetchLoading}
                 />
                 {bulkInput.trim() && (
                   <p className="text-xs text-gray-400 mt-1">{bulkInput.trim().split('\n').filter(l => l.trim()).length} items detected</p>
@@ -598,8 +765,8 @@ function ProductsContent() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-300 mb-1">Default Category</label>
-                  <select value={bulkCategory} onChange={e => setBulkCategory(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" disabled={bulkLoading}>
-                    <option value="">— None —</option>
+                  <select value={bulkCategory} onChange={e => setBulkCategory(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" disabled={bulkLoading || autoFetchLoading}>
+                    <option value="">— Auto / None —</option>
                     {categories.map(c => <option key={c.slug} value={c.name}>{c.name}</option>)}
                   </select>
                 </div>
@@ -609,14 +776,14 @@ function ProductsContent() {
                     type="text"
                     value={bulkBrand}
                     onChange={e => setBulkBrand(e.target.value)}
-                    placeholder="Brand name"
+                    placeholder="Auto-detect from page"
                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-amber-500"
-                    disabled={bulkLoading}
+                    disabled={bulkLoading || autoFetchLoading}
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-300 mb-1">Merchant</label>
-                  <select value={bulkMerchant} onChange={e => setBulkMerchant(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" disabled={bulkLoading}>
+                  <select value={bulkMerchant} onChange={e => setBulkMerchant(e.target.value)} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500" disabled={bulkLoading || autoFetchLoading}>
                     <option value="amazon">Amazon</option>
                     <option value="walmart">Walmart</option>
                     <option value="bestbuy">Best Buy</option>
@@ -627,29 +794,197 @@ function ProductsContent() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 pt-2">
-                <Button onClick={handleBulkImport} disabled={bulkLoading || !bulkInput.trim()} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">
-                  {bulkLoading ? <><Loader2 size={16} className="mr-1.5 animate-spin" /> Importing...</> : <><Upload size={16} className="mr-1.5" /> Import Products</>}
-                </Button>
-                <Button variant="outline" onClick={() => { setShowBulkImport(false); setBulkInput(''); setBulkResults(null); }} className="border-gray-600 text-gray-300">Cancel</Button>
+              {/* Auto-fetch error */}
+              {autoFetchError && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                  <p className="text-sm text-red-400 flex items-start gap-2">
+                    <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                    <span>{autoFetchError}</span>
+                  </p>
+                </div>
+              )}
+
+              {/* Auto-fetch preview results */}
+              {bulkMode === 'autofetch' && autoFetchPreview.length > 0 && (
+                <div className="border border-gray-700 rounded-lg overflow-hidden">
+                  <div className="bg-gray-800/50 px-3 py-2 border-b border-gray-700 flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-300">Fetched Products ({autoFetchPreview.filter(r => r.success).length}/{autoFetchPreview.length} successful)</span>
+                    <span className="text-xs text-gray-400">Review &amp; edit category/brand before importing</span>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto divide-y divide-gray-800">
+                    {autoFetchPreview.map((r, idx) => (
+                      <div key={idx} className={`p-3 ${r.success ? 'bg-gray-900/40' : 'bg-red-500/5'}`}>
+                        {r.success ? (
+                          <div className="space-y-2">
+                            <div className="flex items-start gap-3">
+                              {r.image && (
+                                <div className="w-14 h-14 rounded bg-gray-800 overflow-hidden shrink-0 border border-gray-700">
+                                  <img src={r.image} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0.3'; }} />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                                  {r.blocked ? (
+                                    <AlertTriangle size={13} className="text-amber-500 shrink-0" />
+                                  ) : (
+                                    <CheckCircle2 size={13} className="text-green-500 shrink-0" />
+                                  )}
+                                  <span className="text-xs font-mono text-gray-400">{r.asin}</span>
+                                  {r.blocked && <Badge variant="outline" className="text-[9px] border-amber-500/40 text-amber-400">AI-reconstructed</Badge>}
+                                  {r.source && !r.blocked && <Badge variant="outline" className="text-[9px] border-blue-500/30 text-blue-400">{r.source}</Badge>}
+                                  {r.price && <Badge variant="outline" className="text-[9px] border-green-500/30 text-green-400">${r.price}</Badge>}
+                                  {r.rating > 0 && (
+                                    <span className="text-[10px] text-amber-400 flex items-center gap-0.5">
+                                      <Star size={9} className="fill-amber-500 text-amber-500" /> {r.rating}
+                                      {r.ratingCount ? ` (${r.ratingCount.toLocaleString()})` : ''}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-white truncate">{r.title || 'Untitled'}</p>
+                                {r.brand && <p className="text-xs text-gray-400">Brand: {r.brand}</p>}
+                                {r.categoryGuess && <p className="text-[11px] text-gray-500">Category hint: {r.categoryGuess}</p>}
+                                {r.features && r.features.length > 0 && (
+                                  <ul className="text-[11px] text-gray-400 mt-1 space-y-0.5 list-disc list-inside">
+                                    {r.features.slice(0, 3).map((f, i) => <li key={i} className="truncate">{f}</li>)}
+                                    {r.features.length > 3 && <li className="text-gray-500">+{r.features.length - 3} more</li>}
+                                  </ul>
+                                )}
+                                {/* Editorial fields preview */}
+                                {((r.pros && r.pros.length > 0) || (r.cons && r.cons.length > 0) || (r.bestFor && r.bestFor.length > 0)) && (
+                                  <div className="mt-2 grid grid-cols-2 gap-2 text-[10px]">
+                                    {r.pros && r.pros.length > 0 && (
+                                      <div className="bg-green-500/5 border border-green-500/20 rounded px-1.5 py-1">
+                                        <div className="text-green-400 font-medium mb-0.5">Pros ({r.pros.length})</div>
+                                        <div className="text-gray-400 truncate">{r.pros[0]}{r.pros.length > 1 ? ` +${r.pros.length - 1} more` : ''}</div>
+                                      </div>
+                                    )}
+                                    {r.cons && r.cons.length > 0 && (
+                                      <div className="bg-red-500/5 border border-red-500/20 rounded px-1.5 py-1">
+                                        <div className="text-red-400 font-medium mb-0.5">Cons ({r.cons.length})</div>
+                                        <div className="text-gray-400 truncate">{r.cons[0]}{r.cons.length > 1 ? ` +${r.cons.length - 1} more` : ''}</div>
+                                      </div>
+                                    )}
+                                    {r.bestFor && r.bestFor.length > 0 && (
+                                      <div className="bg-blue-500/5 border border-blue-500/20 rounded px-1.5 py-1 col-span-2">
+                                        <div className="text-blue-400 font-medium mb-0.5">Best For</div>
+                                        <div className="flex flex-wrap gap-1">
+                                          {r.bestFor.slice(0, 4).map((b, i) => (
+                                            <span key={i} className="text-gray-300 bg-gray-800/60 rounded px-1">{b}</span>
+                                          ))}
+                                          {r.bestFor.length > 4 && <span className="text-gray-500">+{r.bestFor.length - 4}</span>}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                {r.whoIsItFor && (
+                                  <p className="text-[10px] text-gray-400 mt-1.5 bg-gray-800/40 border border-gray-700/50 rounded px-2 py-1">
+                                    <span className="text-amber-400 font-medium">For:</span> {r.whoIsItFor.slice(0, 120)}{r.whoIsItFor.length > 120 ? '…' : ''}
+                                  </p>
+                                )}
+                                {r.whoShouldSkip && (
+                                  <p className="text-[10px] text-gray-400 mt-1 bg-gray-800/40 border border-gray-700/50 rounded px-2 py-1">
+                                    <span className="text-red-400 font-medium">Skip:</span> {r.whoShouldSkip.slice(0, 120)}{r.whoShouldSkip.length > 120 ? '…' : ''}
+                                  </p>
+                                )}
+                                {r.overview && (
+                                  <p className="text-[10px] text-gray-500 mt-1 italic">
+                                    Overview: {r.overview.slice(0, 140)}{r.overview.length > 140 ? '…' : ''}
+                                  </p>
+                                )}
+                                {r.warning && (
+                                  <p className="text-[11px] text-amber-400 mt-1 bg-amber-500/10 border border-amber-500/20 rounded px-2 py-1">
+                                    ⚠ {r.warning}
+                                  </p>
+                                )}
+                              </div>
+                              <a href={`https://www.amazon.com/dp/${r.asin}`} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-amber-400 shrink-0" title="Open on Amazon">
+                                <ExternalLink size={13} />
+                              </a>
+                            </div>
+                            {/* Editable category/brand overrides */}
+                            <div className="grid grid-cols-2 gap-2 ml-[68px]">
+                              <select
+                                value={autoFetchEdited[idx]?.category ?? ''}
+                                onChange={e => setAutoFetchEdited(prev => ({ ...prev, [idx]: { ...prev[idx], category: e.target.value } }))}
+                                className="px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs text-white focus:outline-none focus:border-amber-500"
+                              >
+                                <option value="">{r.categoryGuess || 'Auto category'}</option>
+                                {categories.map(c => <option key={c.slug} value={c.name}>{c.name}</option>)}
+                              </select>
+                              <input
+                                type="text"
+                                value={autoFetchEdited[idx]?.brand ?? ''}
+                                onChange={e => setAutoFetchEdited(prev => ({ ...prev, [idx]: { ...prev[idx], brand: e.target.value } }))}
+                                placeholder={r.brand || 'Brand'}
+                                className="px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs text-white placeholder-gray-600 focus:outline-none focus:border-amber-500"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-xs">
+                            <AlertTriangle size={13} className="text-red-400 shrink-0" />
+                            <span className="font-mono text-gray-400">{r.input}</span>
+                            <span className="text-red-400 ml-auto">{r.error}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex items-center gap-3 pt-2 flex-wrap">
+                {bulkMode === 'autofetch' && autoFetchPreview.length === 0 && (
+                  <Button onClick={handleAutoFetch} disabled={autoFetchLoading || !bulkInput.trim()} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">
+                    {autoFetchLoading ? <><Loader2 size={16} className="mr-1.5 animate-spin" /> Fetching...</> : <><Wand2 size={16} className="mr-1.5" /> Fetch Details</>}
+                  </Button>
+                )}
+                {bulkMode === 'autofetch' && autoFetchPreview.length > 0 && autoFetchPreview.some(r => r.success) && (
+                  <Button onClick={handleAutoFetchImport} disabled={bulkLoading} className="bg-green-600 hover:bg-green-500 text-white font-medium">
+                    {bulkLoading ? <><Loader2 size={16} className="mr-1.5 animate-spin" /> Importing...</> : <><Upload size={16} className="mr-1.5" /> Import {autoFetchPreview.filter(r => r.success).length} Products</>}
+                  </Button>
+                )}
+                {bulkMode === 'autofetch' && autoFetchPreview.length > 0 && (
+                  <Button variant="outline" onClick={() => { setAutoFetchPreview([]); setAutoFetchError(null); }} className="border-gray-600 text-gray-300" disabled={bulkLoading}>
+                    <RefreshCw size={14} className="mr-1.5" /> Reset &amp; Refetch
+                  </Button>
+                )}
+                {bulkMode === 'quick' && (
+                  <Button onClick={handleBulkImport} disabled={bulkLoading || !bulkInput.trim()} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">
+                    {bulkLoading ? <><Loader2 size={16} className="mr-1.5 animate-spin" /> Importing...</> : <><Zap size={16} className="mr-1.5" /> Quick Import</>}
+                  </Button>
+                )}
+                <Button variant="outline" onClick={() => { setShowBulkImport(false); setBulkInput(''); setBulkResults(null); setAutoFetchPreview([]); setAutoFetchError(null); }} className="border-gray-600 text-gray-300">Close</Button>
               </div>
 
               {bulkResults && (
                 <div className="mt-4 space-y-3">
                   <div className={`p-3 rounded-lg ${bulkResults.summary.failed === 0 ? 'bg-green-500/10 border border-green-500/20' : 'bg-amber-500/10 border border-amber-500/20'}`}>
                     <p className={`text-sm font-medium ${bulkResults.summary.failed === 0 ? 'text-green-400' : 'text-amber-400'}`}>{bulkResults.message}</p>
+                    {bulkResults.results.some(r => r.brandCreated || r.categoryCreated) && (
+                      <p className="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
+                        <Plus size={10} /> Auto-created {bulkResults.results.filter(r => r.brandCreated).length} brand(s) and {bulkResults.results.filter(r => r.categoryCreated).length} category(ies) that didn&apos;t exist yet.
+                      </p>
+                    )}
                   </div>
                   {bulkResults.results.length > 0 && (
                     <div className="max-h-48 overflow-y-auto space-y-1">
                       {bulkResults.results.map((r, i) => (
                         <div key={i} className={`flex items-center gap-2 text-xs px-2 py-1.5 rounded ${r.success ? 'bg-green-500/5 text-green-400' : 'bg-red-500/5 text-red-400'}`}>
                           <span className="font-mono">{r.asin}</span>
-                          {r.title && <span className="text-gray-400 truncate">{r.title}</span>}
+                          {r.title && <span className="text-gray-400 truncate flex-1">{r.title}</span>}
+                          {r.success && r.brandCreated && <Badge variant="outline" className="text-[9px] border-blue-500/30 text-blue-400 shrink-0">+Brand</Badge>}
+                          {r.success && r.categoryCreated && <Badge variant="outline" className="text-[9px] border-purple-500/30 text-purple-400 shrink-0">+Category</Badge>}
                           {!r.success && r.error && <span className="text-red-400 ml-auto">{r.error}</span>}
-                          {r.success && r.slug && <span className="text-green-500 ml-auto">✓ {r.slug}</span>}
+                          {r.success && r.slug && <span className="text-green-500 ml-auto shrink-0">✓ {r.slug}</span>}
                         </div>
                       ))}
                     </div>
+                  )}
+                  {bulkResults.summary?.succeeded > 0 && (
+                    <p className="text-[11px] text-gray-400 text-center">Modal will close automatically in a moment… (products table refreshed)</p>
                   )}
                 </div>
               )}
@@ -697,6 +1032,8 @@ function ProductFormModal({ product, categories, brands, onClose, saving, setSav
   const [imagePreview, setImagePreview] = useState(product?.image || '');
   const [galleryImages, setGalleryImages] = useState<string[]>(product?.gallery || []);
   const [galleryUploading, setGalleryUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [galleryUploadError, setGalleryUploadError] = useState<string | null>(null);
 
   const handleTitleChange = (title: string) => {
     setForm((f) => ({ ...f, title, slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') }));
@@ -711,18 +1048,24 @@ function ProductFormModal({ product, categories, brands, onClose, saving, setSav
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    setUploadError(null);
     try {
       const formData = new FormData();
       formData.append('file', file);
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      if (res.ok) {
-        const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) {
         setImagePreview(data.url);
+      } else {
+        setUploadError(data.error || `Upload failed (HTTP ${res.status}). Supported: JPG, PNG, WebP, GIF. Max 3 MB.`);
       }
     } catch (err) {
       console.error('Upload failed:', err);
+      setUploadError(err instanceof Error ? err.message : 'Network error during upload');
     } finally {
       setUploading(false);
+      // Reset the input so the same file can be re-selected after an error
+      e.target.value = '';
     }
   };
 
@@ -730,22 +1073,33 @@ function ProductFormModal({ product, categories, brands, onClose, saving, setSav
     const files = e.target.files;
     if (!files || files.length === 0) return;
     setGalleryUploading(true);
+    setGalleryUploadError(null);
     try {
       const newUrls: string[] = [];
+      const errors: string[] = [];
       for (let i = 0; i < files.length; i++) {
         const formData = new FormData();
         formData.append('file', files[i]);
         const res = await fetch('/api/upload', { method: 'POST', body: formData });
-        if (res.ok) {
-          const data = await res.json();
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.url) {
           newUrls.push(data.url);
+        } else {
+          errors.push(`${files[i].name}: ${data.error || `HTTP ${res.status}`}`);
         }
       }
-      setGalleryImages((prev) => [...prev, ...newUrls]);
+      if (newUrls.length > 0) {
+        setGalleryImages((prev) => [...prev, ...newUrls]);
+      }
+      if (errors.length > 0) {
+        setGalleryUploadError(errors.join(' | '));
+      }
     } catch (err) {
       console.error('Gallery upload failed:', err);
+      setGalleryUploadError(err instanceof Error ? err.message : 'Network error during gallery upload');
     } finally {
       setGalleryUploading(false);
+      e.target.value = '';
     }
   };
 
@@ -867,19 +1221,41 @@ function ProductFormModal({ product, categories, brands, onClose, saving, setSav
             <div>
               <div className="flex items-center gap-3">
                 {imagePreview && (
-                  <div className="w-20 h-20 rounded-lg bg-gray-800 overflow-hidden shrink-0">
+                  <div className="w-20 h-20 rounded-lg bg-gray-800 overflow-hidden shrink-0 border border-gray-700">
                     <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                   </div>
                 )}
-                <div>
+                <div className="flex-1">
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                     onChange={handleImageUpload}
                     className="text-sm text-gray-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-amber-500/20 file:text-amber-400 hover:file:bg-amber-500/30"
                   />
+                  <p className="text-[11px] text-gray-400 mt-1.5">
+                    Supported: <span className="text-gray-300 font-medium">JPG, PNG, WebP, GIF</span> · Max <span className="text-gray-300 font-medium">3 MB</span>
+                  </p>
                   {uploading && <p className="text-xs text-amber-400 mt-1 flex items-center gap-1"><Loader2 size={10} className="animate-spin" /> Uploading...</p>}
+                  {uploadError && (
+                    <p className="text-xs text-red-400 mt-1 flex items-start gap-1 bg-red-500/10 border border-red-500/20 rounded px-2 py-1">
+                      <span className="shrink-0">⚠</span>
+                      <span>{uploadError}</span>
+                    </p>
+                  )}
+                  {imagePreview && imagePreview.startsWith('data:') && (
+                    <p className="text-[10px] text-green-400 mt-1">✓ Image uploaded & embedded</p>
+                  )}
                 </div>
+              </div>
+              <div className="mt-2">
+                <label className="text-xs text-gray-300 mb-1 block">…or paste an image URL</label>
+                <input
+                  type="text"
+                  value={imagePreview.startsWith('data:') ? '' : imagePreview}
+                  onChange={(e) => { setImagePreview(e.target.value); setUploadError(null); }}
+                  placeholder="https://example.com/product.jpg or /images/my-product.jpg"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-amber-500"
+                />
               </div>
             </div>
           </section>
@@ -888,20 +1264,30 @@ function ProductFormModal({ product, categories, brands, onClose, saving, setSav
             <div>
               <div className="flex flex-wrap gap-2 mb-2">
                 {galleryImages.map((img, idx) => (
-                  <div key={idx} className="relative w-20 h-20 rounded-lg bg-gray-800 overflow-hidden group">
+                  <div key={idx} className="relative w-20 h-20 rounded-lg bg-gray-800 overflow-hidden group border border-gray-700">
                     <img src={img} alt="" className="w-full h-full object-cover" />
                     <button onClick={() => removeGalleryImage(idx)} className="absolute top-0.5 right-0.5 bg-red-500/80 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">×</button>
                   </div>
                 ))}
+                {galleryImages.length === 0 && (
+                  <div className="w-20 h-20 rounded-lg bg-gray-800/50 border border-dashed border-gray-700 flex items-center justify-center text-gray-500 text-[10px] text-center px-1">No gallery</div>
+                )}
               </div>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                 multiple
                 onChange={handleGalleryUpload}
                 className="text-sm text-gray-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-gray-800 file:text-gray-300 hover:file:bg-gray-700"
               />
+              <p className="text-[11px] text-gray-400 mt-1.5">Supported: <span className="text-gray-300 font-medium">JPG, PNG, WebP, GIF</span> · Max <span className="text-gray-300 font-medium">3 MB</span> each · Multiple files allowed</p>
               {galleryUploading && <p className="text-xs text-amber-400 mt-1 flex items-center gap-1"><Loader2 size={10} className="animate-spin" /> Uploading gallery...</p>}
+              {galleryUploadError && (
+                <p className="text-xs text-red-400 mt-1 flex items-start gap-1 bg-red-500/10 border border-red-500/20 rounded px-2 py-1">
+                  <span className="shrink-0">⚠</span>
+                  <span>{galleryUploadError}</span>
+                </p>
+              )}
             </div>
           </section>
           <section>
