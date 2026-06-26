@@ -316,6 +316,10 @@ function ProductsContent() {
   const [deleteTarget, setDeleteTarget] = useState<ProductItem | null>(null);
   const [saving, setSaving] = useState(false);
   const [duplicating, setDuplicating] = useState<string | null>(null);
+  // Re-fetch state (re-run auto-fetch on existing product to fill empty fields)
+  const [refetching, setRefetching] = useState<string | null>(null);
+  const [refetchResult, setRefetchResult] = useState<{ product: string; message: string; fields: string[] } | null>(null);
+  const [refetchOverwrite, setRefetchOverwrite] = useState(false);
 
   // Bulk import state
   const [showBulkImport, setShowBulkImport] = useState(false);
@@ -448,6 +452,41 @@ function ProductsContent() {
       console.error('Failed to duplicate product:', err);
     }
     setDuplicating(null);
+  };
+
+  // Re-fetch: re-run auto-fetch on an existing product to populate empty fields.
+  // Calls /api/products/refetch which re-extracts from Amazon and PATCHes the product.
+  const handleRefetch = async (product: ProductItem, overwrite = false) => {
+    if (!product.asin) {
+      setRefetchResult({ product: product.title, message: 'Product has no ASIN — cannot re-fetch from Amazon', fields: [] });
+      return;
+    }
+    setRefetching(product.id);
+    setRefetchResult(null);
+    try {
+      const res = await fetch('/api/products/refetch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: product.slug, overwrite }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRefetchResult({ product: product.title, message: data.error || `Re-fetch failed (HTTP ${res.status})`, fields: [] });
+      } else {
+        setRefetchResult({
+          product: product.title,
+          message: data.message || 'Re-fetched successfully',
+          fields: data.fieldsUpdated || [],
+        });
+        fetchData();
+        useDataStore.getState().invalidateProducts();
+        useDataStore.getState().invalidateBrands();
+        useDataStore.getState().invalidateCategories();
+      }
+    } catch (err) {
+      setRefetchResult({ product: product.title, message: err instanceof Error ? err.message : 'Network error', fields: [] });
+    }
+    setRefetching(null);
   };
 
   const handleBulkImport = async () => {
@@ -627,6 +666,37 @@ function ProductsContent() {
         </div>
       )}
 
+      {/* Re-fetch mode toggle + result banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-2.5 bg-gray-900/60 border border-gray-800 rounded-lg">
+        <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={refetchOverwrite}
+            onChange={(e) => setRefetchOverwrite(e.target.checked)}
+            className="h-3.5 w-3.5 rounded border-gray-600 bg-gray-800 text-green-500 focus:ring-green-500/40"
+          />
+          <RefreshCw size={12} className={refetchOverwrite ? 'text-green-400' : 'text-gray-500'} />
+          <span className={refetchOverwrite ? 'text-green-400' : ''}>
+            Re-fetch mode: <span className="font-medium">{refetchOverwrite ? 'Overwrite ALL fields' : 'Fill empty fields only'}</span>
+          </span>
+          <span className="text-gray-600 hidden sm:inline">·</span>
+          <span className="text-gray-600 hidden sm:inline">Click the ⟳ icon on any product row to re-extract from Amazon</span>
+        </label>
+        {refetchResult && (
+          <div className={`flex items-start gap-2 text-xs px-3 py-2 rounded border ${refetchResult.fields.length > 0 ? 'bg-green-500/10 border-green-500/30 text-green-300' : 'bg-red-500/10 border-red-500/30 text-red-300'} sm:ml-auto`}>
+            {refetchResult.fields.length > 0 ? <CheckCircle2 size={13} className="mt-0.5 shrink-0" /> : <AlertTriangle size={13} className="mt-0.5 shrink-0" />}
+            <div className="min-w-0">
+              <div className="font-medium truncate">{refetchResult.product}</div>
+              <div>{refetchResult.message}</div>
+              {refetchResult.fields.length > 0 && (
+                <div className="text-[10px] text-gray-400 mt-0.5">Updated: {refetchResult.fields.join(', ')}</div>
+              )}
+            </div>
+            <button onClick={() => setRefetchResult(null)} className="text-gray-500 hover:text-white ml-1 shrink-0"><X size={12} /></button>
+          </div>
+        )}
+      </div>
+
       <Card className="bg-gray-900 border-gray-800 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -657,7 +727,7 @@ function ProductsContent() {
                     <td className="py-2.5 px-4"><div className="flex items-center gap-1"><Star size={12} className="text-amber-500 fill-amber-500" /><span className="text-white">{product.rating}</span></div></td>
                     <td className="py-2.5 px-4"><Badge variant="outline" className="text-[10px] border-gray-600 text-gray-300 capitalize">{product.merchant}</Badge>{(product.affiliateUrl || product.priceUrl) && <div className="mt-0.5"><Badge variant="outline" className="text-[9px] border-amber-500/30 text-amber-400">Custom Link</Badge></div>}</td>
                     <td className="py-2.5 px-4"><Badge variant="outline" className={`text-[10px] ${product.reviewStatus === 'verified' ? 'border-green-500/30 text-green-400' : product.reviewStatus === 'updated' ? 'border-amber-500/30 text-amber-400' : 'border-blue-500/30 text-blue-400'}`}>{product.reviewStatus}</Badge></td>
-                    <td className="py-2.5 px-4"><div className="flex items-center gap-1"><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-amber-400" onClick={() => { setEditingProduct(product); setShowForm(true); }}>Edit</Button><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-blue-400" onClick={() => handleDuplicate(product)} disabled={duplicating === product.id}>{duplicating === product.id ? <Loader2 size={12} className="animate-spin" /> : <Copy size={12} />}</Button><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-red-400" onClick={() => setDeleteTarget(product)}>Delete</Button></div></td>
+                    <td className="py-2.5 px-4"><div className="flex items-center gap-1"><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-amber-400" onClick={() => { setEditingProduct(product); setShowForm(true); }}>Edit</Button><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-green-400" onClick={() => handleRefetch(product, refetchOverwrite)} disabled={refetching === product.id} title={refetchOverwrite ? "Re-fetch from Amazon (overwrite ALL fields)" : "Re-fetch from Amazon (fill empty fields only)"}>{refetching === product.id ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}</Button><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-blue-400" onClick={() => handleDuplicate(product)} disabled={duplicating === product.id}>{duplicating === product.id ? <Loader2 size={12} className="animate-spin" /> : <Copy size={12} />}</Button><Button variant="ghost" size="sm" className="h-7 px-2 text-gray-400 hover:text-red-400" onClick={() => setDeleteTarget(product)}>Delete</Button></div></td>
                   </tr>
                 ))
               )}
